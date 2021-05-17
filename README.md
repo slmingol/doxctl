@@ -68,7 +68,7 @@ Global Flags:
 
 ## DNS Example Output
 
-### resolverChk
+#### resolverChk
 
 <details><summary>Tree - CLICK ME</summary>
 <p>
@@ -92,7 +92,7 @@ ServerAddresses  set
 </p>
 </details>
 
-### pingChk
+#### pingChk
 
 <details><summary>Tree - CLICK ME</summary>
 <p>
@@ -124,7 +124,7 @@ Can we reach port 53 (DNS) via UDP? 	 ---> yes <--- 		 [ Connection to 10.5.0.19
 </p>
 </details>
 
-### digChk
+#### digChk
 
 <details><summary>Tree - CLICK ME</summary>
 <p>
@@ -160,7 +160,7 @@ Check if we can resolve all 24 IDM server names (idm-01[ab].*)? 	 ---> yes <--- 
 </p>
 </details>
 
-### Debugging
+#### Debugging
 All the CLI subcommands can make use of either the `-v` or the `--verbose` switch to gather further diagnostics which can be helpful when triaging connectivity issues.
 
 <details><summary>Tree - CLICK ME</summary>

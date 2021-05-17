@@ -28,7 +28,7 @@ import (
 )
 
 var cfgFile string
-var verboseChk bool
+var verboseChk, allChk bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -61,7 +61,7 @@ func init() {
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.doxctl.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&verboseChk, "verbose", "v", false, "Enable verbose output of commands")
 
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.

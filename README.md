@@ -160,7 +160,77 @@ Check if we can resolve all 24 IDM server names (idm-01[ab].*)? 	 ---> yes <--- 
 </p>
 </details>
 
-#### Debugging
+------------------------------------------------------------------------------
+
+### VPN
+```
+$ doxctl vpn -h
+
+doxctl's 'vpn' subcommand can help triage VPN related configuration issues,
+& routes related to a VPN connection.
+
+Usage:
+  doxctl vpn [flags]
+
+Flags:
+  -a, --allChk           Run all the checks in this subcommand module
+  -h, --help             help for vpn
+  -i, --ifReachableChk   Check if network interfaces are reachable
+  -r, --vpnRoutesChk     Check if >5 VPN routes are defined
+
+Global Flags:
+  -v, --verbose   Enable verbose output of commands
+
+
+```
+
+#### ifReachableChk
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+```
+$ doxctl vpn -i
+
+
+Interfaces Reachable Checks
+===========================
+
+
+How many network interfaces found? 		 ---> 2 <--- 	 [en0 utun2]
+At least 1 interface's a utun device? 		 ---> yes <---
+All interfaces are reachable? 			 ---> yes <---
+
+
+
+
+```
+</p>
+</details>
+
+#### vpnRoutesChk
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+```
+$ doxctl vpn -r
+
+
+VPN Interface Route Checks
+===========================
+
+
+At least 5 routes using interface [utun2]? 		 ---> yes <--- 	 [147]
+
+
+
+
+```
+</p>
+</details>
+
+------------------------------------------------------------------------------
+
+### Debugging
 All the CLI subcommands can make use of either the `-v` or the `--verbose` switch to gather further diagnostics which can be helpful when triaging connectivity issues.
 
 <details><summary>Tree - CLICK ME</summary>

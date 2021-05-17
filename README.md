@@ -10,6 +10,8 @@
 | Resolvers | VPN defined DNS resolvers are defined and reachable |
 | Routing and connectivity | When on the VPN well-known servers are reachable |
 
+<img src="./imgs/0bbb4991cac283330a29c537711f0ac2_whats_up_doc.jpg" style="width:1000px;height:200px;">
+
 ## Usage
 ### General
 ```

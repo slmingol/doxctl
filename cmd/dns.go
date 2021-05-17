@@ -1,4 +1,4 @@
-// Package dnsCmd implements DNS diagnostic checks
+// Package cmd - dns implements DNS diagnostic checks
 package cmd
 
 import (
@@ -9,53 +9,51 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// dnsCmd represents the dns command
 var dnsCmd = &cobra.Command{
 	Use:   "dns",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Run diagnostics related to DNS servers' (resolvers') configurations",
+	Long: `
+doxctl's 'dns' subcommand can help triage DNS resovler configuration issues, 
+general access to DNS resolvers and name resolution against DNS resolvers.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		diag()
+		dnsDiag()
 	},
 }
+
+var resolverChk, pingChk, digChk bool
 
 func init() {
 	rootCmd.AddCommand(dnsCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// dnsCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// dnsCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	dnsCmd.Flags().BoolVarP(&resolverChk, "resolverChk", "r", false, "check if VPN designated DNS resolvers are configured")
+	dnsCmd.Flags().BoolVarP(&pingChk, "pingChk", "p", false, "check if VPN defined resolvers are pingable & reachable")
+	dnsCmd.Flags().BoolVarP(&digChk, "digChk", "d", false, "check if VPN defined resolvers respond with well-known servers in DCs")
 }
 
-func diag() {
-	fmt.Println("dns diag")
+func dnsDiag() {
+	cmd := exec.Command("")
 
-	// get `model_cmds/02_dns.sh` executable
-	cmdExecutable, _ := exec.LookPath("model_cmds/02_dns.sh")
+	var verboseCmd string
 
-	// `model_cmds/02_dns.sh` command
-	cmdDNS := &exec.Cmd{
-		Path:   cmdExecutable,
-		Args:   []string{cmdExecutable, ""},
-		Stdout: os.Stdout,
-		Stderr: os.Stdout,
+	if verboseChk {
+		verboseCmd = "1"
+	} else {
+		verboseCmd = "0"
 	}
 
-	fmt.Println(cmdDNS.String())
+	switch {
+	case resolverChk:
+		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverChk"+" "+verboseCmd)
+	case pingChk:
+		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverPingChk"+" "+verboseCmd)
+	case digChk:
+		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverDigChk"+" "+verboseCmd)
+	}
 
-	// see command represented by `cmdDns`
-	if err := cmdDNS.Run(); err != nil {
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stdout
+
+	if err := cmd.Run(); err != nil {
 		fmt.Println("Error:", err)
 	}
 }

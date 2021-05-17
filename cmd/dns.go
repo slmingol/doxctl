@@ -20,7 +20,7 @@ general access to DNS resolvers and name resolution against DNS resolvers.`,
 	},
 }
 
-var resolverChk, pingChk, digChk, allChk bool
+var resolverChk, pingChk, digChk bool
 
 func init() {
 	rootCmd.AddCommand(dnsCmd)

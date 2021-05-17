@@ -87,7 +87,7 @@ vpnInterfaceRoutesChk() {
 
     printf "\n\nVPN Interface Route Checks\n===========================\n\n\n"
     scutil_nwi=$(scutil --nwi)
-    vpn_if=$(echo "$scutil_nwi" | grep 'Network interfaces:' | grep -o utun[0-9])
+    vpn_if=$(echo "$scutil_nwi" | grep 'Network interfaces:' | grep -o utun[0-9] || echo "NIL")
 
     netstatOut=$(netstat -r -f inet | grep "$vpn_if")
     vpnRouteCnt=$(echo "$netstatOut" | grep "$vpn_if" -c)

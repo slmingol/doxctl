@@ -44,6 +44,8 @@ Use "doxctl [command] --help" for more information about a command.
 
 ```
 
+------------------------------------------------------------------------------
+
 ### DNS
 ```
 $ doxctl dns -h
@@ -66,7 +68,7 @@ Global Flags:
 
 ```
 
-## DNS Example Output
+### DNS Example Output
 
 #### resolverChk
 
@@ -183,6 +185,8 @@ Global Flags:
 
 
 ```
+
+### VPN Example Output
 
 #### ifReachableChk
 <details><summary>Tree - CLICK ME</summary>

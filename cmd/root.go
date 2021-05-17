@@ -1,4 +1,6 @@
 /*
+Package cmd - ....
+
 Copyright © 2021 Sam Mingolelli <github@lamolabs.org>
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,39 +28,39 @@ import (
 )
 
 var cfgFile string
+var verboseChk bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "doxctl",
-	Short: "doxctl - is a CLI to help triage network/DNS/VPN connectivity issues",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "A CLI to help triage network/DNS/VPN connectivity issues",
+	Long: `
+'doxctl' is a collection of tools which can be used to diagnose:
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) { fmt.Println("Hello CLI") },
+  - DNS resolvers 
+  - VPN access
+  - General access to well-known servers
+  - ... or general network connectivity issues 
+
+	`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("doxctl, reporting for duty!")
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
+	fmt.Println("\n")
 }
 
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.doxctl.yaml)")
+	rootCmd.PersistentFlags().BoolVarP(&verboseChk, "verbose", "v", false, "Enable verbose output of commands")
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.doxctl.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 

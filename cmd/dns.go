@@ -20,14 +20,15 @@ general access to DNS resolvers and name resolution against DNS resolvers.`,
 	},
 }
 
-var resolverChk, pingChk, digChk bool
+var resolverChk, pingChk, digChk, allChk bool
 
 func init() {
 	rootCmd.AddCommand(dnsCmd)
 
-	dnsCmd.Flags().BoolVarP(&resolverChk, "resolverChk", "r", false, "check if VPN designated DNS resolvers are configured")
-	dnsCmd.Flags().BoolVarP(&pingChk, "pingChk", "p", false, "check if VPN defined resolvers are pingable & reachable")
-	dnsCmd.Flags().BoolVarP(&digChk, "digChk", "d", false, "check if VPN defined resolvers respond with well-known servers in DCs")
+	dnsCmd.Flags().BoolVarP(&resolverChk, "resolverChk", "r", false, "Check if VPN designated DNS resolvers are configured")
+	dnsCmd.Flags().BoolVarP(&pingChk, "pingChk", "p", false, "Check if VPN defined resolvers are pingable & reachable")
+	dnsCmd.Flags().BoolVarP(&digChk, "digChk", "d", false, "Check if VPN defined resolvers respond with well-known servers in DCs")
+	dnsCmd.Flags().BoolVarP(&allChk, "allChk", "a", false, "Run all the checks in this subcommand module")
 }
 
 func dnsDiag() {
@@ -47,6 +48,10 @@ func dnsDiag() {
 	case pingChk:
 		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverPingChk"+" "+verboseCmd)
 	case digChk:
+		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverDigChk"+" "+verboseCmd)
+	case allChk:
+		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverChk"+" "+verboseCmd)
+		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverPingChk"+" "+verboseCmd)
 		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverDigChk"+" "+verboseCmd)
 	}
 

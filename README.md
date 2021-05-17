@@ -263,3 +263,14 @@ ServerAddresses  set
 ```
 </p>
 </details>
+
+### RESOURCES
+
+#### References
+- https://levelup.gitconnected.com/exploring-go-packages-cobra-fce6c4e331d6
+- https://github.com/spf13/cobra
+- https://dev.to/lumexralph/building-a-multipurpose-cli-tool-with-cobra-and-go-2492
+- https://towardsdatascience.com/how-to-create-a-cli-in-golang-with-cobra-d729641c7177
+
+#### Example CLI tools written in Go
+- https://github.com/docker/hub-tool/tree/main/internal/commands

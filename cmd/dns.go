@@ -42,19 +42,23 @@ func dnsDiag() {
 		verboseCmd = "0"
 	}
 
+	var cmdString string
+
 	switch {
 	case resolverChk:
-		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverChk"+" "+verboseCmd)
+		cmdString = ". model_cmds/02_dns.sh; dnsResolverChk" + " " + verboseCmd
 	case pingChk:
-		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverPingChk"+" "+verboseCmd)
+		cmdString = ". model_cmds/02_dns.sh; dnsResolverPingChk" + " " + verboseCmd
 	case digChk:
-		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverDigChk"+" "+verboseCmd)
+		cmdString = ". model_cmds/02_dns.sh; dnsResolverDigChk" + " " + verboseCmd
 	case allChk:
-		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverChk"+" "+verboseCmd)
-		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverPingChk"+" "+verboseCmd)
-		cmd = exec.Command("bash", "-c", ". model_cmds/02_dns.sh; dnsResolverDigChk"+" "+verboseCmd)
+		cmdString = ". model_cmds/02_dns.sh" +
+			"; dnsResolverChk" + " " + verboseCmd +
+			"; dnsResolverPingChk" + " " + verboseCmd +
+			"; dnsResolverDigChk" + " " + verboseCmd
 	}
 
+	cmd = exec.Command("bash", "-c", cmdString)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stdout
 

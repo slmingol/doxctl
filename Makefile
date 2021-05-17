@@ -1,11 +1,10 @@
 install:
 	go install doxctl
 
-
-
-
-
-
+add_commit_push:
+	git add .
+	git commit -m "Makefile commit"
+	git push
 
 
 

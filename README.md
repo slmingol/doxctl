@@ -267,10 +267,10 @@ ServerAddresses  set
 ### RESOURCES
 
 #### References
-- https://levelup.gitconnected.com/exploring-go-packages-cobra-fce6c4e331d6
-- https://github.com/spf13/cobra
-- https://dev.to/lumexralph/building-a-multipurpose-cli-tool-with-cobra-and-go-2492
-- https://towardsdatascience.com/how-to-create-a-cli-in-golang-with-cobra-d729641c7177
+- [Exploring Go Packages: Cobra](https://levelup.gitconnected.com/exploring-go-packages-cobra-fce6c4e331d6)
+- [CLI Command Line SDK - Cobra](https://github.com/spf13/cobra)
+- [Building a multipurpose CLI tool with Cobra and Go](https://dev.to/lumexralph/building-a-multipurpose-cli-tool-with-cobra-and-go-2492)
+- [How to create a CLI in golang with cobra](https://towardsdatascience.com/how-to-create-a-cli-in-golang-with-cobra-d729641c7177)
 
 #### Example CLI tools written in Go
-- https://github.com/docker/hub-tool/tree/main/internal/commands
+- [docker/hub-tool](ttps://github.com/docker/hub-tool/tree/main/internal/commands)

@@ -92,7 +92,7 @@ vpnInterfaceRoutesChk() {
     netstatOut=$(netstat -r -f inet | grep "$vpn_if")
     vpnRouteCnt=$(echo "$netstatOut" | grep "$vpn_if" -c)
 
-    printf "At least 5 routes using interface [%s]? \t\t ---> %s <--- \t [%s]\n" \
+    printf "At least 5 routes using interface [%s]? \t ---> %s <--- \t [%s]\n" \
             "$vpn_if" \
             "$([[ vpnRouteCnt -ge 5 ]] && echo yes || echo no)" \
             "$vpnRouteCnt"

@@ -41,11 +41,13 @@ var rootCmd = &cobra.Command{
 	Use:   "doxctl",
 	Short: "A CLI to help triage network/DNS/VPN connectivity issues",
 	Long: `
-'doxctl' is a collection of tools which can be used to diagnose:
+'doxctl' is a collection of tools which can be used to diagnose & triage problems 
+stemming from the following areas with a laptop or desktop system:
 
-  - DNS resolvers 
-  - VPN access
+  - DNS, specifically with the configuration of resolvers 
+  - VPN configuration and network connectivity over it
   - General access to well-known servers
+  - General access to well-known services
   - ... or general network connectivity issues 
 
 	`,

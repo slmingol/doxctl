@@ -1,4 +1,6 @@
 /*
+Package cmd - ...
+
 Copyright © 2021 Sam Mingolelli <github@lamolabs.org>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

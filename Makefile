@@ -18,7 +18,7 @@ tag:
 release:
 	goreleaser release --rm-dist
 commit:
-	git add . ; make tag; git commit -m "Makefile commit" ; git push #; make tag
+	make tag ; git add . ; git commit -m "Makefile commit" ; git push #; make tag
 
 
 ### Useful for debugging ###

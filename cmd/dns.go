@@ -37,9 +37,7 @@ var dnsCmd = &cobra.Command{
 	Long: `
 doxctl's 'dns' subcommand can help triage DNS resovler configuration issues, 
 general access to DNS resolvers and name resolution against DNS resolvers.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		dnsDiag()
-	},
+	Run: dnsExecute,
 }
 
 var resolverChk, pingChk, digChk bool
@@ -53,8 +51,8 @@ func init() {
 	dnsCmd.Flags().BoolVarP(&allChk, "allChk", "a", false, "Run all the checks in this subcommand module")
 }
 
-func dnsDiag() {
-	cmd := exec.Command("")
+func dnsExecute(cmd *cobra.Command, args []string) {
+	exeCmd := exec.Command("")
 
 	var verboseCmd string
 
@@ -78,13 +76,16 @@ func dnsDiag() {
 			"; dnsResolverChk" + " " + verboseCmd +
 			"; dnsResolverPingChk" + " " + verboseCmd +
 			"; dnsResolverDigChk" + " " + verboseCmd
+	default:
+		cmd.Usage()
+		os.Exit(1)
 	}
 
-	cmd = exec.Command("bash", "-c", cmdString)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stdout
+	exeCmd = exec.Command("bash", "-c", cmdString)
+	exeCmd.Stdout = os.Stdout
+	exeCmd.Stderr = os.Stdout
 
-	if err := cmd.Run(); err != nil {
+	if err := exeCmd.Run(); err != nil {
 		fmt.Println("Error:", err)
 	}
 }

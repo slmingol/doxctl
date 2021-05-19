@@ -38,9 +38,7 @@ var vpnCmd = &cobra.Command{
 	Long: `
 doxctl's 'vpn' subcommand can help triage VPN related configuration issues,
 & routes related to a VPN connection.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		vpnDiag()
-	},
+	Run: vpnExecute,
 }
 
 var ifReachableChk, vpnRoutesChk bool
@@ -53,8 +51,8 @@ func init() {
 	vpnCmd.Flags().BoolVarP(&allChk, "allChk", "a", false, "Run all the checks in this subcommand module")
 }
 
-func vpnDiag() {
-	cmd := exec.Command("")
+func vpnExecute(cmd *cobra.Command, args []string) {
+	exeCmd := exec.Command("")
 
 	var verboseCmd string
 
@@ -75,13 +73,16 @@ func vpnDiag() {
 		cmdString = ". model_cmds/01_vpn.sh" +
 			"; netInterfacesReachableChk" + " " + verboseCmd +
 			"; vpnInterfaceRoutesChk" + " " + verboseCmd
+	default:
+		cmd.Usage()
+		os.Exit(1)
 	}
 
-	cmd = exec.Command("bash", "-c", cmdString)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stdout
+	exeCmd = exec.Command("bash", "-c", cmdString)
+	exeCmd.Stdout = os.Stdout
+	exeCmd.Stderr = os.Stdout
 
-	if err := cmd.Run(); err != nil {
+	if err := exeCmd.Run(); err != nil {
 		fmt.Println("Error:", err)
 	}
 }

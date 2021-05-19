@@ -1,0 +1,63 @@
+name: artifact-janitor
+
+#---------------------------------------------------------------------------
+
+on:
+  push:
+    branches:
+      - main
+
+  schedule:
+    - cron: '5 */6 * * *'
+
+  workflow_dispatch:
+    inputs:
+      debug_enabled:
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'     
+        required: false
+        default: false
+
+#---------------------------------------------------------------------------
+
+jobs:
+  cleanup_ghcr_releases:
+    runs-on: ubuntu-latest
+    steps:
+      # Enable tmate debugging of manually-triggered workflows if the input option was provided
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+
+      - name: Delete any release beyond last 3
+        id: delete-old-ghcr-releases
+        uses: dev-drprasad/delete-older-releases@v0.2.0
+        with:
+          repo: ${{ github.repository_owner }}/doxctl
+          keep_latest: 2
+          delete_tags: true
+          delete_tag_pattern: 0.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
+
+#---------------------------------------------------------------------------
+
+#  cleanup_dockerhub_tags:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Delete old dockerhub image tags
+#        id: delete-old-dockerhub-tags
+#        run: |
+#          curl -sL 'https://api.github.com/repos/docker/hub-tool/releases/latest' \
+#              | grep -wo "https.*$(uname | tr [DL] [dl]).*amd64.*gz" \
+#              | wget -qi -
+#          tar zxvf $(ls hub-tool*.gz)
+#          hub-tool/hub-tool login slmingol <(echo $DOCKERHUB_TOKEN)
+#          hub-tool/hub-tool tag ls slmingol/doxctl --sort name=desc \
+#              | awk '/slmingol/ {print $1}' \
+#              | tail -n +4 \
+#              | xargs -n 1 hub-tool/hub-tool tag rm -
+#        shell: bash
+#        env:
+#          DOCKERHUB_TOKEN: ${{ secrets.GO_RELEASER_DOCKERHUB_TOKEN }}
+
+#---------------------------------------------------------------------------

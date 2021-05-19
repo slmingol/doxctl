@@ -348,3 +348,7 @@ ServerAddresses  set
 
 #### Example CLI tools written in Go
 - [docker/hub-tool](ttps://github.com/docker/hub-tool/tree/main/internal/commands)
+
+#### MacOS
+- [SCNetworkReachability](https://developer.apple.com/documentation/systemconfiguration/scnetworkreachability-g7d)
+- [scutil generalized interface to "dynamic Store" and Network Services](https://www.real-world-systems.com/docs/scutil.1.html)

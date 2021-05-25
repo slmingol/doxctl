@@ -21,6 +21,13 @@ commit:
 	make tag ; git add . ; git commit -m "Makefile commit" ; git push #; make tag
 
 
+.PHONY: list
+list:
+	@$(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null \
+		| awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' \
+		| sort \
+		| egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
+
 ### Useful for debugging ###
 #goreleaser release --skip-validate --rm-dist --debug #--skip-publish
 

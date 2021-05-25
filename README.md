@@ -345,6 +345,8 @@ ServerAddresses  set
 - [CLI Command Line SDK - Cobra](https://github.com/spf13/cobra)
 - [Building a multipurpose CLI tool with Cobra and Go](https://dev.to/lumexralph/building-a-multipurpose-cli-tool-with-cobra-and-go-2492)
 - [How to create a CLI in golang with cobra](https://towardsdatascience.com/how-to-create-a-cli-in-golang-with-cobra-d729641c7177)
+- [How to pipe several commands in Go?](https://stackoverflow.com/questions/10781516/how-to-pipe-several-commands-in-go)
+- [Executing System Commands With Golang](https://tutorialedge.net/golang/executing-system-commands-with-golang/)
 
 #### Example CLI tools written in Go
 - [docker/hub-tool](ttps://github.com/docker/hub-tool/tree/main/internal/commands)

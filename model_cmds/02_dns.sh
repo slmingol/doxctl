@@ -234,3 +234,8 @@ dnsResolverDigChk() {
 ###    subKey [5] = State:/Network/Service/com.cisco.anyconnect/DNS
 
 ### https://bandwidth.slack.com/archives/C01A01GQ1JM/p1620317818186000
+
+
+
+###  $ printf "get State:/Network/Service/com.cisco.anyconnect/IPv4\nd.show\n" | scutil | grep Interface
+###    InterfaceName : utun2

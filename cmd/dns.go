@@ -25,6 +25,7 @@ package cmd
 
 import (
 	"container/list"
+	"doxctl/internal/cmdhelp"
 	"fmt"
 	"os"
 	"os/exec"
@@ -84,17 +85,17 @@ func dnsResolverChk() {
 	cmdExe1 := exec.Command("bash", "-c", cmdBase)
 	cmdGrep1 := `grep -q 'DomainName.*bandwidth.local' && echo "DomainName set" || echo "DomainName unset"`
 	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := Pipeline(cmdExe1, exeGrep1)
+	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
 
 	cmdExe2 := exec.Command("bash", "-c", cmdBase)
 	cmdGrep2 := `grep -A1 'SearchDomains' | grep -qE '[0-1].*bandwidth' && echo "SearchDomains set" || echo "SearchDomains unset"`
 	exeGrep2 := exec.Command("bash", "-c", cmdGrep2)
-	output2, _, _ := Pipeline(cmdExe2, exeGrep2)
+	output2, _, _ := cmdhelp.Pipeline(cmdExe2, exeGrep2)
 
 	cmdExe3 := exec.Command("bash", "-c", cmdBase)
 	cmdGrep3 := `grep -A3 'ServerAddresses' | grep -qE '[0-1].*10.5' && echo "ServerAddresses set" || echo "ServerAddresses unset"`
 	exeGrep3 := exec.Command("bash", "-c", cmdGrep3)
-	output3, _, _ := Pipeline(cmdExe3, exeGrep3)
+	output3, _, _ := cmdhelp.Pipeline(cmdExe3, exeGrep3)
 
 	var dns dnsChks
 
@@ -280,7 +281,7 @@ func scutilResolverIPs() []string {
 	cmdExe1 := exec.Command("bash", "-c", cmdBase)
 	cmdGrep1 := `grep -A3 'ServerAddresses' | grep -E '[0-1].*10.5' | cut -d':' -f2`
 	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := Pipeline(cmdExe1, exeGrep1)
+	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
 
 	resolverIPs := strings.Split(strings.TrimRight(string(output1), "\n"), "\n")
 

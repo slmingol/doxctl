@@ -24,7 +24,6 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"bytes"
 	"container/list"
 	"fmt"
 	"os"
@@ -85,17 +84,17 @@ func dnsResolverChk() {
 	cmdExe1 := exec.Command("bash", "-c", cmdBase)
 	cmdGrep1 := `grep -q 'DomainName.*bandwidth.local' && echo "DomainName set" || echo "DomainName unset"`
 	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := pipeline(cmdExe1, exeGrep1)
+	output1, _, _ := Pipeline(cmdExe1, exeGrep1)
 
 	cmdExe2 := exec.Command("bash", "-c", cmdBase)
 	cmdGrep2 := `grep -A1 'SearchDomains' | grep -qE '[0-1].*bandwidth' && echo "SearchDomains set" || echo "SearchDomains unset"`
 	exeGrep2 := exec.Command("bash", "-c", cmdGrep2)
-	output2, _, _ := pipeline(cmdExe2, exeGrep2)
+	output2, _, _ := Pipeline(cmdExe2, exeGrep2)
 
 	cmdExe3 := exec.Command("bash", "-c", cmdBase)
 	cmdGrep3 := `grep -A3 'ServerAddresses' | grep -qE '[0-1].*10.5' && echo "ServerAddresses set" || echo "ServerAddresses unset"`
 	exeGrep3 := exec.Command("bash", "-c", cmdGrep3)
-	output3, _, _ := pipeline(cmdExe3, exeGrep3)
+	output3, _, _ := Pipeline(cmdExe3, exeGrep3)
 
 	var dns dnsChks
 
@@ -276,54 +275,12 @@ func dnsResolverDigChk() {
 	fmt.Println("\n\n")
 }
 
-func pipeline(cmds ...*exec.Cmd) (pipeLineOutput, collectedStandardError []byte, pipeLineError error) {
-	// Require at least one command
-	if len(cmds) < 1 {
-		return nil, nil, nil
-	}
-
-	// Collect the output from the command(s)
-	var output bytes.Buffer
-	var stderr bytes.Buffer
-
-	last := len(cmds) - 1
-	for i, cmd := range cmds[:last] {
-		var err error
-		// Connect each command's stdin to the previous command's stdout
-		if cmds[i+1].Stdin, err = cmd.StdoutPipe(); err != nil {
-			return nil, nil, err
-		}
-		// Connect each command's stderr to a buffer
-		cmd.Stderr = &stderr
-	}
-
-	// Connect the output and error for the last command
-	cmds[last].Stdout, cmds[last].Stderr = &output, &stderr
-
-	// Start each command
-	for _, cmd := range cmds {
-		if err := cmd.Start(); err != nil {
-			return output.Bytes(), stderr.Bytes(), err
-		}
-	}
-
-	// Wait for each command to complete
-	for _, cmd := range cmds {
-		if err := cmd.Wait(); err != nil {
-			return output.Bytes(), stderr.Bytes(), err
-		}
-	}
-
-	// Return the pipeline output and the collected standard error
-	return output.Bytes(), stderr.Bytes(), nil
-}
-
 func scutilResolverIPs() []string {
 	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
 	cmdExe1 := exec.Command("bash", "-c", cmdBase)
 	cmdGrep1 := `grep -A3 'ServerAddresses' | grep -E '[0-1].*10.5' | cut -d':' -f2`
 	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := pipeline(cmdExe1, exeGrep1)
+	output1, _, _ := Pipeline(cmdExe1, exeGrep1)
 
 	resolverIPs := strings.Split(strings.TrimRight(string(output1), "\n"), "\n")
 

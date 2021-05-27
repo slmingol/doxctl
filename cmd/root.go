@@ -66,7 +66,7 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.doxctl.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.doxctl.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&verboseChk, "verbose", "v", false, "Enable verbose output of commands")
 
 	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")

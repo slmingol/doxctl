@@ -33,8 +33,16 @@ import (
 	"github.com/spf13/viper"
 )
 
-var cfgFile string
-var verboseChk, allChk bool
+type config struct {
+	Arg1 string `yaml:"arg1"`
+	Arg2 string `yaml:"arg2"`
+}
+
+var (
+	cfgFile            string
+	verboseChk, allChk bool
+	conf               *config
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -60,16 +68,18 @@ stemming from the following areas with a laptop or desktop system:
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
-	//fmt.Println("\n")
 }
 
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.doxctl.yaml)")
+	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.doxctl.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&verboseChk, "verbose", "v", false, "Enable verbose output of commands")
 
-	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	if err := viper.BindPFlags(rootCmd.PersistentFlags()); err != nil {
+		fmt.Printf("error reading flags: %s\n", err)
+		os.Exit(1)
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -91,6 +101,14 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		fmt.Fprintln(os.Stderr, "\n**NOTE:** Using config file:", viper.ConfigFileUsed(), "\n")
 	}
+
+	conf := &config{}
+	if err := viper.Unmarshal(conf); err != nil {
+		fmt.Printf("unable to decode into config struct, %v", err)
+	}
+
+	fmt.Printf("arg1: %v\n", conf.Arg1)
+	fmt.Printf("arg2: %v\n", conf.Arg2)
 }

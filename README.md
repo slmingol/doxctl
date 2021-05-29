@@ -71,10 +71,10 @@ Global Flags:
 
 #### resolverChk
 
-##### Off VPN
 <details><summary>Tree - CLICK ME</summary>
 <p>
 
+##### Off VPN
 ```
 $ doxctl dns -r
 
@@ -95,13 +95,8 @@ $ doxctl dns -r
 
 
 ```
-</p>
-</details>
 
 ##### On VPN
-<details><summary>Tree - CLICK ME</summary>
-<p>
-
 ```
 $ doxctl dns -r
 

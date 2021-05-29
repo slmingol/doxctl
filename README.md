@@ -125,3 +125,57 @@ $ doxctl dns -r
 </p>
 </details>
 
+#### pingChk
+
+##### Off VPN
+<details><summary>Tree - CLICK ME</summary>
+<p>
+```
+$ doxctl dns -p
+
+**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│ VPN defined DNS Resolver Connectivity Checks                                     │
+├──────────────────────────────────────────┬───────────────┬───────────────┬───────┤
+│                     PROPERTY DESCRIPTION │            IP │       NET I/F │ VALUE │
+├──────────────────────────────────────────┼───────────────┼───────────────┼───────┤
+└──────────────────────────────────────────┴───────────────┴───────────────┴───────┘
+
+** WARN:** Your VPN client does not appear to be defining any DNS resolver(s) properly,
+           you're either not connected via VPN or it's misconfigured!
+
+
+
+```
+</p>
+</details>
+
+##### On VPN
+<details><summary>Tree - CLICK ME</summary>
+<p>
+```
+$ doxctl dns -p
+
+**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│ VPN defined DNS Resolver Connectivity Checks                                     │
+├──────────────────────────────────────────┬───────────────┬───────────────┬───────┤
+│ PROPERTY DESCRIPTION                     │ IP            │ NET I/F       │ VALUE │
+├──────────────────────────────────────────┼───────────────┼───────────────┼───────┤
+│ Resovler is pingable?                    │ 10.5.0.18     │ utun2         │ true  │
+│ Reachable via TCP?                       │ 10.5.0.18     │ utun2         │ true  │
+│ Reachable via UDP?                       │ 10.5.0.18     │ utun2         │ true  │
+├──────────────────────────────────────────┼───────────────┼───────────────┼───────┤
+│ Resovler is pingable?                    │ 10.5.0.19     │ utun2         │ true  │
+│ Reachable via TCP?                       │ 10.5.0.19     │ utun2         │ true  │
+│ Reachable via UDP?                       │ 10.5.0.19     │ utun2         │ true  │
+└──────────────────────────────────────────┴───────────────┴───────────────┴───────┘
+
+
+
+```
+</p>
+</details>
+

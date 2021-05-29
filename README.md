@@ -130,6 +130,7 @@ $ doxctl dns -r
 ##### Off VPN
 <details><summary>Tree - CLICK ME</summary>
 <p>
+
 ```
 $ doxctl dns -p
 
@@ -154,6 +155,7 @@ $ doxctl dns -p
 ##### On VPN
 <details><summary>Tree - CLICK ME</summary>
 <p>
+
 ```
 $ doxctl dns -p
 
@@ -179,3 +181,296 @@ $ doxctl dns -p
 </p>
 </details>
 
+#### digChk
+
+##### Off VPN
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+```
+$ doxctl dns -d
+
+**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Dig Check against VPN defined DNS Resolvers                                  │
+├──────────────────────────────────────────┬─────────────────┬─────────────────┤
+│ HOSTNAME TO 'DIG'                        │ RESOLVER IP     │ IS RESOLVABLE?  │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.lab1.somedom.local               │                 │ false           │
+│ idm-01b.lab1.somedom.local               │                 │ false           │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.rdu1.somedom.local               │                 │ false           │
+│ idm-01b.rdu1.somedom.local               │                 │ false           │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.atl1.somedom.local               │                 │ false           │
+│ idm-01b.atl1.somedom.local               │                 │ false           │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.dfw1.somedom.local               │                 │ false           │
+│ idm-01b.dfw1.somedom.local               │                 │ false           │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.lax2.somedom.local               │                 │ false           │
+│ idm-01b.lax2.somedom.local               │                 │ false           │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.jfk1.somedom.local               │                 │ false           │
+│ idm-01b.jfk1.somedom.local               │                 │ false           │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ SUCCESSESFUL QUERIES                     │ RESOLVER #1: 0  │                 │
+│                                          │ RESOLVER #2: 0  │                 │
+└──────────────────────────────────────────┴─────────────────┴─────────────────┘
+
+** WARN:** Your VPN client does not appear to be defining any DNS resolver(s) properly,
+           you're either not connected via VPN or it's misconfigured!
+
+
+
+```
+</p>
+</details>
+
+##### On VPN
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+```
+$ doxctl dns -d
+
+**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Dig Check against VPN defined DNS Resolvers                                  │
+├──────────────────────────────────────────┬─────────────────┬─────────────────┤
+│ HOSTNAME TO 'DIG'                        │ RESOLVER IP     │ IS RESOLVABLE?  │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.lab1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01b.lab1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01a.lab1.somedom.local               │ 10.5.0.19       │ true            │
+│ idm-01b.lab1.somedom.local               │ 10.5.0.19       │ true            │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.rdu1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01b.rdu1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01a.rdu1.somedom.local               │ 10.5.0.19       │ true            │
+│ idm-01b.rdu1.somedom.local               │ 10.5.0.19       │ true            │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.atl1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01b.atl1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01a.atl1.somedom.local               │ 10.5.0.19       │ true            │
+│ idm-01b.atl1.somedom.local               │ 10.5.0.19       │ true            │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.dfw1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01b.dfw1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01a.dfw1.somedom.local               │ 10.5.0.19       │ true            │
+│ idm-01b.dfw1.somedom.local               │ 10.5.0.19       │ true            │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.lax2.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01b.lax2.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01a.lax2.somedom.local               │ 10.5.0.19       │ true            │
+│ idm-01b.lax2.somedom.local               │ 10.5.0.19       │ true            │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.jfk1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01b.jfk1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01a.jfk1.somedom.local               │ 10.5.0.19       │ true            │
+│ idm-01b.jfk1.somedom.local               │ 10.5.0.19       │ true            │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ SUCCESSESFUL QUERIES                     │ RESOLVER #1: 12 │                 │
+│                                          │ RESOLVER #2: 12 │                 │
+└──────────────────────────────────────────┴─────────────────┴─────────────────┘
+
+
+
+```
+</p>
+</details>
+
+------------------------------------------------------------------------------
+
+### VPN
+```
+$ doxctl vpn -h
+
+doxctl's 'vpn' subcommand can help triage VPN related configuration issues,
+& routes related to a VPN connection.
+
+Usage:
+  doxctl vpn [flags]
+
+Flags:
+  -a, --allChk           Run all the checks in this subcommand module
+  -h, --help             help for vpn
+  -i, --ifReachableChk   Check if network interfaces are reachable
+  -r, --vpnRoutesChk     Check if >5 VPN routes are defined
+
+Global Flags:
+  -v, --verbose   Enable verbose output of commands
+
+
+```
+
+### VPN Example Output
+
+#### ifReachableChk
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+```
+$ doxctl vpn -i
+
+
+Interfaces Reachable Checks
+===========================
+
+
+How many network interfaces found? 		 ---> 2 <--- 	 [en0 utun2]
+At least 1 interface's a utun device? 		 ---> yes <---
+All interfaces are reachable? 			 ---> yes <---
+
+
+
+
+```
+</p>
+</details>
+
+#### vpnRoutesChk
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+```
+$ doxctl vpn -r
+
+
+VPN Interface Route Checks
+===========================
+
+
+At least 5 routes using interface [utun2]? 		 ---> yes <--- 	 [147]
+
+
+
+
+```
+</p>
+</details>
+
+------------------------------------------------------------------------------
+
+### Debugging
+All the CLI subcommands can make use of either the `-v` or the `--verbose` switch to gather further diagnostics which can be helpful when triaging connectivity issues.
+
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+For example:
+```
+$ doxctl dns -r -v
++ printf '\n\nDNS Resolver Checks\n===================\n\n\n'
+
+
+DNS Resolver Checks
+===================
+
+
+++ printf 'get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n'
+++ scutil
++ vpn_resolvers='<dictionary> {
+  DomainName : bandwidth.local
+  SearchDomains : <array> {
+    0 : bandwidth.local
+  }
+  SearchOrder : 1
+  ServerAddresses : <array> {
+    0 : 10.5.0.18
+    1 : 10.5.0.19
+    2 : 192.168.7.85
+  }
+  SupplementalMatchDomains : <array> {
+    0 :
+    1 : bandwidth.local
+  }
+}'
++ column -t
++ echo '<dictionary> {
+  DomainName : bandwidth.local
+  SearchDomains : <array> {
+    0 : bandwidth.local
+  }
+  SearchOrder : 1
+  ServerAddresses : <array> {
+    0 : 10.5.0.18
+    1 : 10.5.0.19
+    2 : 192.168.7.85
+  }
+  SupplementalMatchDomains : <array> {
+    0 :
+    1 : bandwidth.local
+  }
+}'
++ grep -q 'DomainName.*bandwidth.local'
++ echo 'DomainName set'
++ echo '<dictionary> {
+  DomainName : bandwidth.local
+  SearchDomains : <array> {
+    0 : bandwidth.local
+  }
+  SearchOrder : 1
+  ServerAddresses : <array> {
+    0 : 10.5.0.18
+    1 : 10.5.0.19
+    2 : 192.168.7.85
+  }
+  SupplementalMatchDomains : <array> {
+    0 :
+    1 : bandwidth.local
+  }
+}'
++ grep -A1 SearchDomains
++ grep -qE '[0-1].*bandwidth'
++ echo 'SearchDomains set'
++ echo '<dictionary> {
+  DomainName : bandwidth.local
+  SearchDomains : <array> {
+    0 : bandwidth.local
+  }
+  SearchOrder : 1
+  ServerAddresses : <array> {
+    0 : 10.5.0.18
+    1 : 10.5.0.19
+    2 : 192.168.7.85
+  }
+  SupplementalMatchDomains : <array> {
+    0 :
+    1 : bandwidth.local
+  }
+}'
++ grep -A3 ServerAddresses
++ grep -qE '[0-1].*10.5'
++ echo 'ServerAddresses set'
+DomainName       set
+SearchDomains    set
+ServerAddresses  set
++ [[ 1 -eq 1 ]]
++ set +x
+
+
+
+
+```
+</p>
+</details>
+
+### RESOURCES
+
+#### References
+- [Exploring Go Packages: Cobra](https://levelup.gitconnected.com/exploring-go-packages-cobra-fce6c4e331d6)
+- [CLI Command Line SDK - Cobra](https://github.com/spf13/cobra)
+- [Building a multipurpose CLI tool with Cobra and Go](https://dev.to/lumexralph/building-a-multipurpose-cli-tool-with-cobra-and-go-2492)
+- [How to create a CLI in golang with cobra](https://towardsdatascience.com/how-to-create-a-cli-in-golang-with-cobra-d729641c7177)
+- [How to pipe several commands in Go?](https://stackoverflow.com/questions/10781516/how-to-pipe-several-commands-in-go)
+- [Executing System Commands With Golang](https://tutorialedge.net/golang/executing-system-commands-with-golang/)
+
+#### Example CLI tools written in Go
+- [docker/hub-tool](ttps://github.com/docker/hub-tool/tree/main/internal/commands)
+
+#### MacOS
+- [SCNetworkReachability](https://developer.apple.com/documentation/systemconfiguration/scnetworkreachability-g7d)
+- [scutil generalized interface to "dynamic Store" and Network Services](https://www.real-world-systems.com/docs/scutil.1.html)

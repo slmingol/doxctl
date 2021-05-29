@@ -238,7 +238,7 @@ func dnsResolverDigChk() {
 	t.AppendHeader(table.Row{"Hostname to 'dig'", "Resolver IP", "Is resolvable?"})
 
 	resolverIPs := scutilResolverIPs()
-	sites := []string{"lab1", "rdu1", "atl1", "dfw1", "lax2", "jfk1"}
+	sites := conf.Sites
 
 	var dig dnsutil.Dig
 	cntA := 0

@@ -34,12 +34,13 @@ import (
 )
 
 type config struct {
-	DomNameChk   string `mapstructure:"domNameChk"`
-	DomSearchChk string `mapstructure:"domSearchChk"`
-	DomAddrChk   string `mapstructure:"domAddrChk"`
-	DomainName   string `mapstructure:"domainName"`
-	ServerA      string `mapstructure:"digProbeServerA"`
-	ServerB      string `mapstructure:"digProbeServerB"`
+	DomNameChk   string   `mapstructure:"domNameChk"`
+	DomSearchChk string   `mapstructure:"domSearchChk"`
+	DomAddrChk   string   `mapstructure:"domAddrChk"`
+	DomainName   string   `mapstructure:"domainName"`
+	ServerA      string   `mapstructure:"digProbeServerA"`
+	ServerB      string   `mapstructure:"digProbeServerB"`
+	Sites        []string `mapstructure:"digProbeServerSites"`
 }
 
 var (

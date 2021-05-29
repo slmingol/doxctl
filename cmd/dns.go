@@ -35,6 +35,11 @@ import (
 	"github.com/lixiangzhong/dnsutil"
 	"github.com/miekg/dns"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+)
+
+var (
+	resolverChk, pingChk, digChk bool
 )
 
 var dnsCmd = &cobra.Command{
@@ -43,10 +48,20 @@ var dnsCmd = &cobra.Command{
 	Long: `
 doxctl's 'dns' subcommand can help triage DNS resovler configuration issues, 
 general access to DNS resolvers and name resolution against DNS resolvers.`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		// Process config, environment variables, and flags
+		viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+		viper.AutomaticEnv()
+
+		// Populate as much project info as we can from viper
+		err := viper.Unmarshal(&conf)
+		if err != nil {
+			fmt.Printf("could not retrieve supplied project settings: %s\n", err)
+			os.Exit(1)
+		}
+	},
 	Run: dnsExecute,
 }
-
-var resolverChk, pingChk, digChk bool
 
 func init() {
 	rootCmd.AddCommand(dnsCmd)
@@ -83,17 +98,17 @@ func dnsResolverChk() {
 	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
 
 	cmdExe1 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep1 := `grep -q 'DomainName.*bandwidth.local' && echo "DomainName set" || echo "DomainName unset"`
+	cmdGrep1 := `grep -q 'DomainName.*` + conf.DomNameChk + `' && echo "DomainName set" || echo "DomainName unset"`
 	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
 	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
 
 	cmdExe2 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep2 := `grep -A1 'SearchDomains' | grep -qE '[0-1].*bandwidth' && echo "SearchDomains set" || echo "SearchDomains unset"`
+	cmdGrep2 := `grep -A1 'SearchDomains' | grep -qE '` + conf.DomSearchChk + `' && echo "SearchDomains set" || echo "SearchDomains unset"`
 	exeGrep2 := exec.Command("bash", "-c", cmdGrep2)
 	output2, _, _ := cmdhelp.Pipeline(cmdExe2, exeGrep2)
 
 	cmdExe3 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep3 := `grep -A3 'ServerAddresses' | grep -qE '[0-1].*10.5' && echo "ServerAddresses set" || echo "ServerAddresses unset"`
+	cmdGrep3 := `grep -A3 'ServerAddresses' | grep -qE '` + conf.DomAddrChk + `' && echo "ServerAddresses set" || echo "ServerAddresses unset"`
 	exeGrep3 := exec.Command("bash", "-c", cmdGrep3)
 	output3, _, _ := cmdhelp.Pipeline(cmdExe3, exeGrep3)
 
@@ -230,8 +245,8 @@ func dnsResolverDigChk() {
 	cntB := 0
 
 	for _, site := range sites {
-		serverA := "idm-01a." + site + ".bandwidthclec.local"
-		serverB := "idm-01b." + site + ".bandwidthclec.local"
+		serverA := conf.ServerA + "." + site + "." + conf.DomainName
+		serverB := conf.ServerB + "." + site + "." + conf.DomainName
 
 		for _, ip := range resolverIPs {
 			dig.SetDNS(ip)
@@ -279,7 +294,7 @@ func dnsResolverDigChk() {
 func scutilResolverIPs() []string {
 	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
 	cmdExe1 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep1 := `grep -A3 'ServerAddresses' | grep -E '[0-1].*10.5' | cut -d':' -f2`
+	cmdGrep1 := `grep -A3 'ServerAddresses' | grep -E '` + conf.DomAddrChk + `' | cut -d':' -f2`
 	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
 	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
 

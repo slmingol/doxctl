@@ -1,0 +1,6 @@
+domNameChk: "bandwidth.local"
+domSearchChk: "[0-1].*bandwidth"
+domAddrChk: "[0-1].*10.5"
+domainName: "bandwidthclec.local"
+digProbeServerA: "idm-01a"
+digProbeServerB: "idm-01b"

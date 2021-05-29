@@ -15,33 +15,32 @@
 ```
 $ doxctl -h
 
-'doxctl' is a collection of tools which can be used to diagnose:
+'doxctl' is a collection of tools which can be used to diagnose & triage problems
+stemming from the following areas with a laptop or desktop system:
 
-  - DNS resolvers
-  - VPN access
+  - DNS, specifically with the configuration of resolvers
+  - VPN configuration and network connectivity over it
   - General access to well-known servers
+  - General access to well-known services
   - ... or general network connectivity issues
 
 Usage:
-  doxctl [flags]
   doxctl [command]
 
 Available Commands:
   dns         Run diagnostics related to DNS servers' (resolvers') configurations
   help        Help about any command
-  net         A brief description of your command
-  svcs        A brief description of your command
-  svrs        A brief description of your command
-  vpn         A brief description of your command
+  net         TBD
+  svcs        TBD
+  svrs        TBD
+  vpn         Run diagnostics related to VPN connections, net i/fs & configurations
 
 Flags:
-  -h, --help      help for doxctl
-  -t, --toggle    Help message for toggle
-  -v, --verbose   Enable verbose output of commands
+  -c, --config string   config file (default is $HOME/.doxctl.yaml)
+  -h, --help            help for doxctl
+  -v, --verbose         Enable verbose output of commands
 
 Use "doxctl [command] --help" for more information about a command.
-
-
 ```
 
 ------------------------------------------------------------------------------
@@ -57,37 +56,67 @@ Usage:
   doxctl dns [flags]
 
 Flags:
-  -d, --digChk        check if VPN defined resolvers respond with well-known servers in DCs
+  -a, --allChk        Run all the checks in this subcommand module
+  -d, --digChk        Check if VPN defined resolvers respond with well-known servers in DCs
   -h, --help          help for dns
-  -p, --pingChk       check if VPN defined resolvers are pingable & reachable
-  -r, --resolverChk   check if VPN designated DNS resolvers are configured
+  -p, --pingChk       Check if VPN defined resolvers are pingable & reachable
+  -r, --resolverChk   Check if VPN designated DNS resolvers are configured
 
 Global Flags:
-  -v, --verbose   Enable verbose output of commands
-
-
+  -c, --config string   config file (default is $HOME/.doxctl.yaml)
+  -v, --verbose         Enable verbose output of commands
 ```
 
 ### DNS Example Output
 
 #### resolverChk
 
+##### Off VPN
 <details><summary>Tree - CLICK ME</summary>
 <p>
-
 ```
 $ doxctl dns -r
 
-
-DNS Resolver Checks
-===================
+**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
 
 
-DomainName       set
-SearchDomains    set
-ServerAddresses  set
+┌───────────────────────────────────────────────────────────────────────────┐
+│ VPN defined DNS Resolver Checks                                           │
+├──────────────────────────────────────────┬────────────────────────────────┤
+│ PROPERTY DESCRIPTION                     │ VALUE                          │
+├──────────────────────────────────────────┼────────────────────────────────┤
+│ DomainName defined?                      │ unset                          │
+│ SearchDomains defined?                   │ unset                          │
+│ ServerAddresses defined?                 │ unset                          │
+└──────────────────────────────────────────┴────────────────────────────────┘
+
+** NOTE:** Any values of unset indicate that the VPN client is not defining DNS resolver(s) properly!
 
 
+```
+</p>
+</details>
+
+##### On VPN
+<details><summary>Tree - CLICK ME</summary>
+<p>
+```
+$ doxctl dns -r
+
+**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
+
+
+┌───────────────────────────────────────────────────────────────────────────┐
+│ VPN defined DNS Resolver Checks                                           │
+├──────────────────────────────────────────┬────────────────────────────────┤
+│ PROPERTY DESCRIPTION                     │ VALUE                          │
+├──────────────────────────────────────────┼────────────────────────────────┤
+│ DomainName defined?                      │ set                            │
+│ SearchDomains defined?                   │ set                            │
+│ ServerAddresses defined?                 │ set                            │
+└──────────────────────────────────────────┴────────────────────────────────┘
+
+** NOTE:** Any values of unset indicate that the VPN client is not defining DNS resolver(s) properly!
 
 
 ```
@@ -96,29 +125,51 @@ ServerAddresses  set
 
 #### pingChk
 
+##### Off VPN
 <details><summary>Tree - CLICK ME</summary>
 <p>
-
 ```
 $ doxctl dns -p
 
+**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
 
-Ping Resolver Checks
-====================
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│ VPN defined DNS Resolver Connectivity Checks                                     │
+├──────────────────────────────────────────┬───────────────┬───────────────┬───────┤
+│                     PROPERTY DESCRIPTION │            IP │       NET I/F │ VALUE │
+├──────────────────────────────────────────┼───────────────┼───────────────┼───────┤
+└──────────────────────────────────────────┴───────────────┴───────────────┴───────┘
 
-
-How many resolvers found? 		 ---> 2 <---
-
-Was resolver 10.5.0.18 pingable? 	 ---> yes <---
-Can we reach port 53 (DNS) via TCP? 	 ---> yes <--- 		 [ Connection to 10.5.0.18 port 53 [tcp/domain] succeeded! ]
-Can we reach port 53 (DNS) via UDP? 	 ---> yes <--- 		 [ Connection to 10.5.0.18 port 53 [udp/domain] succeeded! ]
-
-
-Was resolver 10.5.0.19 pingable? 	 ---> yes <---
-Can we reach port 53 (DNS) via TCP? 	 ---> yes <--- 		 [ Connection to 10.5.0.19 port 53 [tcp/domain] succeeded! ]
-Can we reach port 53 (DNS) via UDP? 	 ---> yes <--- 		 [ Connection to 10.5.0.19 port 53 [udp/domain] succeeded! ]
+** WARN:** Your VPN client does not appear to be defining any DNS resolver(s) properly,
+           you're either not connected via VPN or it's misconfigured!
 
 
+
+```
+</p>
+</details>
+
+##### On VPN
+<details><summary>Tree - CLICK ME</summary>
+<p>
+```
+$ doxctl dns -p
+
+**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│ VPN defined DNS Resolver Connectivity Checks                                     │
+├──────────────────────────────────────────┬───────────────┬───────────────┬───────┤
+│ PROPERTY DESCRIPTION                     │ IP            │ NET I/F       │ VALUE │
+├──────────────────────────────────────────┼───────────────┼───────────────┼───────┤
+│ Resovler is pingable?                    │ 10.5.0.18     │ utun2         │ true  │
+│ Reachable via TCP?                       │ 10.5.0.18     │ utun2         │ true  │
+│ Reachable via UDP?                       │ 10.5.0.18     │ utun2         │ true  │
+├──────────────────────────────────────────┼───────────────┼───────────────┼───────┤
+│ Resovler is pingable?                    │ 10.5.0.19     │ utun2         │ true  │
+│ Reachable via TCP?                       │ 10.5.0.19     │ utun2         │ true  │
+│ Reachable via UDP?                       │ 10.5.0.19     │ utun2         │ true  │
+└──────────────────────────────────────────┴───────────────┴───────────────┴───────┘
 
 
 
@@ -128,33 +179,96 @@ Can we reach port 53 (DNS) via UDP? 	 ---> yes <--- 		 [ Connection to 10.5.0.19
 
 #### digChk
 
+##### Off VPN
 <details><summary>Tree - CLICK ME</summary>
 <p>
-
 ```
 $ doxctl dns -d
 
+**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
 
-Dig Resolver Checks
-===================
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Dig Check against VPN defined DNS Resolvers                                  │
+├──────────────────────────────────────────┬─────────────────┬─────────────────┤
+│ HOSTNAME TO 'DIG'                        │ RESOLVER IP     │ IS RESOLVABLE?  │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.lab1.somedom.local               │                 │ false           │
+│ idm-01b.lab1.somedom.local               │                 │ false           │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.rdu1.somedom.local               │                 │ false           │
+│ idm-01b.rdu1.somedom.local               │                 │ false           │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.atl1.somedom.local               │                 │ false           │
+│ idm-01b.atl1.somedom.local               │                 │ false           │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.dfw1.somedom.local               │                 │ false           │
+│ idm-01b.dfw1.somedom.local               │                 │ false           │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.lax2.somedom.local               │                 │ false           │
+│ idm-01b.lax2.somedom.local               │                 │ false           │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.jfk1.somedom.local               │                 │ false           │
+│ idm-01b.jfk1.somedom.local               │                 │ false           │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ SUCCESSESFUL QUERIES                     │ RESOLVER #1: 0  │                 │
+│                                          │ RESOLVER #2: 0  │                 │
+└──────────────────────────────────────────┴─────────────────┴─────────────────┘
+
+** WARN:** Your VPN client does not appear to be defining any DNS resolver(s) properly,
+           you're either not connected via VPN or it's misconfigured!
 
 
-	resolver: 10.5.0.18 | site: lab1 | idm-01a | cnt: 1 | idm-01b |  cnt: 1 |
-	resolver: 10.5.0.19 | site: lab1 | idm-01a | cnt: 1 | idm-01b |  cnt: 1 |
-	resolver: 10.5.0.18 | site: rdu1 | idm-01a | cnt: 1 | idm-01b |  cnt: 1 |
-	resolver: 10.5.0.19 | site: rdu1 | idm-01a | cnt: 1 | idm-01b |  cnt: 1 |
-	resolver: 10.5.0.18 | site: atl1 | idm-01a | cnt: 1 | idm-01b |  cnt: 1 |
-	resolver: 10.5.0.19 | site: atl1 | idm-01a | cnt: 1 | idm-01b |  cnt: 1 |
-	resolver: 10.5.0.18 | site: dfw1 | idm-01a | cnt: 1 | idm-01b |  cnt: 1 |
-	resolver: 10.5.0.19 | site: dfw1 | idm-01a | cnt: 1 | idm-01b |  cnt: 1 |
-	resolver: 10.5.0.18 | site: lax2 | idm-01a | cnt: 1 | idm-01b |  cnt: 1 |
-	resolver: 10.5.0.19 | site: lax2 | idm-01a | cnt: 1 | idm-01b |  cnt: 1 |
-	resolver: 10.5.0.18 | site: jfk1 | idm-01a | cnt: 1 | idm-01b |  cnt: 1 |
-	resolver: 10.5.0.19 | site: jfk1 | idm-01a | cnt: 1 | idm-01b |  cnt: 1 |
 
+```
+</p>
+</details>
 
-Check if we can resolve all 24 IDM server names (idm-01[ab].*)? 	 ---> yes <--- 		 [ Actual: 24 ]
+##### On VPN
+<details><summary>Tree - CLICK ME</summary>
+<p>
+```
+$ doxctl dns -d
 
+**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Dig Check against VPN defined DNS Resolvers                                  │
+├──────────────────────────────────────────┬─────────────────┬─────────────────┤
+│ HOSTNAME TO 'DIG'                        │ RESOLVER IP     │ IS RESOLVABLE?  │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.lab1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01b.lab1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01a.lab1.somedom.local               │ 10.5.0.19       │ true            │
+│ idm-01b.lab1.somedom.local               │ 10.5.0.19       │ true            │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.rdu1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01b.rdu1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01a.rdu1.somedom.local               │ 10.5.0.19       │ true            │
+│ idm-01b.rdu1.somedom.local               │ 10.5.0.19       │ true            │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.atl1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01b.atl1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01a.atl1.somedom.local               │ 10.5.0.19       │ true            │
+│ idm-01b.atl1.somedom.local               │ 10.5.0.19       │ true            │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.dfw1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01b.dfw1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01a.dfw1.somedom.local               │ 10.5.0.19       │ true            │
+│ idm-01b.dfw1.somedom.local               │ 10.5.0.19       │ true            │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.lax2.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01b.lax2.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01a.lax2.somedom.local               │ 10.5.0.19       │ true            │
+│ idm-01b.lax2.somedom.local               │ 10.5.0.19       │ true            │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ idm-01a.jfk1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01b.jfk1.somedom.local               │ 10.5.0.18       │ true            │
+│ idm-01a.jfk1.somedom.local               │ 10.5.0.19       │ true            │
+│ idm-01b.jfk1.somedom.local               │ 10.5.0.19       │ true            │
+├──────────────────────────────────────────┼─────────────────┼─────────────────┤
+│ SUCCESSESFUL QUERIES                     │ RESOLVER #1: 12 │                 │
+│                                          │ RESOLVER #2: 12 │                 │
+└──────────────────────────────────────────┴─────────────────┴─────────────────┘
 
 
 

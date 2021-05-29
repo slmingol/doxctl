@@ -122,10 +122,10 @@ $ doxctl dns -r
 
 #### pingChk
 
-##### Off VPN
 <details><summary>Tree - CLICK ME</summary>
 <p>
 
+##### Off VPN
 ```
 $ doxctl dns -p
 
@@ -144,13 +144,8 @@ $ doxctl dns -p
 
 
 ```
-</p>
-</details>
 
 ##### On VPN
-<details><summary>Tree - CLICK ME</summary>
-<p>
-
 ```
 $ doxctl dns -p
 
@@ -178,10 +173,10 @@ $ doxctl dns -p
 
 #### digChk
 
-##### Off VPN
 <details><summary>Tree - CLICK ME</summary>
 <p>
 
+##### Off VPN
 ```
 $ doxctl dns -d
 
@@ -220,13 +215,8 @@ $ doxctl dns -d
 
 
 ```
-</p>
-</details>
 
 ##### On VPN
-<details><summary>Tree - CLICK ME</summary>
-<p>
-
 ```
 $ doxctl dns -d
 

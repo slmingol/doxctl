@@ -300,16 +300,17 @@ Global Flags:
 ```
 $ doxctl vpn -i
 
+**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
+
+
 
 Interfaces Reachable Checks
 ===========================
 
 
-How many network interfaces found? 		 ---> 2 <--- 	 [en0 utun2]
-At least 1 interface's a utun device? 		 ---> yes <---
-All interfaces are reachable? 			 ---> yes <---
-
-
+How many network interfaces found?       ---> 1 <--- 	 [en0]
+At least 1 interface's a utun device?    ---> no <---
+All interfaces are reachable?            ---> yes <---
 
 
 ```
@@ -323,13 +324,15 @@ All interfaces are reachable? 			 ---> yes <---
 ```
 $ doxctl vpn -r
 
+**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
+
+
 
 VPN Interface Route Checks
 ===========================
 
 
-At least 5 routes using interface [utun2]? 		 ---> yes <--- 	 [147]
-
+At least 5 routes using interface [NIL]? 	 ---> no <--- 	 [0]
 
 
 

@@ -1,0 +1,6 @@
+domNameChk: "example.local"
+domSearchChk: "[0-1].*example"
+domAddrChk: "[0-1].*10.5"
+domainName: "examplecorp.local"
+digProbeServerA: "idm-01a"
+digProbeServerB: "idm-01b"

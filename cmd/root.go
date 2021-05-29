@@ -34,8 +34,12 @@ import (
 )
 
 type config struct {
-	Arg1 string `yaml:"arg1"`
-	Arg2 string `yaml:"arg2"`
+	DomNameChk   string `mapstructure:"domNameChk"`
+	DomSearchChk string `mapstructure:"domSearchChk"`
+	DomAddrChk   string `mapstructure:"domAddrChk"`
+	DomainName   string `mapstructure:"domainName"`
+	ServerA      string `mapstructure:"digProbeServerA"`
+	ServerB      string `mapstructure:"digProbeServerB"`
 }
 
 var (
@@ -108,7 +112,4 @@ func initConfig() {
 	if err := viper.Unmarshal(conf); err != nil {
 		fmt.Printf("unable to decode into config struct, %v", err)
 	}
-
-	fmt.Printf("arg1: %v\n", conf.Arg1)
-	fmt.Printf("arg2: %v\n", conf.Arg2)
 }

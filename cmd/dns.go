@@ -53,7 +53,7 @@ general access to DNS resolvers and name resolution against DNS resolvers.`,
 		viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 		viper.AutomaticEnv()
 
-		// Populate as much project info as we can from viper
+		// Populate as much info as we can from viper
 		err := viper.Unmarshal(&conf)
 		if err != nil {
 			fmt.Printf("could not retrieve supplied project settings: %s\n", err)

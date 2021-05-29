@@ -64,9 +64,6 @@ stemming from the following areas with a laptop or desktop system:
   - ... or general network connectivity issues 
 
 	`,
-	//Run: func(cmd *cobra.Command, args []string) {
-	//	fmt.Println("doxctl, reporting for duty!")
-	//},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

@@ -40,7 +40,7 @@ type config struct {
 	DomainName   string   `mapstructure:"domainName"`
 	ServerA      string   `mapstructure:"digProbeServerA"`
 	ServerB      string   `mapstructure:"digProbeServerB"`
-	Sites        []string `mapstructure:"digProbeServerSites"`
+	Sites        []string `mapstructure:"sites"`
 }
 
 var (

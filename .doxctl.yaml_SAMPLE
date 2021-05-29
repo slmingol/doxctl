@@ -1,6 +1,18 @@
+# dom chks
 domNameChk: "bandwidth.local"
 domSearchChk: "[0-1].*bandwidth"
 domAddrChk: "[0-1].*10.5"
+
+# dig chks
 domainName: "bandwidthclec.local"
 digProbeServerA: "idm-01a"
 digProbeServerB: "idm-01b"
+
+
+sites:
+  - lab1
+  - rdu1
+  - atl1
+  - dfw1
+  - lax2
+  - jfk1

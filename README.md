@@ -74,6 +74,7 @@ Global Flags:
 ##### Off VPN
 <details><summary>Tree - CLICK ME</summary>
 <p>
+
 ```
 $ doxctl dns -r
 
@@ -100,6 +101,7 @@ $ doxctl dns -r
 ##### On VPN
 <details><summary>Tree - CLICK ME</summary>
 <p>
+
 ```
 $ doxctl dns -r
 

@@ -49,7 +49,28 @@ slmingol/tap/doxctl ✔
 
 #### Upgrade
 ```
+$ brew update
+Updated 2 taps (homebrew/cask and slmingol/tap).
+==> Updated Formulae
+slmingol/tap/doxctl ✔
+==> Deleted Casks
+appstudio                              filedrop                               hex                                    rss
 
+You have 96 outdated formulae and 10 outdated casks installed.
+You can upgrade them with brew upgrade
+or list them with brew outdated.
+
+
+$ brew upgrade doxctl
+==> Upgrading 1 outdated package:
+slmingol/tap/doxctl 0.0.27-alpha -> 0.0.28-alpha
+==> Upgrading slmingol/tap/doxctl 0.0.27-alpha -> 0.0.28-alpha
+==> Downloading https://github.com/slmingol/doxctl/releases/download/0.0.28-alpha/doxctl_0.0.28-alpha_Darwin_x86_64.tar.gz
+==> Downloading from https://github-releases.githubusercontent.com/367779289/c7d4bc00-c134-11eb-8b3d-622ae425b081?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Cre
+######################################################################## 100.0%
+🍺  /usr/local/Cellar/doxctl/0.0.28-alpha: 5 files, 9.1MB, built in 4 seconds
+Removing: /usr/local/Cellar/doxctl/0.0.27-alpha... (5 files, 9.1MB)
+Removing: /Users/smingolelli/Library/Caches/Homebrew/doxctl--0.0.27-alpha.tar.gz... (3.4MB)
 ```
 
 #### Uninstall

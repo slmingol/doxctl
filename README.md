@@ -550,7 +550,7 @@ ServerAddresses  set
 - [gookit/color](https://github.com/gookit/color)
 
 ### Example CLI tools written in Go
-- [docker/hub-tool](ttps://github.com/docker/hub-tool/tree/main/internal/commands)
+- [docker/hub-tool](https://github.com/docker/hub-tool/tree/main/internal/commands)
 
 ### MacOS
 - [SCNetworkReachability](https://developer.apple.com/documentation/systemconfiguration/scnetworkreachability-g7d)

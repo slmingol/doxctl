@@ -297,20 +297,45 @@ Global Flags:
 <details><summary>Tree - CLICK ME</summary>
 <p>
 
+##### Off VPN
 ```
 $ doxctl vpn -i
 
-**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
+NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Interfaces Reachable Checks                                                                 │
+├────────────────────────────────────────────────────┬────────────────────────────────┬───────┤
+│ PROPERTY DESCRIPTION                               │ VALUE                          │ NOTES │
+├────────────────────────────────────────────────────┼────────────────────────────────┼───────┤
+│ How many network interfaces found?                 │ 1                              │ [en0] │
+│ At least 1 interface's a utun device?              │ false                          │ []    │
+│ All active interfaces are reporting as reachable?  │ true                           │       │
+└────────────────────────────────────────────────────┴────────────────────────────────┴───────┘
+
+WARNING: Your VPN client does not appear to be defining a TUN interface properly,
+WARNING: you're VPN is either not connected or it's misconfigured!
 
 
 
-Interfaces Reachable Checks
-===========================
+```
 
+##### On VPN
+```
+$ doxctl vpn -i
 
-How many network interfaces found?       ---> 1 <--- 	 [en0]
-At least 1 interface's a utun device?    ---> no <---
-All interfaces are reachable?            ---> yes <---
+NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
+
+┌───────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Interfaces Reachable Checks                                                                       │
+├────────────────────────────────────────────────────┬────────────────────────────────┬─────────────┤
+│ PROPERTY DESCRIPTION                               │ VALUE                          │ NOTES       │
+├────────────────────────────────────────────────────┼────────────────────────────────┼─────────────┤
+│ How many network interfaces found?                 │ 2                              │ [en0 utun2] │
+│ At least 1 interface's a utun device?              │ true                           │ [utun2]     │
+│ All active interfaces are reporting as reachable?  │ true                           │             │
+└────────────────────────────────────────────────────┴────────────────────────────────┴─────────────┘
+
 
 
 ```
@@ -321,18 +346,40 @@ All interfaces are reachable?            ---> yes <---
 <details><summary>Tree - CLICK ME</summary>
 <p>
 
+#### Off VPN
 ```
 $ doxctl vpn -r
 
-**NOTE:** Using config file: /Users/smingolelli/.doxctl.yaml
+NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│ VPN Interface Route Checks                                                                  │
+├────────────────────────────────────────────────────┬────────────────────────────────┬───────┤
+│ PROPERTY DESCRIPTION                               │ VALUE                          │ NOTES │
+├────────────────────────────────────────────────────┼────────────────────────────────┼───────┤
+│ At least 5 routes using interface [NIL]?           │ false                          │     0 │
+└────────────────────────────────────────────────────┴────────────────────────────────┴───────┘
+
+WARNING: Your VPN client does not appear to be defining a TUN interface properly,
+WARNING: you're VPN is either not connected or it's misconfigured!
 
 
 
-VPN Interface Route Checks
-===========================
+```
 
+##### On VPN
+```
+$ doxctl vpn -r
 
-At least 5 routes using interface [NIL]? 	 ---> no <--- 	 [0]
+NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│ VPN Interface Route Checks                                                                  │
+├────────────────────────────────────────────────────┬────────────────────────────────┬───────┤
+│ PROPERTY DESCRIPTION                               │ VALUE                          │ NOTES │
+├────────────────────────────────────────────────────┼────────────────────────────────┼───────┤
+│ At least 5 routes using interface [utun2]?         │ true                           │   148 │
+└────────────────────────────────────────────────────┴────────────────────────────────┴───────┘
 
 
 

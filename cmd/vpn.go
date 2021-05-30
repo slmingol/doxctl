@@ -24,10 +24,16 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"doxctl/internal/cmdhelp"
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
+	"strconv"
+	"strings"
 
+	"github.com/gookit/color"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -41,53 +47,162 @@ doxctl's 'vpn' subcommand can help triage VPN related configuration issues,
 	Run: vpnExecute,
 }
 
-var ifReachableChk, vpnRoutesChk bool
+var ifReachableChk, vpnRoutesChk, vpnStatusChk bool
 
 func init() {
 	rootCmd.AddCommand(vpnCmd)
 
 	vpnCmd.Flags().BoolVarP(&ifReachableChk, "ifReachableChk", "i", false, "Check if network interfaces are reachable")
 	vpnCmd.Flags().BoolVarP(&vpnRoutesChk, "vpnRoutesChk", "r", false, "Check if >5 VPN routes are defined")
+	vpnCmd.Flags().BoolVarP(&vpnStatusChk, "vpnStatusChk", "s", false, "Check if VPN client's status reports as 'Connected'")
 	vpnCmd.Flags().BoolVarP(&allChk, "allChk", "a", false, "Run all the checks in this subcommand module")
 }
 
 func vpnExecute(cmd *cobra.Command, args []string) {
-	exeCmd := exec.Command("")
-
-	var verboseCmd string
-
-	if verboseChk {
-		verboseCmd = "1"
-	} else {
-		verboseCmd = "0"
-	}
-
-	var cmdString string
-
 	switch {
 	case ifReachableChk:
-		cmdString = ". model_cmds/01_vpn.sh; netInterfacesReachableChk" + " " + verboseCmd
-		ifReachableChk()
+		ifReachChk()
 	case vpnRoutesChk:
-		cmdString = ". model_cmds/01_vpn.sh; vpnInterfaceRoutesChk" + " " + verboseCmd
+		vpnRteChk()
+	case vpnStatusChk:
+		vpnConnChk()
 	case allChk:
-		cmdString = ". model_cmds/01_vpn.sh" +
-			"; netInterfacesReachableChk" + " " + verboseCmd +
-			"; vpnInterfaceRoutesChk" + " " + verboseCmd
+		ifReachChk()
+		vpnRteChk()
+		vpnConnChk()
 	default:
 		cmd.Usage()
 		os.Exit(1)
 	}
-
-	exeCmd = exec.Command("bash", "-c", cmdString)
-	exeCmd.Stdout = os.Stdout
-	exeCmd.Stderr = os.Stdout
-
-	if err := exeCmd.Run(); err != nil {
-		fmt.Println("Error:", err)
-	}
 }
 
-func ifReachableChk() {
-	fmt.Println("in here")
+func ifReachChk() {
+	cmdBase := `scutil --nwi`
+
+	cmdExe1 := exec.Command("bash", "-c", cmdBase)
+	cmdGrep1 := `grep 'Network interfaces:' | cut -d" " -f 3-`
+	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
+	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
+
+	netIfs := strings.Split(strings.TrimRight(string(output1), "\n"), " ")
+
+	var tunIfs []string
+	for i := 0; i < len(netIfs); i++ {
+		netIfs[i] = strings.TrimSpace(netIfs[i])
+		if strings.Contains(netIfs[i], "tun") {
+			tunIfs = append(tunIfs, netIfs[i])
+		}
+	}
+
+	var foundOneTunIf bool = false
+	if len(tunIfs) > 0 {
+		foundOneTunIf = true
+	}
+
+	cmdExe2 := exec.Command("bash", "-c", cmdBase)
+	cmdGrep2 := `grep address -B1 -A1 | grep -E "flags|reach" | paste - - | column -t | grep -v Reachable | wc -l | tr -d ' '`
+	exeGrep2 := exec.Command("bash", "-c", cmdGrep2)
+	output2, _, _ := cmdhelp.Pipeline(cmdExe2, exeGrep2)
+
+	reachableIfs := strings.TrimRight(string(output2), "\n")
+
+	var allInfsReachable bool = false
+	if reachableIfs == "0" {
+		allInfsReachable = true
+	}
+
+	t := table.NewWriter()
+	t.SetTitle("Interfaces Reachable Checks")
+	t.SetOutputMirror(os.Stdout)
+	t.SetStyle(table.StyleLight)
+	t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
+	t.AppendRow([]interface{}{"How many network interfaces found?", len(netIfs), netIfs})
+	t.AppendRow([]interface{}{"At least 1 interface's a utun device?", foundOneTunIf, tunIfs})
+	t.AppendRow([]interface{}{"All active interfaces are reporting as reachable?", allInfsReachable})
+	t.AppendSeparator()
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 1, WidthMin: 50},
+		{Number: 2, WidthMin: 30},
+	})
+	t.Render()
+
+	if len(tunIfs) < 1 {
+		fmt.Println("")
+		color.Warn.Tips("Your VPN client does not appear to be defining a TUN interface properly,")
+		color.Warn.Tips("you're VPN is either not connected or it's misconfigured!")
+	}
+
+	fmt.Println("\n\n")
+}
+
+func vpnRteChk() {
+	cmdExe1 := exec.Command("bash", "-c", "scutil --nwi")
+	cmdGrep1 := `grep 'Network interfaces:' | grep -o utun[0-9] || echo "NIL"`
+	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
+	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
+
+	vpnIf := strings.Split(strings.TrimRight(string(output1), "\n"), " ")[0]
+
+	cmdExe2 := exec.Command("bash", "-c", `netstat -r -f inet`)
+	cmdGrep2 := `grep -c ` + vpnIf
+	exeGrep2 := exec.Command("bash", "-c", cmdGrep2)
+	output2, _, _ := cmdhelp.Pipeline(cmdExe2, exeGrep2)
+
+	vpnRouteCnt, _ := strconv.Atoi(strings.Split(strings.TrimRight(string(output2), "\n"), " ")[0])
+
+	t := table.NewWriter()
+	t.SetTitle("VPN Interface Route Checks")
+	t.SetOutputMirror(os.Stdout)
+	t.SetStyle(table.StyleLight)
+	t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
+	t.AppendRow([]interface{}{fmt.Sprintf("At least 5 routes using interface [%s]?", vpnIf), vpnRouteCnt >= 5, vpnRouteCnt})
+	t.AppendSeparator()
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 1, WidthMin: 50},
+		{Number: 2, WidthMin: 30},
+	})
+	t.Render()
+
+	if vpnRouteCnt < 5 {
+		fmt.Println("")
+		color.Warn.Tips("Your VPN client does not appear to be defining a TUN interface properly,")
+		color.Warn.Tips("you're VPN is either not connected or it's misconfigured!")
+	}
+
+	fmt.Println("\n\n")
+}
+
+func vpnConnChk() {
+	cmdBase := `/opt/cisco/anyconnect/bin/vpn`
+	if runtime.GOOS == "linux" {
+		cmdBase = `/opt/cisco/anyconnect/bin/vpnui`
+	}
+
+	cmdExe1 := exec.Command("bash", "-c", cmdBase+" state")
+	cmdGrep1 := `grep -c 'state: Connected'`
+	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
+	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
+
+	vpnConnStatus, _ := strconv.Atoi(strings.Split(strings.TrimRight(string(output1), "\n"), " ")[0])
+
+	t := table.NewWriter()
+	t.SetTitle("VPN Connection Status Checks")
+	t.SetOutputMirror(os.Stdout)
+	t.SetStyle(table.StyleLight)
+	t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
+	t.AppendRow([]interface{}{"VPN Client reports connection status as 'Connected'?", vpnConnStatus > 0})
+	t.AppendSeparator()
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 1, WidthMin: 50},
+		{Number: 2, WidthMin: 30},
+	})
+	t.Render()
+
+	if vpnConnStatus == 0 {
+		fmt.Println("")
+		color.Warn.Tips("Your VPN client's does not appear to be a state of 'connected',")
+		color.Warn.Tips("it's either down or misconfigured!")
+	}
+
+	fmt.Println("\n\n")
 }

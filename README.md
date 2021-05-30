@@ -284,11 +284,11 @@ Flags:
   -h, --help             help for vpn
   -i, --ifReachableChk   Check if network interfaces are reachable
   -r, --vpnRoutesChk     Check if >5 VPN routes are defined
+  -s, --vpnStatusChk     Check if VPN client's status reports as 'Connected'
 
 Global Flags:
-  -v, --verbose   Enable verbose output of commands
-
-
+  -c, --config string   config file (default is $HOME/.doxctl.yaml)
+  -v, --verbose         Enable verbose output of commands
 ```
 
 ### VPN Example Output

@@ -538,7 +538,7 @@ ServerAddresses  set
 </p>
 </details>
 
-## RESOURCES
+## Resources
 
 ### References
 - [Exploring Go Packages: Cobra](https://levelup.gitconnected.com/exploring-go-packages-cobra-fce6c4e331d6)

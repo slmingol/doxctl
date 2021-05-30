@@ -67,6 +67,7 @@ func vpnExecute(cmd *cobra.Command, args []string) {
 	switch {
 	case ifReachableChk:
 		cmdString = ". model_cmds/01_vpn.sh; netInterfacesReachableChk" + " " + verboseCmd
+		ifReachableChk()
 	case vpnRoutesChk:
 		cmdString = ". model_cmds/01_vpn.sh; vpnInterfaceRoutesChk" + " " + verboseCmd
 	case allChk:
@@ -85,4 +86,8 @@ func vpnExecute(cmd *cobra.Command, args []string) {
 	if err := exeCmd.Run(); err != nil {
 		fmt.Println("Error:", err)
 	}
+}
+
+func ifReachableChk() {
+	fmt.Println("in here")
 }

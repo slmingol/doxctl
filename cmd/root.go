@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -103,7 +104,9 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "\n**NOTE:** Using config file:", viper.ConfigFileUsed(), "\n")
+		fmt.Println("")
+		color.Note.Tips("Using config file: " + viper.ConfigFileUsed() + "\n")
+		//fmt.Fprintln(os.Stderr, "\n**NOTE:** Using config file:", viper.ConfigFileUsed(), "\n")
 	}
 
 	conf := &config{}

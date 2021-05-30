@@ -31,6 +31,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/gookit/color"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/lixiangzhong/dnsutil"
 	"github.com/miekg/dns"
@@ -102,6 +103,10 @@ func dnsResolverChk() {
 	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
 	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
 
+	/*if verboseChk {
+		log.Info("log blah", "dnsresolvercmd", cmdBase+"|"+cmdGrep1)
+	}*/
+
 	cmdExe2 := exec.Command("bash", "-c", cmdBase)
 	cmdGrep2 := `grep -A1 'SearchDomains' | grep -qE '` + conf.DomSearchChk + `' && echo "SearchDomains set" || echo "SearchDomains unset"`
 	exeGrep2 := exec.Command("bash", "-c", cmdGrep2)
@@ -135,7 +140,8 @@ func dnsResolverChk() {
 	})
 	t.Render()
 
-	fmt.Println("\n** NOTE:** Any values of unset indicate that the VPN client is not defining DNS resolver(s) properly!\n\n")
+	fmt.Printf("\n")
+	color.Info.Prompt("Any values of unset indicate that the VPN client is not defining DNS resolver(s) properly!\n\n")
 }
 
 func dnsResolverPingChk() {
@@ -223,8 +229,8 @@ func dnsResolverPingChk() {
 
 	if len(resolverIPs) <= 1 {
 		fmt.Println("")
-		fmt.Println("** WARN:** Your VPN client does not appear to be defining any DNS resolver(s) properly,")
-		fmt.Println("           you're either not connected via VPN or it's misconfigured!")
+		color.Warn.Tips("Your VPN client does not appear to be defining any DNS resolver(s) properly,")
+		color.Warn.Tips("you're either not connected via VPN or it's misconfigured!")
 	}
 
 	fmt.Println("\n\n")
@@ -284,8 +290,8 @@ func dnsResolverDigChk() {
 
 	if len(resolverIPs) <= 1 {
 		fmt.Println("")
-		fmt.Println("** WARN:** Your VPN client does not appear to be defining any DNS resolver(s) properly,")
-		fmt.Println("           you're either not connected via VPN or it's misconfigured!")
+		color.Warn.Tips("Your VPN client does not appear to be defining any DNS resolver(s) properly,")
+		color.Warn.Tips("you're either not connected via VPN or it's misconfigured!")
 	}
 
 	fmt.Println("\n\n")

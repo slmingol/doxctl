@@ -455,6 +455,7 @@ ServerAddresses  set
 - [How to create a CLI in golang with cobra](https://towardsdatascience.com/how-to-create-a-cli-in-golang-with-cobra-d729641c7177)
 - [How to pipe several commands in Go?](https://stackoverflow.com/questions/10781516/how-to-pipe-several-commands-in-go)
 - [Executing System Commands With Golang](https://tutorialedge.net/golang/executing-system-commands-with-golang/)
+- [gookit/color](https://github.com/gookit/color)
 
 #### Example CLI tools written in Go
 - [docker/hub-tool](ttps://github.com/docker/hub-tool/tree/main/internal/commands)

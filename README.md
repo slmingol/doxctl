@@ -1,6 +1,6 @@
 ![dox logo](https://github.com/slmingol/doxctl/blob/main/imgs/whats_up_dox__banner.png?raw=true)
 
-## TLDR
+# TLDR
 `doxctl` is a diagnostic CLI tool that endusers can use to triage connectivity problems stemming from their VPN & DNS setups on their laptops. It can help with the following areas:
 
 | Area | Description |
@@ -10,8 +10,8 @@
 | Resolvers | VPN defined DNS resolvers are defined and reachable |
 | Routing and connectivity | When on the VPN well-known servers are reachable |
 
-## Usage
-### General
+# Usage
+## General
 ```
 $ doxctl -h
 
@@ -45,7 +45,7 @@ Use "doxctl [command] --help" for more information about a command.
 
 ------------------------------------------------------------------------------
 
-### DNS
+## DNS
 ```
 $ doxctl dns -h
 
@@ -67,7 +67,7 @@ Global Flags:
   -v, --verbose         Enable verbose output of commands
 ```
 
-### DNS Example Output
+### Example Output
 
 #### resolverChk
 
@@ -269,7 +269,7 @@ $ doxctl dns -d
 
 ------------------------------------------------------------------------------
 
-### VPN
+## VPN
 ```
 $ doxctl vpn -h
 
@@ -291,7 +291,7 @@ Global Flags:
   -v, --verbose         Enable verbose output of commands
 ```
 
-### VPN Example Output
+### Example Output
 
 #### ifReachableChk
 <details><summary>Tree - CLICK ME</summary>
@@ -391,7 +391,7 @@ NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
 <details><summary>Tree - CLICK ME</summary>
 <p>
 
-#### Off VPN
+##### Off VPN
 ```
 $ doxctl vpn -s
 
@@ -434,7 +434,7 @@ NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
 
 ------------------------------------------------------------------------------
 
-### Debugging
+## Debugging
 All the CLI subcommands can make use of either the `-v` or the `--verbose` switch to gather further diagnostics which can be helpful when triaging connectivity issues.
 
 <details><summary>Tree - CLICK ME</summary>
@@ -538,9 +538,9 @@ ServerAddresses  set
 </p>
 </details>
 
-### RESOURCES
+## RESOURCES
 
-#### References
+### References
 - [Exploring Go Packages: Cobra](https://levelup.gitconnected.com/exploring-go-packages-cobra-fce6c4e331d6)
 - [CLI Command Line SDK - Cobra](https://github.com/spf13/cobra)
 - [Building a multipurpose CLI tool with Cobra and Go](https://dev.to/lumexralph/building-a-multipurpose-cli-tool-with-cobra-and-go-2492)
@@ -549,9 +549,9 @@ ServerAddresses  set
 - [Executing System Commands With Golang](https://tutorialedge.net/golang/executing-system-commands-with-golang/)
 - [gookit/color](https://github.com/gookit/color)
 
-#### Example CLI tools written in Go
+### Example CLI tools written in Go
 - [docker/hub-tool](ttps://github.com/docker/hub-tool/tree/main/internal/commands)
 
-#### MacOS
+### MacOS
 - [SCNetworkReachability](https://developer.apple.com/documentation/systemconfiguration/scnetworkreachability-g7d)
 - [scutil generalized interface to "dynamic Store" and Network Services](https://www.real-world-systems.com/docs/scutil.1.html)

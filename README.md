@@ -346,7 +346,7 @@ NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
 <details><summary>Tree - CLICK ME</summary>
 <p>
 
-#### Off VPN
+##### Off VPN
 ```
 $ doxctl vpn -r
 
@@ -380,6 +380,51 @@ NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
 ├────────────────────────────────────────────────────┼────────────────────────────────┼───────┤
 │ At least 5 routes using interface [utun2]?         │ true                           │   148 │
 └────────────────────────────────────────────────────┴────────────────────────────────┴───────┘
+
+
+
+```
+</p>
+</details>
+
+#### vpnStatusChk
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+#### Off VPN
+```
+$ doxctl vpn -s
+
+NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
+
+┌───────────────────────────────────────────────────────────────────────────────────────────────┐
+│ VPN Connection Status Checks                                                                  │
+├──────────────────────────────────────────────────────┬────────────────────────────────┬───────┤
+│ PROPERTY DESCRIPTION                                 │ VALUE                          │ NOTES │
+├──────────────────────────────────────────────────────┼────────────────────────────────┼───────┤
+│ VPN Client reports connection status as 'Connected'? │ false                          │       │
+└──────────────────────────────────────────────────────┴────────────────────────────────┴───────┘
+
+WARNING: Your VPN client's does not appear to be a state of 'connected',
+WARNING: it's either down or misconfigured!
+
+
+
+```
+
+##### On VPN
+```
+$ doxctl vpn -s
+
+NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
+
+┌───────────────────────────────────────────────────────────────────────────────────────────────┐
+│ VPN Connection Status Checks                                                                  │
+├──────────────────────────────────────────────────────┬────────────────────────────────┬───────┤
+│ PROPERTY DESCRIPTION                                 │ VALUE                          │ NOTES │
+├──────────────────────────────────────────────────────┼────────────────────────────────┼───────┤
+│ VPN Client reports connection status as 'Connected'? │ true                           │       │
+└──────────────────────────────────────────────────────┴────────────────────────────────┴───────┘
 
 
 

@@ -10,6 +10,56 @@
 | Resolvers | VPN defined DNS resolvers are defined and reachable |
 | Routing and connectivity | When on the VPN well-known servers are reachable |
 
+# Installation
+## MacOS
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+```
+$ brew install slmingol/tap/doxctl
+```
+
+### Examples
+#### Install
+```
+$ brew install slmingol/tap/doxctl
+==> Installing doxctl from slmingol/tap
+==> Downloading https://ghcr.io/v2/homebrew/core/go/manifests/1.16.4
+######################################################################## 100.0%
+==> Downloading https://ghcr.io/v2/homebrew/core/go/blobs/sha256:8aa23b394e05aaef495604670401f9308c01c3c30a1857077493a80d1719e089
+==> Downloading from https://pkg-containers.githubusercontent.com/ghcr1/blobs/sha256:8aa23b394e05aaef495604670401f9308c01c3c30a1857077493a80d1719e089?se=202
+######################################################################## 100.0%
+==> Downloading https://github.com/slmingol/doxctl/releases/download/0.0.27-alpha/doxctl_0.0.27-alpha_Darwin_x86_64.tar.gz
+==> Downloading from https://github-releases.githubusercontent.com/367779289/09fcfe00-c133-11eb-9f76-3f053be7f72c?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Cre
+######################################################################## 100.0%
+==> Installing dependencies for slmingol/tap/doxctl: go
+==> Installing slmingol/tap/doxctl dependency: go
+==> Pouring go--1.16.4.catalina.bottle.tar.gz
+🍺  /usr/local/Cellar/go/1.16.4: 9,956 files, 503.6MB
+==> Installing slmingol/tap/doxctl
+🍺  /usr/local/Cellar/doxctl/0.0.27-alpha: 5 files, 9.1MB, built in 4 seconds
+```
+
+#### search
+```
+$ brew search doxctl
+==> Formulae
+slmingol/tap/doxctl ✔
+```
+
+#### Upgrade
+```
+
+```
+
+#### Uninstall
+```
+$ brew uninstall doxctl
+Uninstalling /usr/local/Cellar/doxctl/0.0.27-alpha... (5 files, 9.1MB)
+```
+</p>
+</details>
+
 # Usage
 ## General
 ```
@@ -434,7 +484,7 @@ NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
 
 ------------------------------------------------------------------------------
 
-## Debugging
+## Debugging - TBD/WIP
 All the CLI subcommands can make use of either the `-v` or the `--verbose` switch to gather further diagnostics which can be helpful when triaging connectivity issues.
 
 <details><summary>Tree - CLICK ME</summary>
@@ -555,3 +605,4 @@ ServerAddresses  set
 ### MacOS
 - [SCNetworkReachability](https://developer.apple.com/documentation/systemconfiguration/scnetworkreachability-g7d)
 - [scutil generalized interface to "dynamic Store" and Network Services](https://www.real-world-systems.com/docs/scutil.1.html)
+- [Homebrew formulas - slmingol/homebrew-tap](https://github.com/slmingol/homebrew-tap)

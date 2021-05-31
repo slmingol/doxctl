@@ -27,7 +27,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
+	"github.com/go-ping/ping"
+	"github.com/gookit/color"
+	"github.com/jedib0t/go-pretty/v6/table"
 	gobrex "github.com/kujtimiihoxha/go-brace-expansion"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -79,14 +83,50 @@ func svrsExecute(cmd *cobra.Command, args []string) {
 }
 
 func svrsReachChk() {
+	t := table.NewWriter()
+	t.SetTitle("Well-known Servers Reachable Checks")
+	t.SetOutputMirror(os.Stdout)
+	t.SetStyle(table.StyleLight)
+	t.AppendHeader(table.Row{"Host", "Service", "Reachable?", "Ping Performance"})
+
+	color.Info.Tips("Attempting to ping all well-known servers, this may take a few...\n\n")
+
 	for _, i := range conf.Svcs {
 		fmt.Printf("svc: %s\n", i.Svc)
 		fmt.Printf("svrs: %s\n", i.Svrs)
 		for _, j := range i.Svrs {
 			permutations := gobrex.Expand(j)
 			for _, permutation := range permutations {
-				fmt.Println(permutation)
+				pinger, err := ping.NewPinger(permutation)
+				if err != nil {
+					//panic(err)
+					t.AppendRow([]interface{}{permutation, i.Svc, false, "N/A"})
+					continue
+				}
+				//pinger.Count = 2
+				pinger.Timeout = time.Second * 2
+				pinger.Run()
+				stats := pinger.Statistics() // get send/receive/duplicate/rtt stats
+				pingPerf := fmt.Sprintf("rnd-trp avg = %v", stats.AvgRtt)
+				// DEBUG fmt.Println(stats)
+				t.AppendRow([]interface{}{permutation, i.Svc, (stats.PacketLoss == 0 && stats.PacketsRecv > 0), pingPerf})
 			}
 		}
+		t.AppendSeparator()
 	}
+
+	t.AppendSeparator()
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 1, WidthMin: 40},
+		{Number: 2, WidthMin: 20},
+	})
+	t.Render()
+
+	//if len(tunIfs) < 1 {
+	//	fmt.Println("")
+	//	color.Warn.Tips("Your VPN client does not appear to be defining a TUN interface properly,")
+	//	color.Warn.Tips("you're VPN is either not connected or it's misconfigured!")
+	//}
+
+	fmt.Println("\n\n")
 }

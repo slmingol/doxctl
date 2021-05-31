@@ -619,6 +619,9 @@ ServerAddresses  set
 - [How to pipe several commands in Go?](https://stackoverflow.com/questions/10781516/how-to-pipe-several-commands-in-go)
 - [Executing System Commands With Golang](https://tutorialedge.net/golang/executing-system-commands-with-golang/)
 - [gookit/color](https://github.com/gookit/color)
+- [go-ping/ping](https://github.com/go-ping/ping)
+- [go-ping example `ping` CLI](https://github.com/go-ping/ping/blob/master/cmd/ping/ping.go)
+- [go-pretty demo-table](https://github.com/jedib0t/go-pretty/tree/main/cmd/demo-table)
 
 ### Example CLI tools written in Go
 - [docker/hub-tool](https://github.com/docker/hub-tool/tree/main/internal/commands)

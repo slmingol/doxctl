@@ -33,6 +33,7 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/jedib0t/go-pretty/v6/table"
+	gobrex "github.com/kujtimiihoxha/go-brace-expansion"
 	"github.com/lixiangzhong/dnsutil"
 	"github.com/miekg/dns"
 	"github.com/spf13/cobra"
@@ -88,6 +89,11 @@ func dnsExecute(cmd *cobra.Command, args []string) {
 	default:
 		cmd.Usage()
 		os.Exit(1)
+	}
+
+	permutations := gobrex.Expand("ocp-master-01{a,b,c}.{lab1,rdu1,dfw1,lax2,jfk1}.bandwidthclec.local")
+	for _, permutation := range permutations {
+		fmt.Println(permutation)
 	}
 }
 

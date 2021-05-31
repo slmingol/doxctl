@@ -34,6 +34,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+type svc struct {
+	Svc  string   `mapstructure:"svc"`
+	Svrs []string `mapstructure:"svrs"`
+}
+
 type config struct {
 	DomNameChk   string   `mapstructure:"domNameChk"`
 	DomSearchChk string   `mapstructure:"domSearchChk"`
@@ -42,6 +47,8 @@ type config struct {
 	ServerA      string   `mapstructure:"digProbeServerA"`
 	ServerB      string   `mapstructure:"digProbeServerB"`
 	Sites        []string `mapstructure:"sites"`
+	Openshift    []string `mapstructure:"openshift"`
+	Svcs         []svc    `mapstructure:"wellKnownSvcs"`
 }
 
 var (

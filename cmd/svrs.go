@@ -83,50 +83,76 @@ func svrsExecute(cmd *cobra.Command, args []string) {
 }
 
 func svrsReachChk() {
+	color.Info.Tips("Attempting to ping all well-known servers, this may take a few...\n")
+
 	t := table.NewWriter()
 	t.SetTitle("Well-known Servers Reachable Checks")
 	t.SetOutputMirror(os.Stdout)
 	t.SetStyle(table.StyleLight)
-	t.AppendHeader(table.Row{"Host", "Service", "Reachable?", "Ping Performance"})
-
-	color.Info.Tips("Attempting to ping all well-known servers, this may take a few...\n\n")
-
-	for _, i := range conf.Svcs {
-		fmt.Printf("svc: %s\n", i.Svc)
-		fmt.Printf("svrs: %s\n", i.Svrs)
-		for _, j := range i.Svrs {
-			permutations := gobrex.Expand(j)
-			for _, permutation := range permutations {
-				pinger, err := ping.NewPinger(permutation)
-				if err != nil {
-					//panic(err)
-					t.AppendRow([]interface{}{permutation, i.Svc, false, "N/A"})
-					continue
-				}
-				//pinger.Count = 2
-				pinger.Timeout = time.Second * 2
-				pinger.Run()
-				stats := pinger.Statistics() // get send/receive/duplicate/rtt stats
-				pingPerf := fmt.Sprintf("rnd-trp avg = %v", stats.AvgRtt)
-				// DEBUG fmt.Println(stats)
-				t.AppendRow([]interface{}{permutation, i.Svc, (stats.PacketLoss == 0 && stats.PacketsRecv > 0), pingPerf})
-			}
-		}
-		t.AppendSeparator()
-	}
-
-	t.AppendSeparator()
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 1, WidthMin: 40},
 		{Number: 2, WidthMin: 20},
 	})
+	t.AppendHeader(table.Row{"Host", "Service", "Reachable?", "Ping Performance"})
+
+	pingFailures := 0
+	reachFailures := 0
+	for _, i := range conf.Svcs {
+		fmt.Printf("   --- Working through svc: %s\n", i.Svc)
+		//DEBUG fmt.Printf("svrs pattern: %s\n\n", i.Svrs)
+
+		for _, j := range i.Svrs {
+			permutations := gobrex.Expand(j)
+
+			for _, permutation := range permutations {
+
+				if pingFailures > conf.FailThreshold || reachFailures > conf.FailThreshold {
+					t.AppendRow([]interface{}{permutation, i.Svc, false, "N/A"})
+					continue
+				}
+
+				//DEBUG fmt.Printf("svr: %s\n", permutation)
+				pinger, err := ping.NewPinger(permutation)
+
+				if err != nil {
+					t.AppendRow([]interface{}{permutation, i.Svc, false, "N/A"})
+					pingFailures++
+					continue
+				}
+
+				pinger.Timeout = conf.PingTimeout * time.Millisecond
+				pinger.Run()
+				stats := pinger.Statistics()
+				pingPerf := fmt.Sprintf("rnd-trp avg = %v", stats.AvgRtt)
+				packetAck := (stats.PacketLoss == 0 && stats.PacketsRecv > 0)
+
+				if !packetAck {
+					reachFailures++
+				}
+
+				t.AppendRow([]interface{}{permutation, i.Svc, packetAck, pingPerf})
+			}
+		}
+		t.AppendSeparator()
+	}
+	fmt.Println("\n\n   ...one sec, preparing `ping` results...\n")
+
+	if pingFailures > conf.FailThreshold || reachFailures > conf.FailThreshold {
+		fmt.Println("")
+		color.Warn.Tips("More than %d hosts appear to be unreachable, aborting remainder....\n\n", conf.FailThreshold)
+	}
+
+	time.Sleep(6 * time.Second)
+
+	t.AppendSeparator()
 	t.Render()
 
-	//if len(tunIfs) < 1 {
-	//	fmt.Println("")
-	//	color.Warn.Tips("Your VPN client does not appear to be defining a TUN interface properly,")
-	//	color.Warn.Tips("you're VPN is either not connected or it's misconfigured!")
-	//}
+	if pingFailures > 0 || reachFailures > 0 {
+		fmt.Println("")
+		color.Warn.Tips("Your VPN client does not appear to be functioning properly, either some")
+		color.Warn.Tips("well-known servers are unreachable, unresolable in DNS, or the")
+		color.Warn.Tips("VPN client is otherwise misconfigured!")
+	}
 
 	fmt.Println("\n\n")
 }

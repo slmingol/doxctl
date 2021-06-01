@@ -26,6 +26,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/gookit/color"
 	"github.com/spf13/cobra"
@@ -40,15 +41,17 @@ type svc struct {
 }
 
 type config struct {
-	DomNameChk   string   `mapstructure:"domNameChk"`
-	DomSearchChk string   `mapstructure:"domSearchChk"`
-	DomAddrChk   string   `mapstructure:"domAddrChk"`
-	DomainName   string   `mapstructure:"domainName"`
-	ServerA      string   `mapstructure:"digProbeServerA"`
-	ServerB      string   `mapstructure:"digProbeServerB"`
-	Sites        []string `mapstructure:"sites"`
-	Openshift    []string `mapstructure:"openshift"`
-	Svcs         []svc    `mapstructure:"wellKnownSvcs"`
+	DomNameChk    string        `mapstructure:"domNameChk"`
+	DomSearchChk  string        `mapstructure:"domSearchChk"`
+	DomAddrChk    string        `mapstructure:"domAddrChk"`
+	DomainName    string        `mapstructure:"domainName"`
+	ServerA       string        `mapstructure:"digProbeServerA"`
+	ServerB       string        `mapstructure:"digProbeServerB"`
+	Sites         []string      `mapstructure:"sites"`
+	Openshift     []string      `mapstructure:"openshift"`
+	Svcs          []svc         `mapstructure:"wellKnownSvcs"`
+	PingTimeout   time.Duration `mapstructure:"pingTimeout"`
+	FailThreshold int           `mapstructure:"failThreshold"`
 }
 
 var (

@@ -82,6 +82,8 @@ stemming from the following areas with a laptop or desktop system:
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
+
+	fmt.Println("\n\n")
 }
 
 func init() {

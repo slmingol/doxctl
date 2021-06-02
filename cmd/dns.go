@@ -45,7 +45,7 @@ var (
 
 var dnsCmd = &cobra.Command{
 	Use:   "dns",
-	Short: "Run diagnostics related to DNS servers' (resolvers') configurations",
+	Short: "Run diagnostics related to DNS servers (aka. resolvers) configurations",
 	Long: `
 doxctl's 'dns' subcommand can help triage DNS resovler configuration issues, 
 general access to DNS resolvers and name resolution against DNS resolvers.`,
@@ -91,6 +91,7 @@ func dnsExecute(cmd *cobra.Command, args []string) {
 	}
 }
 
+// Check if VPN configured DNS is setup
 func dnsResolverChk() {
 	type dnsChks struct {
 		domainName, searchDomains, serverAddresses string
@@ -144,6 +145,7 @@ func dnsResolverChk() {
 	color.Info.Prompt("Any values of unset indicate that the VPN client is not defining DNS resolver(s) properly!\n\n")
 }
 
+// Check if DNS resolvers are pingable & reachable via TCP/UDP
 func dnsResolverPingChk() {
 	type resolverChk struct {
 		resolverIP, netInterface                  string
@@ -229,13 +231,16 @@ func dnsResolverPingChk() {
 
 	if len(resolverIPs) <= 1 {
 		fmt.Println("")
-		color.Warn.Tips("Your VPN client does not appear to be defining any DNS resolver(s) properly,")
-		color.Warn.Tips("you're either not connected via VPN or it's misconfigured!")
+		color.Warn.Tips(`
+
+   Your VPN client does not appear to be defining any DNS resolver(s) properly,
+   you're either not connected via VPN or it's misconfigured!`)
 	}
 
 	fmt.Println("\n\n")
 }
 
+// Check if DNS resolvers return well known server records
 func dnsResolverDigChk() {
 	t := table.NewWriter()
 	t.SetTitle("Dig Check against VPN defined DNS Resolvers")
@@ -290,13 +295,16 @@ func dnsResolverDigChk() {
 
 	if len(resolverIPs) <= 1 {
 		fmt.Println("")
-		color.Warn.Tips("Your VPN client does not appear to be defining any DNS resolver(s) properly,")
-		color.Warn.Tips("you're either not connected via VPN or it's misconfigured!")
+		color.Warn.Tips(`
+
+   Your VPN client does not appear to be defining any DNS resolver(s) properly,
+   you're either not connected via VPN or it's misconfigured!`)
 	}
 
 	fmt.Println("\n\n")
 }
 
+// scutil
 func scutilResolverIPs() []string {
 	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
 	cmdExe1 := exec.Command("bash", "-c", cmdBase)

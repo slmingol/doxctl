@@ -42,7 +42,7 @@ var svrsCmd = &cobra.Command{
 	Use:   "svrs",
 	Short: "Run diagnostics related to server accessiblity through a VPN connection",
 	Long: `
-doxctl's 'svrs' subcommand can help triage & test connectivity to 'well-known servers'
+doxctl's 'svrs' subcommand can help triage & test connectivity to 'well known servers'
 through a VPN connection to servers which have been defined in your '.doxctl.yaml' 
 configuration file. 
 	`,
@@ -66,7 +66,7 @@ var svrsReachableChk bool
 func init() {
 	rootCmd.AddCommand(svrsCmd)
 
-	svrsCmd.Flags().BoolVarP(&svrsReachableChk, "svrsReachableChk", "s", false, "Check if well-known servers are reachable")
+	svrsCmd.Flags().BoolVarP(&svrsReachableChk, "svrsReachableChk", "s", false, "Check if well known servers are reachable")
 	svrsCmd.Flags().BoolVarP(&allChk, "allChk", "a", false, "Run all the checks in this subcommand module")
 }
 
@@ -83,11 +83,11 @@ func svrsExecute(cmd *cobra.Command, args []string) {
 }
 
 func svrsReachChk() {
-	color.Info.Tips("Attempting to ping all well-known servers, this may take a few...\n")
+	color.Info.Tips("Attempting to ping all well known servers, this may take a few...\n")
 
 	// Table head
 	t := table.NewWriter()
-	t.SetTitle("Well-known Servers Reachable Checks")
+	t.SetTitle("Well known Servers Reachable Checks")
 	t.SetOutputMirror(os.Stdout)
 	t.SetStyle(table.StyleLight)
 	t.SetColumnConfigs([]table.ColumnConfig{
@@ -152,10 +152,11 @@ func svrsReachChk() {
 	if pingFailures > 0 || reachFailures > 0 {
 		fmt.Println("")
 		color.Warn.Tips(`
-Your VPN client does not appear to be functioning properly, it's likely one or more of the following:
-	- Well-known servers are unreachable via ping
-	- Servers are unresovlable in DNS
-	- VPN client is otherwise misconfigured!
+
+	Your VPN client does not appear to be functioning properly, it's likely one or more of the following:
+		- Well known servers are unreachable via ping
+		- Servers are unresovlable in DNS
+		- VPN client is otherwise misconfigured!
 	`)
 	}
 

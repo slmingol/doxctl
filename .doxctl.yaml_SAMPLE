@@ -8,7 +8,7 @@ domainName: "examplecorp.local"
 digProbeServerA: "idm-01a"
 digProbeServerB: "idm-01b"
 
-
+# sites & svc servers
 sites:
   - lab1
   - rdu1

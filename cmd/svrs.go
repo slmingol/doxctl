@@ -85,6 +85,7 @@ func svrsExecute(cmd *cobra.Command, args []string) {
 func svrsReachChk() {
 	color.Info.Tips("Attempting to ping all well-known servers, this may take a few...\n")
 
+	// Table head
 	t := table.NewWriter()
 	t.SetTitle("Well-known Servers Reachable Checks")
 	t.SetOutputMirror(os.Stdout)
@@ -95,11 +96,13 @@ func svrsReachChk() {
 	})
 	t.AppendHeader(table.Row{"Host", "Service", "Reachable?", "Ping Performance"})
 
+	/* Walk through list of hosts, attempt to ping 'em.
+	Loop through the list of svcs in .doxctl.yaml file and
+	*/
 	pingFailures := 0
 	reachFailures := 0
 	for _, i := range conf.Svcs {
 		fmt.Printf("   --- Working through svc: %s\n", i.Svc)
-		//DEBUG fmt.Printf("svrs pattern: %s\n\n", i.Svrs)
 
 		for _, j := range i.Svrs {
 			permutations := gobrex.Expand(j)
@@ -111,7 +114,6 @@ func svrsReachChk() {
 					continue
 				}
 
-				//DEBUG fmt.Printf("svr: %s\n", permutation)
 				pinger, err := ping.NewPinger(permutation)
 
 				if err != nil {
@@ -149,9 +151,12 @@ func svrsReachChk() {
 
 	if pingFailures > 0 || reachFailures > 0 {
 		fmt.Println("")
-		color.Warn.Tips("Your VPN client does not appear to be functioning properly, either some")
-		color.Warn.Tips("well-known servers are unreachable, unresolable in DNS, or the")
-		color.Warn.Tips("VPN client is otherwise misconfigured!")
+		color.Warn.Tips(`
+Your VPN client does not appear to be functioning properly, it's likely one or more of the following:
+	- Well-known servers are unreachable via ping
+	- Servers are unresovlable in DNS
+	- VPN client is otherwise misconfigured!
+	`)
 	}
 
 	fmt.Println("\n\n")

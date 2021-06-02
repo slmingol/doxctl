@@ -99,12 +99,12 @@ Usage:
   doxctl [command]
 
 Available Commands:
-  dns         Run diagnostics related to DNS servers' (resolvers') configurations
+  dns         Run diagnostics related to DNS servers (aka. resolvers) configurations
   help        Help about any command
   net         TBD
   svcs        TBD
-  svrs        TBD
-  vpn         Run diagnostics related to VPN connections, net i/fs & configurations
+  svrs        Run diagnostics verifying connectivity to well known servers thru a VPN connection
+  vpn         Run diagnostics related to VPN connections, network interfaces & configurations
 
 Flags:
   -c, --config string   config file (default is $HOME/.doxctl.yaml)
@@ -162,7 +162,7 @@ $ doxctl dns -r
 │ ServerAddresses defined?                 │ unset                          │
 └──────────────────────────────────────────┴────────────────────────────────┘
 
-** NOTE:** Any values of unset indicate that the VPN client is not defining DNS resolver(s) properly!
+INFO: Any values of unset indicate that the VPN client is not defining DNS resolver(s) properly!
 
 
 ```
@@ -184,7 +184,7 @@ $ doxctl dns -r
 │ ServerAddresses defined?                 │ set                            │
 └──────────────────────────────────────────┴────────────────────────────────┘
 
-** NOTE:** Any values of unset indicate that the VPN client is not defining DNS resolver(s) properly!
+INFO: Any values of unset indicate that the VPN client is not defining DNS resolver(s) properly!
 
 
 ```
@@ -209,8 +209,10 @@ $ doxctl dns -p
 ├──────────────────────────────────────────┼───────────────┼───────────────┼───────┤
 └──────────────────────────────────────────┴───────────────┴───────────────┴───────┘
 
-** WARN:** Your VPN client does not appear to be defining any DNS resolver(s) properly,
-           you're either not connected via VPN or it's misconfigured!
+WARNING:
+
+   Your VPN client does not appear to be defining any DNS resolver(s) properly,
+   you're either not connected via VPN or it's misconfigured!
 
 
 
@@ -280,8 +282,10 @@ $ doxctl dns -d
 │                                          │ RESOLVER #2: 0  │                 │
 └──────────────────────────────────────────┴─────────────────┴─────────────────┘
 
-** WARN:** Your VPN client does not appear to be defining any DNS resolver(s) properly,
-           you're either not connected via VPN or it's misconfigured!
+WARNING:
+
+   Your VPN client does not appear to be defining any DNS resolver(s) properly,
+   you're either not connected via VPN or it's misconfigured!
 
 
 
@@ -384,8 +388,10 @@ NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
 │ All active interfaces are reporting as reachable?  │ true                           │       │
 └────────────────────────────────────────────────────┴────────────────────────────────┴───────┘
 
-WARNING: Your VPN client does not appear to be defining a TUN interface properly,
-WARNING: you're VPN is either not connected or it's misconfigured!
+WARNING:
+
+   Your VPN client does not appear to be defining a TUN interface properly,
+   your VPN is either not connected or it's misconfigured!
 
 
 
@@ -428,11 +434,13 @@ NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
 ├────────────────────────────────────────────────────┬────────────────────────────────┬───────┤
 │ PROPERTY DESCRIPTION                               │ VALUE                          │ NOTES │
 ├────────────────────────────────────────────────────┼────────────────────────────────┼───────┤
-│ At least 5 routes using interface [NIL]?           │ false                          │     0 │
+│ At least [5] routes using interface [NIL]?         │ false                          │     0 │
 └────────────────────────────────────────────────────┴────────────────────────────────┴───────┘
 
-WARNING: Your VPN client does not appear to be defining a TUN interface properly,
-WARNING: you're VPN is either not connected or it's misconfigured!
+WARNING:
+
+   Your VPN client does not appear to be defining a TUN interface properly,
+   it's either not connected or it's misconfigured!
 
 
 
@@ -449,7 +457,7 @@ NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
 ├────────────────────────────────────────────────────┬────────────────────────────────┬───────┤
 │ PROPERTY DESCRIPTION                               │ VALUE                          │ NOTES │
 ├────────────────────────────────────────────────────┼────────────────────────────────┼───────┤
-│ At least 5 routes using interface [utun2]?         │ true                           │   148 │
+│ At least [5] routes using interface [utun2]?       │ true                           │   148 │
 └────────────────────────────────────────────────────┴────────────────────────────────┴───────┘
 
 
@@ -476,8 +484,10 @@ NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
 │ VPN Client reports connection status as 'Connected'? │ false                          │       │
 └──────────────────────────────────────────────────────┴────────────────────────────────┴───────┘
 
-WARNING: Your VPN client's does not appear to be a state of 'connected',
-WARNING: it's either down or misconfigured!
+WARNING:
+
+   Your VPN client's does not appear to be a state of 'connected',
+   it's either down or misconfigured!"
 
 
 
@@ -496,6 +506,188 @@ NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
 ├──────────────────────────────────────────────────────┼────────────────────────────────┼───────┤
 │ VPN Client reports connection status as 'Connected'? │ true                           │       │
 └──────────────────────────────────────────────────────┴────────────────────────────────┴───────┘
+
+
+
+```
+</p>
+</details>
+
+------------------------------------------------------------------------------
+
+## SVRS
+```
+$ doxctl svrs -h
+
+doxctl's 'svrs' subcommand can help triage & test connectivity to 'well known servers'
+thru a VPN connection to servers which have been defined in your '.doxctl.yaml'
+configuration file.
+
+Usage:
+  doxctl svrs [flags]
+
+Flags:
+  -a, --allChk             Run all the checks in this subcommand module
+  -h, --help               help for svrs
+  -s, --svrsReachableChk   Check if well known servers are reachable
+
+Global Flags:
+  -c, --config string   config file (default is $HOME/.doxctl.yaml)
+  -v, --verbose         Enable verbose output of commands
+```
+
+### Example Output
+
+#### svrsReachableChk
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+##### Off VPN
+```
+$ doxctl svrs -s
+
+NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
+
+INFO: Attempting to ping all well known servers, this may take a few...
+
+   --- Working through svc: openshift
+   --- Working through svc: elastic
+   --- Working through svc: idm
+
+
+   ...one sec, preparing `ping` results...
+
+
+WARNING: More than 5 hosts appear to be unreachable, aborting remainder....
+
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Well known Servers Reachable Checks                                                             │
+├──────────────────────────────────────────┬──────────────────────┬────────────┬──────────────────┤
+│ HOST                                     │ SERVICE              │ REACHABLE? │ PING PERFORMANCE │
+├──────────────────────────────────────────┼──────────────────────┼────────────┼──────────────────┤
+│ ocp-master-01a.lab1.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01a.rdu1.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01a.dfw1.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01a.lax2.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01a.jfk1.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01b.lab1.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01b.rdu1.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01b.dfw1.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01b.lax2.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01b.jfk1.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01c.lab1.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01c.rdu1.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01c.dfw1.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01c.lax2.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01c.jfk1.somedom.local        │ openshift            │ false      │ N/A              │
+│ ocp-master-01a.lhr1.somedom.us           │ openshift            │ false      │ N/A              │
+│ ocp-master-01a.fra1.somedom.us           │ openshift            │ false      │ N/A              │
+│ ocp-master-01b.lhr1.somedom.us           │ openshift            │ false      │ N/A              │
+│ ocp-master-01b.fra1.somedom.us           │ openshift            │ false      │ N/A              │
+│ ocp-master-01c.lhr1.somedom.us           │ openshift            │ false      │ N/A              │
+│ ocp-master-01c.fra1.somedom.us           │ openshift            │ false      │ N/A              │
+├──────────────────────────────────────────┼──────────────────────┼────────────┼──────────────────┤
+│ es-master-01a.lab1.somedom.local         │ elastic              │ false      │ N/A              │
+│ es-master-01a.rdu1.somedom.local         │ elastic              │ false      │ N/A              │
+│ es-master-01b.lab1.somedom.local         │ elastic              │ false      │ N/A              │
+│ es-master-01b.rdu1.somedom.local         │ elastic              │ false      │ N/A              │
+│ es-master-01c.lab1.somedom.local         │ elastic              │ false      │ N/A              │
+│ es-master-01c.rdu1.somedom.local         │ elastic              │ false      │ N/A              │
+├──────────────────────────────────────────┼──────────────────────┼────────────┼──────────────────┤
+│ idm-01a.lab1.somedom.local               │ idm                  │ false      │ N/A              │
+│ idm-01a.rdu1.somedom.local               │ idm                  │ false      │ N/A              │
+│ idm-01a.dfw1.somedom.local               │ idm                  │ false      │ N/A              │
+│ idm-01a.lax2.somedom.local               │ idm                  │ false      │ N/A              │
+│ idm-01a.jfk1.somedom.local               │ idm                  │ false      │ N/A              │
+│ idm-01b.lab1.somedom.local               │ idm                  │ false      │ N/A              │
+│ idm-01b.rdu1.somedom.local               │ idm                  │ false      │ N/A              │
+│ idm-01b.dfw1.somedom.local               │ idm                  │ false      │ N/A              │
+│ idm-01b.lax2.somedom.local               │ idm                  │ false      │ N/A              │
+│ idm-01b.jfk1.somedom.local               │ idm                  │ false      │ N/A              │
+│ idm-01a.lhr1.somedom.us                  │ idm                  │ false      │ N/A              │
+│ idm-01a.fra1.somedom.us                  │ idm                  │ false      │ N/A              │
+│ idm-01b.lhr1.somedom.us                  │ idm                  │ false      │ N/A              │
+│ idm-01b.fra1.somedom.us                  │ idm                  │ false      │ N/A              │
+└──────────────────────────────────────────┴──────────────────────┴────────────┴──────────────────┘
+
+WARNING:
+
+   Your VPN client does not appear to be functioning properly, it's likely one or more of the following:
+
+      - Well known servers are unreachable via ping   --- try running 'doxctl vpn -h'
+      - Servers are unresovlable in DNS               --- try running 'doxctl dns -h'
+      - VPN client is otherwise misconfigured!
+
+
+
+
+```
+
+##### On VPN
+```
+doxctl svrs -s
+
+NOTE: Using config file: /Users/smingolelli/.doxctl.yaml
+
+INFO: Attempting to ping all well known servers, this may take a few...
+
+   --- Working through svc: openshift
+   --- Working through svc: elastic
+   --- Working through svc: idm
+
+
+   ...one sec, preparing `ping` results...
+
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Well known Servers Reachable Checks                                                                    │
+├──────────────────────────────────────────┬──────────────────────┬────────────┬─────────────────────────┤
+│ HOST                                     │ SERVICE              │ REACHABLE? │ PING PERFORMANCE        │
+├──────────────────────────────────────────┼──────────────────────┼────────────┼─────────────────────────┤
+│ ocp-master-01a.lab1.somedom.local        │ openshift            │ true       │ rnd-trp avg = 44.525ms  │
+│ ocp-master-01a.rdu1.somedom.local        │ openshift            │ true       │ rnd-trp avg = 24.337ms  │
+│ ocp-master-01a.dfw1.somedom.local        │ openshift            │ true       │ rnd-trp avg = 55.118ms  │
+│ ocp-master-01a.lax2.somedom.local        │ openshift            │ true       │ rnd-trp avg = 97.183ms  │
+│ ocp-master-01a.jfk1.somedom.local        │ openshift            │ true       │ rnd-trp avg = 36.187ms  │
+│ ocp-master-01b.lab1.somedom.local        │ openshift            │ true       │ rnd-trp avg = 44.237ms  │
+│ ocp-master-01b.rdu1.somedom.local        │ openshift            │ true       │ rnd-trp avg = 17.678ms  │
+│ ocp-master-01b.dfw1.somedom.local        │ openshift            │ true       │ rnd-trp avg = 56.559ms  │
+│ ocp-master-01b.lax2.somedom.local        │ openshift            │ true       │ rnd-trp avg = 96.493ms  │
+│ ocp-master-01b.jfk1.somedom.local        │ openshift            │ true       │ rnd-trp avg = 43.273ms  │
+│ ocp-master-01c.lab1.somedom.local        │ openshift            │ true       │ rnd-trp avg = 41.358ms  │
+│ ocp-master-01c.rdu1.somedom.local        │ openshift            │ true       │ rnd-trp avg = 31.427ms  │
+│ ocp-master-01c.dfw1.somedom.local        │ openshift            │ true       │ rnd-trp avg = 55.095ms  │
+│ ocp-master-01c.lax2.somedom.local        │ openshift            │ true       │ rnd-trp avg = 103.423ms │
+│ ocp-master-01c.jfk1.somedom.local        │ openshift            │ true       │ rnd-trp avg = 37.22ms   │
+│ ocp-master-01a.lhr1.somedom.us           │ openshift            │ true       │ rnd-trp avg = 133.023ms │
+│ ocp-master-01a.fra1.somedom.us           │ openshift            │ true       │ rnd-trp avg = 136.647ms │
+│ ocp-master-01b.lhr1.somedom.us           │ openshift            │ true       │ rnd-trp avg = 127.451ms │
+│ ocp-master-01b.fra1.somedom.us           │ openshift            │ true       │ rnd-trp avg = 139.85ms  │
+│ ocp-master-01c.lhr1.somedom.us           │ openshift            │ true       │ rnd-trp avg = 132.362ms │
+│ ocp-master-01c.fra1.somedom.us           │ openshift            │ true       │ rnd-trp avg = 137.558ms │
+├──────────────────────────────────────────┼──────────────────────┼────────────┼─────────────────────────┤
+│ es-master-01a.lab1.somedom.local         │ elastic              │ true       │ rnd-trp avg = 44.029ms  │
+│ es-master-01a.rdu1.somedom.local         │ elastic              │ true       │ rnd-trp avg = 32.187ms  │
+│ es-master-01b.lab1.somedom.local         │ elastic              │ true       │ rnd-trp avg = 48.833ms  │
+│ es-master-01b.rdu1.somedom.local         │ elastic              │ true       │ rnd-trp avg = 22.477ms  │
+│ es-master-01c.lab1.somedom.local         │ elastic              │ true       │ rnd-trp avg = 55.587ms  │
+│ es-master-01c.rdu1.somedom.local         │ elastic              │ true       │ rnd-trp avg = 25.79ms   │
+├──────────────────────────────────────────┼──────────────────────┼────────────┼─────────────────────────┤
+│ idm-01a.lab1.somedom.local               │ idm                  │ true       │ rnd-trp avg = 47.484ms  │
+│ idm-01a.rdu1.somedom.local               │ idm                  │ true       │ rnd-trp avg = 22.766ms  │
+│ idm-01a.dfw1.somedom.local               │ idm                  │ true       │ rnd-trp avg = 54.07ms   │
+│ idm-01a.lax2.somedom.local               │ idm                  │ true       │ rnd-trp avg = 94.755ms  │
+│ idm-01a.jfk1.somedom.local               │ idm                  │ true       │ rnd-trp avg = 36.26ms   │
+│ idm-01b.lab1.somedom.local               │ idm                  │ true       │ rnd-trp avg = 41.171ms  │
+│ idm-01b.rdu1.somedom.local               │ idm                  │ true       │ rnd-trp avg = 27.097ms  │
+│ idm-01b.dfw1.somedom.local               │ idm                  │ true       │ rnd-trp avg = 51.547ms  │
+│ idm-01b.lax2.somedom.local               │ idm                  │ true       │ rnd-trp avg = 94.203ms  │
+│ idm-01b.jfk1.somedom.local               │ idm                  │ true       │ rnd-trp avg = 36.956ms  │
+│ idm-01a.lhr1.somedom.us                  │ idm                  │ true       │ rnd-trp avg = 145.853ms │
+│ idm-01a.fra1.somedom.us                  │ idm                  │ true       │ rnd-trp avg = 146.425ms │
+│ idm-01b.lhr1.somedom.us                  │ idm                  │ true       │ rnd-trp avg = 127.987ms │
+│ idm-01b.fra1.somedom.us                  │ idm                  │ true       │ rnd-trp avg = 135.593ms │
+└──────────────────────────────────────────┴──────────────────────┴────────────┴─────────────────────────┘
 
 
 
@@ -524,9 +716,9 @@ DNS Resolver Checks
 ++ printf 'get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n'
 ++ scutil
 + vpn_resolvers='<dictionary> {
-  DomainName : bandwidth.local
+  DomainName : somedom.local
   SearchDomains : <array> {
-    0 : bandwidth.local
+    0 : somedom.local
   }
   SearchOrder : 1
   ServerAddresses : <array> {
@@ -536,14 +728,14 @@ DNS Resolver Checks
   }
   SupplementalMatchDomains : <array> {
     0 :
-    1 : bandwidth.local
+    1 : somedom.local
   }
 }'
 + column -t
 + echo '<dictionary> {
-  DomainName : bandwidth.local
+  DomainName : somedom.local
   SearchDomains : <array> {
-    0 : bandwidth.local
+    0 : somedom.local
   }
   SearchOrder : 1
   ServerAddresses : <array> {
@@ -553,15 +745,15 @@ DNS Resolver Checks
   }
   SupplementalMatchDomains : <array> {
     0 :
-    1 : bandwidth.local
+    1 : somedom.local
   }
 }'
-+ grep -q 'DomainName.*bandwidth.local'
++ grep -q 'DomainName.*somedom.local'
 + echo 'DomainName set'
 + echo '<dictionary> {
-  DomainName : bandwidth.local
+  DomainName : somedom.local
   SearchDomains : <array> {
-    0 : bandwidth.local
+    0 : somedom.local
   }
   SearchOrder : 1
   ServerAddresses : <array> {
@@ -571,16 +763,16 @@ DNS Resolver Checks
   }
   SupplementalMatchDomains : <array> {
     0 :
-    1 : bandwidth.local
+    1 : somedom.local
   }
 }'
 + grep -A1 SearchDomains
-+ grep -qE '[0-1].*bandwidth'
++ grep -qE '[0-1].*somedom'
 + echo 'SearchDomains set'
 + echo '<dictionary> {
-  DomainName : bandwidth.local
+  DomainName : somedom.local
   SearchDomains : <array> {
-    0 : bandwidth.local
+    0 : somedom.local
   }
   SearchOrder : 1
   ServerAddresses : <array> {
@@ -590,7 +782,7 @@ DNS Resolver Checks
   }
   SupplementalMatchDomains : <array> {
     0 :
-    1 : bandwidth.local
+    1 : somedom.local
   }
 }'
 + grep -A3 ServerAddresses

@@ -41,6 +41,7 @@ type svc struct {
 }
 
 type config struct {
+	MinVpnRoutes  int           `mapstructure:"minVpnRoutes"`
 	DomNameChk    string        `mapstructure:"domNameChk"`
 	DomSearchChk  string        `mapstructure:"domSearchChk"`
 	DomAddrChk    string        `mapstructure:"domAddrChk"`

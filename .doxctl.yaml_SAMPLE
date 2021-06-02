@@ -1,3 +1,11 @@
+#----------------
+# VPN
+#----------------
+minVpnRoutes: 5
+
+#----------------
+# DNS
+#----------------
 # dom chks
 domNameChk: "bandwidth.local"
 domSearchChk: "[0-1].*bandwidth"
@@ -19,6 +27,9 @@ sites:
   - lhr1
   - fra1
 
+#----------------
+# SVRS
+#----------------
 wellKnownSvcs:
   - 
     svc: openshift

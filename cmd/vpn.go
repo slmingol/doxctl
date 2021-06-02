@@ -35,15 +35,28 @@ import (
 	"github.com/gookit/color"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // vpnCmd represents the vpn command
 var vpnCmd = &cobra.Command{
 	Use:   "vpn",
-	Short: "Run diagnostics related to VPN connections, net i/fs & configurations",
+	Short: "Run diagnostics related to VPN connections, network interfaces & configurations",
 	Long: `
 doxctl's 'vpn' subcommand can help triage VPN related configuration issues,
 & routes related to a VPN connection.`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		// Process config, environment variables, and flags
+		viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+		viper.AutomaticEnv()
+
+		// Populate as much info as we can from viper
+		err := viper.Unmarshal(&conf)
+		if err != nil {
+			fmt.Printf("could not retrieve supplied project settings: %s\n", err)
+			os.Exit(1)
+		}
+	},
 	Run: vpnExecute,
 }
 
@@ -76,6 +89,7 @@ func vpnExecute(cmd *cobra.Command, args []string) {
 	}
 }
 
+// Test if interface is reported as reachable via 'scutil'
 func ifReachChk() {
 	cmdBase := `scutil --nwi`
 
@@ -128,13 +142,16 @@ func ifReachChk() {
 
 	if len(tunIfs) < 1 {
 		fmt.Println("")
-		color.Warn.Tips("Your VPN client does not appear to be defining a TUN interface properly,")
-		color.Warn.Tips("you're VPN is either not connected or it's misconfigured!")
+		color.Warn.Tips(`
+
+   Your VPN client does not appear to be defining a TUN interface properly,
+   your VPN is either not connected or it's misconfigured!`)
 	}
 
 	fmt.Println("\n\n")
 }
 
+// Test if VPNs interface defines at least MinVpnRoutes routes
 func vpnRteChk() {
 	cmdExe1 := exec.Command("bash", "-c", "scutil --nwi")
 	cmdGrep1 := `grep 'Network interfaces:' | grep -o utun[0-9] || echo "NIL"`
@@ -155,7 +172,7 @@ func vpnRteChk() {
 	t.SetOutputMirror(os.Stdout)
 	t.SetStyle(table.StyleLight)
 	t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
-	t.AppendRow([]interface{}{fmt.Sprintf("At least 5 routes using interface [%s]?", vpnIf), vpnRouteCnt >= 5, vpnRouteCnt})
+	t.AppendRow([]interface{}{fmt.Sprintf("At least [%d] routes using interface [%s]?", conf.MinVpnRoutes, vpnIf), vpnRouteCnt >= conf.MinVpnRoutes, vpnRouteCnt})
 	t.AppendSeparator()
 	t.SetColumnConfigs([]table.ColumnConfig{
 		{Number: 1, WidthMin: 50},
@@ -163,15 +180,18 @@ func vpnRteChk() {
 	})
 	t.Render()
 
-	if vpnRouteCnt < 5 {
+	if vpnRouteCnt < conf.MinVpnRoutes {
 		fmt.Println("")
-		color.Warn.Tips("Your VPN client does not appear to be defining a TUN interface properly,")
-		color.Warn.Tips("you're VPN is either not connected or it's misconfigured!")
+		color.Warn.Tips(`
+
+   Your VPN client does not appear to be defining a TUN interface properly,
+   it's either not connected or it's misconfigured!`)
 	}
 
 	fmt.Println("\n\n")
 }
 
+// Test if VPN connection status reports as 'connected'
 func vpnConnChk() {
 	cmdBase := `/opt/cisco/anyconnect/bin/vpn`
 	if runtime.GOOS == "linux" {
@@ -200,8 +220,10 @@ func vpnConnChk() {
 
 	if vpnConnStatus == 0 {
 		fmt.Println("")
-		color.Warn.Tips("Your VPN client's does not appear to be a state of 'connected',")
-		color.Warn.Tips("it's either down or misconfigured!")
+		color.Warn.Tips(`
+
+   Your VPN client's does not appear to be a state of 'connected',
+   it's either down or misconfigured!`)
 	}
 
 	fmt.Println("\n\n")

@@ -40,10 +40,10 @@ import (
 // svrsCmd represents the svrs command
 var svrsCmd = &cobra.Command{
 	Use:   "svrs",
-	Short: "Run diagnostics related to server accessiblity through a VPN connection",
+	Short: "Run diagnostics verifying connectivity to well known servers thru a VPN connection",
 	Long: `
 doxctl's 'svrs' subcommand can help triage & test connectivity to 'well known servers'
-through a VPN connection to servers which have been defined in your '.doxctl.yaml' 
+thru a VPN connection to servers which have been defined in your '.doxctl.yaml' 
 configuration file. 
 	`,
 	PreRun: func(cmd *cobra.Command, args []string) {
@@ -82,6 +82,7 @@ func svrsExecute(cmd *cobra.Command, args []string) {
 	}
 }
 
+// Check if well known servers are pingable & reachable
 func svrsReachChk() {
 	color.Info.Tips("Attempting to ping all well known servers, this may take a few...\n")
 
@@ -97,10 +98,17 @@ func svrsReachChk() {
 	t.AppendHeader(table.Row{"Host", "Service", "Reachable?", "Ping Performance"})
 
 	/* Walk through list of hosts, attempt to ping 'em.
-	Loop through the list of svcs in .doxctl.yaml file and
-	*/
+	 *
+	 * 1 - Loop through the list of svcs in .doxctl.yaml file
+	 * 2 - Expand brace definitions of hosts determining all the `permutations`
+	 * 3 - Go through perms. attempt to ping each and confirm that it was reached
+	 * 4 - Confirm response packet was received (PacketLoss & PacketRecv)
+	 * 5 - If more than FailThreshold occurs for either Packet* stop trying, call the rest failed
+	 *
+	 */
 	pingFailures := 0
 	reachFailures := 0
+
 	for _, i := range conf.Svcs {
 		fmt.Printf("   --- Working through svc: %s\n", i.Svc)
 
@@ -109,13 +117,14 @@ func svrsReachChk() {
 
 			for _, permutation := range permutations {
 
+				// if FailThreshold is exceeded, stop trying pings, call the rest failed
 				if pingFailures > conf.FailThreshold || reachFailures > conf.FailThreshold {
 					t.AppendRow([]interface{}{permutation, i.Svc, false, "N/A"})
 					continue
 				}
 
+				// Attempt to ping each host, any that fail keep a tally of how many
 				pinger, err := ping.NewPinger(permutation)
-
 				if err != nil {
 					t.AppendRow([]interface{}{permutation, i.Svc, false, "N/A"})
 					pingFailures++
@@ -126,8 +135,9 @@ func svrsReachChk() {
 				pinger.Run()
 				stats := pinger.Statistics()
 				pingPerf := fmt.Sprintf("rnd-trp avg = %v", stats.AvgRtt)
-				packetAck := (stats.PacketLoss == 0 && stats.PacketsRecv > 0)
 
+				// Tally fails due to failed/missing responses
+				packetAck := (stats.PacketLoss == 0 && stats.PacketsRecv > 0)
 				if !packetAck {
 					reachFailures++
 				}
@@ -153,10 +163,11 @@ func svrsReachChk() {
 		fmt.Println("")
 		color.Warn.Tips(`
 
-	Your VPN client does not appear to be functioning properly, it's likely one or more of the following:
-		- Well known servers are unreachable via ping
-		- Servers are unresovlable in DNS
-		- VPN client is otherwise misconfigured!
+   Your VPN client does not appear to be functioning properly, it's likely one or more of the following:
+
+      - Well known servers are unreachable via ping   --- try running 'doxctl vpn -h'
+      - Servers are unresovlable in DNS               --- try running 'doxctl dns -h'
+      - VPN client is otherwise misconfigured!
 	`)
 	}
 

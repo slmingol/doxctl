@@ -87,6 +87,7 @@ func dnsExecute(cmd *cobra.Command, args []string) {
 		dnsResolverDigChk()
 	default:
 		cmd.Usage()
+		fmt.Printf("\n\n\n")
 		os.Exit(1)
 	}
 }
@@ -237,7 +238,7 @@ func dnsResolverPingChk() {
    you're either not connected via VPN or it's misconfigured!`)
 	}
 
-	fmt.Println("\n\n")
+	fmt.Printf("\n\n\n")
 }
 
 // Check if DNS resolvers return well known server records
@@ -301,7 +302,7 @@ func dnsResolverDigChk() {
    you're either not connected via VPN or it's misconfigured!`)
 	}
 
-	fmt.Println("\n\n")
+	fmt.Printf("\n\n\n")
 }
 
 // scutil

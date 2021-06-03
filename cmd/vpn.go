@@ -85,6 +85,7 @@ func vpnExecute(cmd *cobra.Command, args []string) {
 		vpnConnChk()
 	default:
 		cmd.Usage()
+		fmt.Printf("\n\n\n")
 		os.Exit(1)
 	}
 }
@@ -148,7 +149,7 @@ func ifReachChk() {
    your VPN is either not connected or it's misconfigured!`)
 	}
 
-	fmt.Println("\n\n")
+	fmt.Printf("\n\n\n")
 }
 
 // Test if VPNs interface defines at least MinVpnRoutes routes
@@ -188,7 +189,7 @@ func vpnRteChk() {
    it's either not connected or it's misconfigured!`)
 	}
 
-	fmt.Println("\n\n")
+	fmt.Printf("\n\n\n")
 }
 
 // Test if VPN connection status reports as 'connected'
@@ -226,5 +227,5 @@ func vpnConnChk() {
    it's either down or misconfigured!`)
 	}
 
-	fmt.Println("\n\n")
+	fmt.Printf("\n\n\n")
 }

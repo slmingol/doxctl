@@ -19,7 +19,8 @@ release:
 	goreleaser release --rm-dist
 commit:
 	make tag ; git add . ; git commit -m "Makefile commit" ; git push #; make tag
-
+test:
+	go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
 
 .PHONY: list
 list:

@@ -83,7 +83,7 @@ stemming from the following areas with a laptop or desktop system:
 func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
 
-	fmt.Println("\n\n")
+	fmt.Printf("\n\n\n")
 }
 
 func init() {

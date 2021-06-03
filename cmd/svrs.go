@@ -78,6 +78,7 @@ func svrsExecute(cmd *cobra.Command, args []string) {
 		svrsReachChk()
 	default:
 		cmd.Usage()
+		fmt.Printf("\n\n\n")
 		os.Exit(1)
 	}
 }
@@ -147,7 +148,7 @@ func svrsReachChk() {
 		}
 		t.AppendSeparator()
 	}
-	fmt.Println("\n\n   ...one sec, preparing `ping` results...\n")
+	fmt.Printf("\n\n   ...one sec, preparing `ping` results...\n\n")
 
 	if pingFailures > conf.FailThreshold || reachFailures > conf.FailThreshold {
 		fmt.Println("")
@@ -171,5 +172,5 @@ func svrsReachChk() {
 	`)
 	}
 
-	fmt.Println("\n\n")
+	fmt.Printf("\n\n\n")
 }

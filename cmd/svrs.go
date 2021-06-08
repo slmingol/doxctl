@@ -24,7 +24,9 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"net"
 	"os"
 	"strings"
 	"time"
@@ -118,13 +120,18 @@ func svrsReachChk() {
 
 			for _, permutation := range permutations {
 
-				// if FailThreshold is exceeded, stop trying pings, call the rest failed
-				if pingFailures > conf.FailThreshold || reachFailures > conf.FailThreshold {
+				// Attempt to resolve hostname prior to ping
+				ctx, cancel := context.WithTimeout(context.TODO(), (conf.DNSLookupTimeout * time.Millisecond))
+				defer cancel() // important to avoid a resource leak
+				var r net.Resolver
+				ip, err := r.LookupHost(ctx, permutation)
+
+				if err != nil || len(ip) == 0 {
 					t.AppendRow([]interface{}{permutation, i.Svc, false, "N/A"})
 					continue
 				}
 
-				// Attempt to ping each host, any that fail keep a tally of how many
+				// Attempt to ping each host, any that fail keep a tally
 				pinger, err := ping.NewPinger(permutation)
 				if err != nil {
 					t.AppendRow([]interface{}{permutation, i.Svc, false, "N/A"})
@@ -133,8 +140,12 @@ func svrsReachChk() {
 				}
 
 				pinger.Timeout = conf.PingTimeout * time.Millisecond
-				pinger.Run()
-				stats := pinger.Statistics()
+				pOut := make(chan *ping.Statistics)
+				go func(p *ping.Pinger, s chan *ping.Statistics) {
+					p.Run()
+					s <- p.Statistics()
+				}(pinger, pOut)
+				stats := <-pOut
 				pingPerf := fmt.Sprintf("rnd-trp avg = %v", stats.AvgRtt)
 
 				// Tally fails due to failed/missing responses
@@ -144,6 +155,7 @@ func svrsReachChk() {
 				}
 
 				t.AppendRow([]interface{}{permutation, i.Svc, packetAck, pingPerf})
+
 			}
 		}
 		t.AppendSeparator()
@@ -152,10 +164,10 @@ func svrsReachChk() {
 
 	if pingFailures > conf.FailThreshold || reachFailures > conf.FailThreshold {
 		fmt.Println("")
-		color.Warn.Tips("More than %d hosts appear to be unreachable, aborting remainder....\n\n", conf.FailThreshold)
+		color.Warn.Tips("More than %d hosts appear to be unreachable....\n\n", conf.FailThreshold)
 	}
 
-	time.Sleep(6 * time.Second)
+	time.Sleep(4 * time.Second)
 
 	t.AppendSeparator()
 	t.Render()
@@ -171,6 +183,4 @@ func svrsReachChk() {
       - VPN client is otherwise misconfigured!
 	`)
 	}
-
-	fmt.Printf("\n\n\n")
 }

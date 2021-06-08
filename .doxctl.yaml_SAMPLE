@@ -51,3 +51,6 @@ pingTimeout: 250
 
 # ping or reach failure threshold
 failThreshold: 5
+
+# timeout is in millsec (ms)
+dnsLookupTimeout: 75

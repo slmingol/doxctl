@@ -41,18 +41,19 @@ type svc struct {
 }
 
 type config struct {
-	MinVpnRoutes  int           `mapstructure:"minVpnRoutes"`
-	DomNameChk    string        `mapstructure:"domNameChk"`
-	DomSearchChk  string        `mapstructure:"domSearchChk"`
-	DomAddrChk    string        `mapstructure:"domAddrChk"`
-	DomainName    string        `mapstructure:"domainName"`
-	ServerA       string        `mapstructure:"digProbeServerA"`
-	ServerB       string        `mapstructure:"digProbeServerB"`
-	Sites         []string      `mapstructure:"sites"`
-	Openshift     []string      `mapstructure:"openshift"`
-	Svcs          []svc         `mapstructure:"wellKnownSvcs"`
-	PingTimeout   time.Duration `mapstructure:"pingTimeout"`
-	FailThreshold int           `mapstructure:"failThreshold"`
+	MinVpnRoutes     int           `mapstructure:"minVpnRoutes"`
+	DomNameChk       string        `mapstructure:"domNameChk"`
+	DomSearchChk     string        `mapstructure:"domSearchChk"`
+	DomAddrChk       string        `mapstructure:"domAddrChk"`
+	DomainName       string        `mapstructure:"domainName"`
+	ServerA          string        `mapstructure:"digProbeServerA"`
+	ServerB          string        `mapstructure:"digProbeServerB"`
+	Sites            []string      `mapstructure:"sites"`
+	Openshift        []string      `mapstructure:"openshift"`
+	Svcs             []svc         `mapstructure:"wellKnownSvcs"`
+	PingTimeout      time.Duration `mapstructure:"pingTimeout"`
+	DNSLookupTimeout time.Duration `mapstructure:"dnsLookupTimeout"`
+	FailThreshold    int           `mapstructure:"failThreshold"`
 }
 
 var (

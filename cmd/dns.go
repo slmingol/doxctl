@@ -174,7 +174,7 @@ func dnsResolverPingChk() {
 			pingReachable = true
 		}
 
-		pinger, err := ping.NewPinger(ip)
+		pinger, _ := ping.NewPinger(ip)
 		pinger.Count = 1
 		pinger.Timeout = 30 * time.Second
 		pinger.Run()

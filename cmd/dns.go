@@ -33,6 +33,7 @@ import (
 
 	"github.com/gookit/color"
 	"github.com/jedib0t/go-pretty/v6/table"
+	gobrex "github.com/kujtimiihoxha/go-brace-expansion"
 	"github.com/lixiangzhong/dnsutil"
 	"github.com/miekg/dns"
 	"github.com/spf13/cobra"
@@ -243,63 +244,86 @@ func dnsResolverPingChk() {
 
 // Check if DNS resolvers return well known server records
 func dnsResolverDigChk() {
+	rowConfigAutoMerge := table.RowConfig{AutoMerge: true}
+
 	t := table.NewWriter()
 	t.SetTitle("Dig Check against VPN defined DNS Resolvers")
 	t.SetOutputMirror(os.Stdout)
 	t.SetStyle(table.StyleLight)
-	t.AppendHeader(table.Row{"Hostname to 'dig'", "Resolver IP", "Is resolvable?"})
+	t.AppendHeader(table.Row{"Hostname to 'dig'", "Resolver IP", "Is resolvable?"}, rowConfigAutoMerge)
 
 	resolverIPs := scutilResolverIPs()
-	sites := conf.Sites
 
 	var dig dnsutil.Dig
-	cntA := 0
-	cntB := 0
+	resolverCnt := make(map[string]int)
 
-	for _, site := range sites {
-		serverA := conf.ServerA + "." + site + "." + conf.DomainName
-		serverB := conf.ServerB + "." + site + "." + conf.DomainName
-
-		for _, ip := range resolverIPs {
-			dig.SetDNS(ip)
-			msgA, errA := dig.GetMsg(dns.TypeA, serverA)
-			msgB, errB := dig.GetMsg(dns.TypeA, serverB)
-
-			isResolvable := false
-			if errA == nil && errB == nil && msgA.Answer != nil && msgB.Answer != nil {
-				isResolvable = true
-			}
-
-			t.AppendRow([]interface{}{serverA, ip, isResolvable})
-			t.AppendRow([]interface{}{serverB, ip, isResolvable})
-
-			if !isResolvable {
-				continue
-			}
-
-			cntA++
-			cntB++
+	for _, i := range conf.Svcs {
+		if i.Svc != "idm" {
+			continue
 		}
 
-		t.AppendSeparator()
+		for _, j := range i.Svrs {
+			permutations := gobrex.Expand(j)
+
+			for _, permutation := range permutations {
+				for _, ip := range resolverIPs {
+					dig.SetDNS(ip)
+					msg, err := dig.GetMsg(dns.TypeA, permutation)
+
+					isResolvable := false
+					if err == nil && msg.Answer != nil {
+						isResolvable = true
+					}
+
+					t.AppendRow([]interface{}{permutation, ip, isResolvable}, rowConfigAutoMerge)
+
+					if !isResolvable {
+						continue
+					}
+
+					resolverCnt[ip]++
+				}
+
+				t.AppendSeparator()
+			}
+		}
 	}
 
 	t.SetColumnConfigs([]table.ColumnConfig{
-		{Number: 1, WidthMin: 40},
-		{Number: 2, WidthMin: 15},
+		{Number: 1, WidthMin: 40, AutoMerge: true},
+		{Number: 2, WidthMin: 20},
 		{Number: 3, WidthMin: 15},
 	})
-	summary1 := fmt.Sprintf("resolver #1: %d", cntA)
-	summary2 := fmt.Sprintf("resolver #2: %d", cntB)
-	t.AppendFooter([]interface{}{"successesful queries", summary1 + "\n" + summary2})
+
+	var summary string
+	idx := 1
+
+	for i, j := range resolverCnt {
+		// only 1 resolver?
+		if len(resolverCnt) == 1 {
+			i = "N/A"
+		}
+
+		summary = fmt.Sprintf("%s(%s): %d", summary, i, j)
+
+		// only 1 resolver or the last one?
+		if len(resolverCnt) == 1 || len(resolverCnt) == idx {
+			break
+		}
+
+		idx++
+		summary = summary + "\n"
+	}
+
+	t.AppendFooter([]interface{}{"successesful queries", summary})
 	t.Render()
 
 	if len(resolverIPs) <= 1 {
 		fmt.Println("")
 		color.Warn.Tips(`
 
-   Your VPN client does not appear to be defining any DNS resolver(s) properly,
-   you're either not connected via VPN or it's misconfigured!`)
+	   Your VPN client does not appear to be defining any DNS resolver(s) properly,
+	   you're either not connected via VPN or it's misconfigured!`)
 	}
 
 	fmt.Printf("\n\n\n")

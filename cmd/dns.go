@@ -30,7 +30,9 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
+	"github.com/go-ping/ping"
 	"github.com/gookit/color"
 	"github.com/jedib0t/go-pretty/v6/table"
 	gobrex "github.com/kujtimiihoxha/go-brace-expansion"
@@ -171,6 +173,11 @@ func dnsResolverPingChk() {
 		} else {
 			pingReachable = true
 		}
+
+		pinger, err := ping.NewPinger(ip)
+		pinger.Count = 1
+		pinger.Timeout = 30 * time.Second
+		pinger.Run()
 
 		resChk = resolverChk{resolverIP: ip, pingReachable: pingReachable}
 

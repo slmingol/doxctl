@@ -27,8 +27,10 @@ import (
 	"container/list"
 	"doxctl/internal/cmdhelp"
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -164,54 +166,53 @@ func dnsResolverPingChk() {
 		var pingReachable, tcpReachable, udpReachable bool
 		var netInterface string
 
-		cmdPingExe := exec.Command("ping", "-c1", ip, "-W", "200", "-t", "30", "-q")
-
-		if _, err := cmdPingExe.CombinedOutput(); err != nil {
-			if _, ok := err.(*exec.ExitError); ok {
-				pingReachable = false
-			}
+		pinger, err := ping.NewPinger(ip)
+		pinger.Count = 1
+		pinger.Timeout = 30 * time.Second
+		err = pinger.Run()
+		if err != nil {
+			pingReachable = false
 		} else {
 			pingReachable = true
 		}
 
-		pinger, _ := ping.NewPinger(ip)
-		pinger.Count = 1
-		pinger.Timeout = 30 * time.Second
-		pinger.Run()
-
 		resChk = resolverChk{resolverIP: ip, pingReachable: pingReachable}
 
 		if pingReachable {
-			cmdExeIPRouteGet := exec.Command("ip", "route", "get", ip)
+			switch runtime.GOOS {
+			case "linux":
+				cmdExeIPRouteGet := exec.Command("ip", "route", "get", ip)
 
-			if out, err := cmdExeIPRouteGet.CombinedOutput(); err != nil {
-				if _, ok := err.(*exec.ExitError); ok {
-					netInterface = "N/A"
+				if out, err := cmdExeIPRouteGet.CombinedOutput(); err != nil {
+					if _, ok := err.(*exec.ExitError); ok {
+						netInterface = "N/A"
+					}
+				} else {
+					netInterface = strings.Split(string(out), " ")[4]
 				}
-			} else {
-				netInterface = strings.Split(string(out), " ")[4]
+			case "darwin":
+				netInterface = scutilVPNInterface()
 			}
 
-			cmdExeNcTCP := exec.Command("nc", "-z", "-v", "-w5", ip, "53")
+			target := fmt.Sprintf("%s:%d", ip, 53)
 
-			if _, err := cmdExeNcTCP.CombinedOutput(); err != nil {
-				if _, ok := err.(*exec.ExitError); ok {
-					tcpReachable = false
-				}
-			} else {
+			// TCP check
+			_, errTCP := net.DialTimeout("tcp", target, 5*time.Second)
+
+			tcpReachable = false
+			if errTCP == nil {
 				tcpReachable = true
 			}
 
-			cmdExeNcUDP := exec.Command("nc", "-z", "-u", "-v", "-w5", ip, "53")
+			// UDP check
+			_, errUDP := net.DialTimeout("udp", target, 5*time.Second)
 
-			if _, err := cmdExeNcUDP.CombinedOutput(); err != nil {
-				if _, ok := err.(*exec.ExitError); ok {
-					udpReachable = false
-				}
-			} else {
+			udpReachable = false
+			if errUDP == nil {
 				udpReachable = true
 			}
 
+			// Collect results
 			resChk.netInterface = netInterface
 			resChk.tcpReachable = tcpReachable
 			resChk.udpReachable = udpReachable
@@ -351,4 +352,20 @@ func scutilResolverIPs() []string {
 	}
 
 	return resolverIPs
+}
+
+func scutilVPNInterface() string {
+	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/IPv4\nd.show\n" | scutil`
+	cmdExe1 := exec.Command("bash", "-c", cmdBase)
+	cmdGrep1 := `grep 'InterfaceName' | awk '{print $3}'`
+	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
+	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
+
+	vpnInterface := strings.TrimRight(string(output1), "\n")
+
+	if len(vpnInterface) == 0 {
+		vpnInterface = "N/A"
+	}
+
+	return vpnInterface
 }

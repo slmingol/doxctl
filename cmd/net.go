@@ -1,4 +1,6 @@
 /*
+Package cmd - ...
+
 Copyright © 2021 Sam Mingolelli <github@lamolabs.org>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -50,3 +52,9 @@ func init() {
 	// is called directly, e.g.:
 	// netCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
+
+/*
+Ideas
+ - https://github.com/udhos/goben
+ - https://dave.cheney.net/high-performance-go-workshop/dotgo-paris.html#using_the_testing_package_for_benchmarking
+*/

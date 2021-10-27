@@ -51,7 +51,11 @@ wellKnownSvcs:
     svrs:
       - 10.21.15.1
       - 10.21.15.94
-      - 10.21.15.246
+      - 10.21.15.24
+   -
+    svc: v2msg-prod-v2-api (us-east-1b)
+    svrs:
+      - 10.21.4.206
 
 # timeout is in millsec (ms)
 pingTimeout: 250

@@ -46,6 +46,11 @@ wellKnownSvcs:
       - idm-01{a,b}.{lab1,rdu1,dfw1,lax2,jfk1}.bandwidthclec.local
       - idm-01{a,b}.{lhr1,fra1}.bwnet.us
 
+  -
+    svc: v2msg-prod-v2-api (us-east-1a)
+    svrs:
+      - 10.21.15.1
+
 # timeout is in millsec (ms)
 pingTimeout: 250
 

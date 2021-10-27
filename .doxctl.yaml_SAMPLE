@@ -62,6 +62,7 @@ wellKnownSvcs:
     svrs:
       - 10.21.8.97
       - 10.21.8.194
+      - 10.21.10.125
       
 # timeout is in millsec (ms)
 pingTimeout: 250

@@ -46,17 +46,21 @@ wellKnownSvcs:
       - idm-01{a,b}.{lab1,rdu1,dfw1,lax2,jfk1}.bandwidthclec.local
       - idm-01{a,b}.{lhr1,fra1}.bwnet.us
   -
-    svc: ocp4-sbx-use-master-0 (us-east-1a)
+    svc: mgmt1-sbx-usea1-lab-master-0 (us-east-1a)
     svrs:
-      - 10.23.14.165
+      - 10.23.14.16
   - 
-    svc: ocp4-sbx-use-master-1 (us-east-1b)
+    svc: mgmt1-sbx-usea1-lab-master-1 (us-east-1b)
     svrs:
-      - 10.23.5.160
+      - 10.23.6.221
   -
-    svc: ocp4-sbx-use-master-2 (us-east-1c)
+    svc: mgmt1-sbx-usea1-lab-master-2 (us-east-1c)
     svrs:
-      - 10.23.23.27
+      - 10.23.20.253
+  -
+    svc: slmslm-lab-01 (us-east-1a)
+    svrs:
+      - 10.23.12.154
       
 # timeout is in millsec (ms)
 pingTimeout: 250

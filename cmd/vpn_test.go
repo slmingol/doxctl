@@ -49,7 +49,7 @@ func TestVpnCmd(t *testing.T) {
 // TestVpnCmdFlags tests that vpn command has expected flags
 func TestVpnCmdFlags(t *testing.T) {
 	expectedFlags := []string{"ifReachableChk", "vpnRoutesChk", "vpnStatusChk", "allChk"}
-	
+
 	for _, flagName := range expectedFlags {
 		flag := vpnCmd.Flags().Lookup(flagName)
 		if flag == nil {

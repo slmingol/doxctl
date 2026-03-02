@@ -49,7 +49,7 @@ func TestSvrsCmd(t *testing.T) {
 // TestSvrsCmdFlags tests that svrs command has expected flags
 func TestSvrsCmdFlags(t *testing.T) {
 	expectedFlags := []string{"svrsReachableChk", "allChk"}
-	
+
 	for _, flagName := range expectedFlags {
 		flag := svrsCmd.Flags().Lookup(flagName)
 		if flag == nil {

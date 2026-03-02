@@ -24,11 +24,9 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"doxctl/internal/cmdhelp"
 	"doxctl/internal/output"
 	"fmt"
 	"os"
-	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
@@ -118,12 +116,17 @@ func vpnExecute(cmd *cobra.Command, args []string) {
 
 // Test if interface is reported as reachable via 'scutil'
 func ifReachChk() {
+	ifReachChkWithDeps(NewCommandExecutor())
+}
+
+// ifReachChkWithDeps allows dependency injection for testing
+func ifReachChkWithDeps(executor CommandExecutor) {
 	cmdBase := `scutil --nwi`
 
-	cmdExe1 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep1 := `grep 'Network interfaces:' | cut -d" " -f 3-`
-	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
+	output1, err := executor.Execute("bash", "-c", cmdBase+" | grep 'Network interfaces:' | cut -d\" \" -f 3-")
+	if err != nil {
+		output1 = []byte("")
+	}
 
 	netIfs := strings.Split(strings.TrimRight(string(output1), "\n"), " ")
 
@@ -140,10 +143,10 @@ func ifReachChk() {
 		foundOneTunIf = true
 	}
 
-	cmdExe2 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep2 := `grep address -B1 -A1 | grep -E "flags|reach" | paste - - | column -t | grep -v Reachable | wc -l | tr -d ' '`
-	exeGrep2 := exec.Command("bash", "-c", cmdGrep2)
-	output2, _, _ := cmdhelp.Pipeline(cmdExe2, exeGrep2)
+	output2, err := executor.Execute("bash", "-c", cmdBase+" | grep address -B1 -A1 | grep -E \"flags|reach\" | paste - - | column -t | grep -v Reachable | wc -l | tr -d ' '")
+	if err != nil {
+		output2 = []byte("0")
+	}
 
 	reachableIfs := strings.TrimRight(string(output2), "\n")
 
@@ -195,17 +198,22 @@ func ifReachChk() {
 
 // Test if VPNs interface defines at least MinVpnRoutes routes
 func vpnRteChk() {
-	cmdExe1 := exec.Command("bash", "-c", "scutil --nwi")
-	cmdGrep1 := `grep 'Network interfaces:' | grep -o utun[0-9] || echo "NIL"`
-	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
+	vpnRteChkWithDeps(NewCommandExecutor())
+}
+
+// vpnRteChkWithDeps allows dependency injection for testing
+func vpnRteChkWithDeps(executor CommandExecutor) {
+	output1, err := executor.Execute("bash", "-c", "scutil --nwi | grep 'Network interfaces:' | grep -o utun[0-9] || echo \"NIL\"")
+	if err != nil {
+		output1 = []byte("NIL")
+	}
 
 	vpnIf := strings.Split(strings.TrimRight(string(output1), "\n"), " ")[0]
 
-	cmdExe2 := exec.Command("bash", "-c", `netstat -r -f inet`)
-	cmdGrep2 := `grep -c ` + vpnIf
-	exeGrep2 := exec.Command("bash", "-c", cmdGrep2) // #nosec G204 - vpnIf is from system scutil output
-	output2, _, _ := cmdhelp.Pipeline(cmdExe2, exeGrep2)
+	output2, err := executor.Execute("bash", "-c", "netstat -r -f inet | grep -c "+vpnIf) // #nosec G204 - vpnIf is from system scutil output
+	if err != nil {
+		output2 = []byte("0")
+	}
 
 	vpnRouteCnt, _ := strconv.Atoi(strings.Split(strings.TrimRight(string(output2), "\n"), " ")[0])
 
@@ -249,15 +257,20 @@ func vpnRteChk() {
 
 // Test if VPN connection status reports as 'connected'
 func vpnConnChk() {
+	vpnConnChkWithDeps(NewCommandExecutor())
+}
+
+// vpnConnChkWithDeps allows dependency injection for testing
+func vpnConnChkWithDeps(executor CommandExecutor) {
 	cmdBase := `/opt/cisco/anyconnect/bin/vpn`
 	if runtime.GOOS == "linux" {
 		cmdBase = `/opt/cisco/anyconnect/bin/vpnui`
 	}
 
-	cmdExe1 := exec.Command("bash", "-c", cmdBase+" state")
-	cmdGrep1 := `grep -c 'state: Connected'`
-	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
+	output1, err := executor.Execute("bash", "-c", cmdBase+" state | grep -c 'state: Connected'")
+	if err != nil {
+		output1 = []byte("0")
+	}
 
 	vpnConnStatus, _ := strconv.Atoi(strings.Split(strings.TrimRight(string(output1), "\n"), " ")[0])
 

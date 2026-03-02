@@ -70,42 +70,41 @@ dockers:
       - "--label=org.opencontainers.image.url={{ .GitURL }}"
       - "--label=org.opencontainers.image.version={{ .Version }}"
       - "--platform=linux/arm64"
-  # GitHub Container Registry images - DISABLED due to permission errors
-  # Re-enable after fixing GHCR package permissions in repository settings
-  # - image_templates: 
-  #   - "ghcr.io/slmingol/doxctl:{{ .Tag }}-amd64"
-  #   dockerfile: Dockerfile
-  #   use: buildx
-  #   goarch: amd64
-  #   build_flag_templates:
-  #     - "--pull"
-  #     - "--label=org.opencontainers.image.created={{ .Date }}"
-  #     - "--label=org.opencontainers.image.description={{ .ProjectName }}"
-  #     - "--label=org.opencontainers.image.licenses=MIT"
-  #     - "--label=org.opencontainers.image.name={{ .ProjectName }}"
-  #     - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
-  #     - "--label=org.opencontainers.image.source={{ .GitURL }}"
-  #     - "--label=org.opencontainers.image.title={{ .ProjectName }}"
-  #     - "--label=org.opencontainers.image.url={{ .GitURL }}"
-  #     - "--label=org.opencontainers.image.version={{ .Version }}"
-  #     - "--platform=linux/amd64"
-  # - image_templates: 
-  #   - "ghcr.io/slmingol/doxctl:{{ .Tag }}-arm64"
-  #   dockerfile: Dockerfile
-  #   use: buildx
-  #   goarch: arm64
-  #   build_flag_templates:
-  #     - "--pull"
-  #     - "--label=org.opencontainers.image.created={{ .Date }}"
-  #     - "--label=org.opencontainers.image.description={{ .ProjectName }}"
-  #     - "--label=org.opencontainers.image.licenses=MIT"
-  #     - "--label=org.opencontainers.image.name={{ .ProjectName }}"
-  #     - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
-  #     - "--label=org.opencontainers.image.source={{ .GitURL }}"
-  #     - "--label=org.opencontainers.image.title={{ .ProjectName }}"
-  #     - "--label=org.opencontainers.image.url={{ .GitURL }}"
-  #     - "--label=org.opencontainers.image.version={{ .Version }}"
-  #     - "--platform=linux/arm64"
+  # GitHub Container Registry images
+  - image_templates: 
+    - "ghcr.io/slmingol/doxctl:{{ .Tag }}-amd64"
+    dockerfile: Dockerfile
+    use: buildx
+    goarch: amd64
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.description={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--label=org.opencontainers.image.name={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.source={{ .GitURL }}"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.url={{ .GitURL }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--platform=linux/amd64"
+  - image_templates: 
+    - "ghcr.io/slmingol/doxctl:{{ .Tag }}-arm64"
+    dockerfile: Dockerfile
+    use: buildx
+    goarch: arm64
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.description={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--label=org.opencontainers.image.name={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.source={{ .GitURL }}"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.url={{ .GitURL }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--platform=linux/arm64"
 
 docker_manifests:
   # Docker Hub manifests
@@ -117,15 +116,15 @@ docker_manifests:
     image_templates:
       - "slmingol/doxctl:{{ .Tag }}-amd64"
       - "slmingol/doxctl:{{ .Tag }}-arm64"
-  # GitHub Container Registry manifests - DISABLED
-  # - name_template: "ghcr.io/slmingol/doxctl:{{ .Tag }}"
-  #   image_templates:
-  #     - "ghcr.io/slmingol/doxctl:{{ .Tag }}-amd64"
-  #     - "ghcr.io/slmingol/doxctl:{{ .Tag }}-arm64"
-  # - name_template: "ghcr.io/slmingol/doxctl:latest"
-  #   image_templates:
-  #     - "ghcr.io/slmingol/doxctl:{{ .Tag }}-amd64"
-  #     - "ghcr.io/slmingol/doxctl:{{ .Tag }}-arm64"
+  # GitHub Container Registry manifests
+  - name_template: "ghcr.io/slmingol/doxctl:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/slmingol/doxctl:{{ .Tag }}-amd64"
+      - "ghcr.io/slmingol/doxctl:{{ .Tag }}-arm64"
+  - name_template: "ghcr.io/slmingol/doxctl:latest"
+    image_templates:
+      - "ghcr.io/slmingol/doxctl:{{ .Tag }}-amd64"
+      - "ghcr.io/slmingol/doxctl:{{ .Tag }}-arm64"
 
 brews:
   - repository:

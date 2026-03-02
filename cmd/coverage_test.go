@@ -142,13 +142,18 @@ func TestAllSvrsExecutePaths(t *testing.T) {
 		name             string
 		svrsReachableChk bool
 		allChk           bool
+		skip             bool
 	}{
-		{"servers path", true, false},
-		{"all path", false, true},
+		{"servers path", true, false, runtime.GOOS != "darwin"},
+		{"all path", false, true, runtime.GOOS != "darwin"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.skip {
+				t.Skip("Skipping macOS-specific test")
+			}
+
 			svrsReachableChk = tt.svrsReachableChk
 			allChk = tt.allChk
 
@@ -282,6 +287,10 @@ func TestVpnConnChkCoverage(t *testing.T) {
 
 // TestSvrsExecuteAllPath tests the allChk path specifically
 func TestSvrsExecuteAllPath(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("Skipping macOS-specific test")
+	}
+
 	setupMinimalConfig()
 
 	old := os.Stdout
@@ -305,6 +314,10 @@ func TestSvrsExecuteAllPath(t *testing.T) {
 
 // TestSvrsReachChkWithMultipleServers tests with multiple server configurations
 func TestSvrsReachChkWithMultipleServers(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("Skipping macOS-specific test")
+	}
+
 	// Setup config with multiple services and servers
 	conf = &config{
 		MinVpnRoutes:     5,

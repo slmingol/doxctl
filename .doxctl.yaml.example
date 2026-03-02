@@ -62,11 +62,11 @@ wellKnownSvcs:
     svrs:
       - 10.23.12.154
       
-# timeout is in millsec (ms)
+# timeout is in milliseconds (ms)
 pingTimeout: 250
 
 # ping or reach failure threshold
 failThreshold: 5
 
-# timeout is in millsec (ms)
+# timeout is in milliseconds (ms)
 dnsLookupTimeout: 100 

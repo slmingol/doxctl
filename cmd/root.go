@@ -73,7 +73,6 @@ stemming from the following areas with a laptop or desktop system:
   - DNS, specifically with the configuration of resolvers 
   - VPN configuration and network connectivity over it
   - General access to well-known servers
-  - General access to well-known services
   - ... or general network connectivity issues 
 
 	`,

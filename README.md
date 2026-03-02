@@ -1,5 +1,6 @@
 ![dox logo](https://github.com/slmingol/doxctl/blob/main/imgs/whats_up_dox__banner.png?raw=true)
 
+[![Release](https://img.shields.io/github/v/release/slmingol/doxctl?include_prereleases)](https://github.com/slmingol/doxctl/releases/latest)
 [![Build & Release](https://github.com/slmingol/doxctl/actions/workflows/build-release.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/build-release.yml)
 [![CodeQL](https://github.com/slmingol/doxctl/actions/workflows/codeql.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/codeql.yml)
 [![Lint](https://github.com/slmingol/doxctl/actions/workflows/lint.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/lint.yml)

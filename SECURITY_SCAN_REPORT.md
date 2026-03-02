@@ -119,7 +119,7 @@ Due to network restrictions preventing direct use of `govulncheck`, the scan was
 
 ## Additional Notes
 
-- The project uses Go 1.16, which is quite old. Consider updating to a more recent Go version for better security and performance.
+- The project now uses Go 1.25.0, which provides the latest security patches and performance improvements.
 - All vulnerabilities identified are in transitive dependencies and can be resolved through updates.
 - No custom code vulnerabilities were identified during this scan.
 

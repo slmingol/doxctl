@@ -47,6 +47,9 @@ var (
 	resolverChk, pingChk, digChk bool
 )
 
+const dnsPort = 53
+
+
 var dnsCmd = &cobra.Command{
 	Use:   "dns",
 	Short: "Run diagnostics related to DNS servers (aka. resolvers) configurations",
@@ -169,7 +172,7 @@ func dnsResolverPingChk() {
 				netInterface = getVPNInterface()
 			}
 
-			target := fmt.Sprintf("%s:%d", ip, 53)
+			target := fmt.Sprintf("%s:%d", ip, dnsPort)
 
 			// TCP check
 			_, errTCP := net.DialTimeout("tcp", target, 5*time.Second)

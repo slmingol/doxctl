@@ -84,7 +84,7 @@ func vpnExecute(cmd *cobra.Command, args []string) {
 		vpnRteChk()
 		vpnConnChk()
 	default:
-		cmd.Usage()
+		_ = cmd.Usage()
 		fmt.Printf("\n\n\n")
 		os.Exit(1)
 	}
@@ -109,7 +109,7 @@ func ifReachChk() {
 		}
 	}
 
-	var foundOneTunIf bool = false
+	var foundOneTunIf = false
 	if len(tunIfs) > 0 {
 		foundOneTunIf = true
 	}
@@ -121,7 +121,7 @@ func ifReachChk() {
 
 	reachableIfs := strings.TrimRight(string(output2), "\n")
 
-	var allInfsReachable bool = false
+	var allInfsReachable = false
 	if reachableIfs == "0" {
 		allInfsReachable = true
 	}
@@ -163,7 +163,7 @@ func vpnRteChk() {
 
 	cmdExe2 := exec.Command("bash", "-c", `netstat -r -f inet`)
 	cmdGrep2 := `grep -c ` + vpnIf
-	exeGrep2 := exec.Command("bash", "-c", cmdGrep2)
+	exeGrep2 := exec.Command("bash", "-c", cmdGrep2) // #nosec G204 - vpnIf is from system scutil output
 	output2, _, _ := cmdhelp.Pipeline(cmdExe2, exeGrep2)
 
 	vpnRouteCnt, _ := strconv.Atoi(strings.Split(strings.TrimRight(string(output2), "\n"), " ")[0])

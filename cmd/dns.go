@@ -93,7 +93,7 @@ func dnsExecute(cmd *cobra.Command, args []string) {
 		dnsResolverPingChk()
 		dnsResolverDigChk()
 	default:
-		cmd.Usage()
+		_ = cmd.Usage()
 		fmt.Printf("\n\n\n")
 		os.Exit(1)
 	}
@@ -144,10 +144,10 @@ func dnsResolverPingChk() {
 		var pingReachable, tcpReachable, udpReachable bool
 		var netInterface string
 
-		pinger, err := ping.NewPinger(ip)
+		pinger, _ := ping.NewPinger(ip)
 		pinger.Count = 1
 		pinger.Timeout = 30 * time.Second
-		err = pinger.Run()
+		err := pinger.Run()
 		if err != nil {
 			pingReachable = false
 		} else {
@@ -159,7 +159,7 @@ func dnsResolverPingChk() {
 		if pingReachable {
 			switch runtime.GOOS {
 			case "linux":
-				cmdExeIPRouteGet := exec.Command("ip", "route", "get", ip)
+				cmdExeIPRouteGet := exec.Command("ip", "route", "get", ip) // #nosec G204 - ip is from DNS resolver list
 
 				if out, err := cmdExeIPRouteGet.CombinedOutput(); err != nil {
 					if _, ok := err.(*exec.ExitError); ok {
@@ -253,7 +253,7 @@ func dnsResolverDigChk() {
 
 			for _, permutation := range permutations {
 				for _, ip := range resolverIPs {
-					dig.SetDNS(ip)
+					_ = dig.SetDNS(ip)
 					msg, err := dig.GetMsg(dns.TypeA, permutation)
 
 					isResolvable := false

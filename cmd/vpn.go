@@ -25,12 +25,14 @@ package cmd
 
 import (
 	"doxctl/internal/cmdhelp"
+	"doxctl/internal/output"
 	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gookit/color"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -126,6 +128,21 @@ func ifReachChk() {
 		allInfsReachable = true
 	}
 
+	// For JSON/YAML output
+	if outputFormat != "table" {
+		result := output.VPNInterfaceCheckResult{
+			Timestamp:              time.Now(),
+			InterfaceCount:         len(netIfs),
+			Interfaces:             netIfs,
+			HasTunInterface:        foundOneTunIf,
+			TunInterfaces:          tunIfs,
+			AllInterfacesReachable: allInfsReachable,
+		}
+		output.Print(outputFormat, result)
+		return
+	}
+
+	// Table output
 	t := table.NewWriter()
 	t.SetTitle("Interfaces Reachable Checks")
 	t.SetOutputMirror(os.Stdout)
@@ -168,6 +185,20 @@ func vpnRteChk() {
 
 	vpnRouteCnt, _ := strconv.Atoi(strings.Split(strings.TrimRight(string(output2), "\n"), " ")[0])
 
+	// For JSON/YAML output
+	if outputFormat != "table" {
+		result := output.VPNRoutesCheckResult{
+			Timestamp:           time.Now(),
+			VPNInterface:        vpnIf,
+			RouteCount:          vpnRouteCnt,
+			MinRoutesRequired:   conf.MinVpnRoutes,
+			HasSufficientRoutes: vpnRouteCnt >= conf.MinVpnRoutes,
+		}
+		output.Print(outputFormat, result)
+		return
+	}
+
+	// Table output
 	t := table.NewWriter()
 	t.SetTitle("VPN Interface Route Checks")
 	t.SetOutputMirror(os.Stdout)
@@ -206,6 +237,17 @@ func vpnConnChk() {
 
 	vpnConnStatus, _ := strconv.Atoi(strings.Split(strings.TrimRight(string(output1), "\n"), " ")[0])
 
+	// For JSON/YAML output
+	if outputFormat != "table" {
+		result := output.VPNConnectionStatusResult{
+			Timestamp:   time.Now(),
+			IsConnected: vpnConnStatus > 0,
+		}
+		output.Print(outputFormat, result)
+		return
+	}
+
+	// Table output
 	t := table.NewWriter()
 	t.SetTitle("VPN Connection Status Checks")
 	t.SetOutputMirror(os.Stdout)

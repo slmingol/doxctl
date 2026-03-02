@@ -26,6 +26,7 @@ package cmd
 import (
 	"container/list"
 	"doxctl/internal/cmdhelp"
+	"doxctl/internal/output"
 	"fmt"
 	"net"
 	"os"
@@ -130,6 +131,19 @@ func dnsResolverChk() {
 	dns.searchDomains = strings.Fields(string(output2))[1]
 	dns.serverAddresses = strings.Fields(string(output3))[1]
 
+	// For JSON/YAML output
+	if outputFormat != "table" {
+		result := output.DNSResolverCheckResult{
+			Timestamp:          time.Now(),
+			DomainNameSet:      dns.domainName == "set",
+			SearchDomainsSet:   dns.searchDomains == "set",
+			ServerAddressesSet: dns.serverAddresses == "set",
+		}
+		output.Print(outputFormat, result)
+		return
+	}
+
+	// Table output
 	fmt.Println("")
 
 	t := table.NewWriter()
@@ -220,6 +234,28 @@ func dnsResolverPingChk() {
 		}
 	}
 
+	// For JSON/YAML output
+	if outputFormat != "table" {
+		var resolvers []output.ResolverConnectivityResult
+		for e := resChks.Front(); e != nil; e = e.Next() {
+			itemResChk := resolverChk(e.Value.(resolverChk))
+			resolvers = append(resolvers, output.ResolverConnectivityResult{
+				ResolverIP:    itemResChk.resolverIP,
+				NetInterface:  itemResChk.netInterface,
+				PingReachable: itemResChk.pingReachable,
+				TCPReachable:  itemResChk.tcpReachable,
+				UDPReachable:  itemResChk.udpReachable,
+			})
+		}
+		result := output.DNSResolverPingCheckResult{
+			Timestamp: time.Now(),
+			Resolvers: resolvers,
+		}
+		output.Print(outputFormat, result)
+		return
+	}
+
+	// Table output
 	t := table.NewWriter()
 	t.SetTitle("VPN defined DNS Resolver Connectivity Checks")
 	t.SetOutputMirror(os.Stdout)
@@ -254,16 +290,11 @@ func dnsResolverPingChk() {
 func dnsResolverDigChk() {
 	rowConfigAutoMerge := table.RowConfig{AutoMerge: true}
 
-	t := table.NewWriter()
-	t.SetTitle("Dig Check against VPN defined DNS Resolvers")
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
-	t.AppendHeader(table.Row{"Hostname to 'dig'", "Resolver IP", "Is resolvable?"}, rowConfigAutoMerge)
-
 	resolverIPs := scutilResolverIPs()
 
 	var dig dnsutil.Dig
 	resolverCnt := make(map[string]int)
+	var digResults []output.DigCheckResult
 
 	for _, i := range conf.Svcs {
 		if i.Svc != "idm" {
@@ -283,7 +314,12 @@ func dnsResolverDigChk() {
 						isResolvable = true
 					}
 
-					t.AppendRow([]interface{}{permutation, ip, isResolvable}, rowConfigAutoMerge)
+					// Collect for JSON/YAML output
+					digResults = append(digResults, output.DigCheckResult{
+						Hostname:     permutation,
+						ResolverIP:   ip,
+						IsResolvable: isResolvable,
+					})
 
 					if !isResolvable {
 						continue
@@ -291,9 +327,33 @@ func dnsResolverDigChk() {
 
 					resolverCnt[ip]++
 				}
-
-				t.AppendSeparator()
 			}
+		}
+	}
+
+	// For JSON/YAML output
+	if outputFormat != "table" {
+		result := output.DNSResolverDigCheckResult{
+			Timestamp: time.Now(),
+			Results:   digResults,
+			Summary:   resolverCnt,
+		}
+		output.Print(outputFormat, result)
+		return
+	}
+
+	// Table output
+	t := table.NewWriter()
+	t.SetTitle("Dig Check against VPN defined DNS Resolvers")
+	t.SetOutputMirror(os.Stdout)
+	t.SetStyle(table.StyleLight)
+	t.AppendHeader(table.Row{"Hostname to 'dig'", "Resolver IP", "Is resolvable?"}, rowConfigAutoMerge)
+
+	for _, result := range digResults {
+		t.AppendRow([]interface{}{result.Hostname, result.ResolverIP, result.IsResolvable}, rowConfigAutoMerge)
+		// Add separator after each hostname's results
+		if result.ResolverIP == resolverIPs[len(resolverIPs)-1] {
+			t.AppendSeparator()
 		}
 	}
 

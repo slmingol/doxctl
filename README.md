@@ -1,5 +1,7 @@
 ![dox logo](https://github.com/slmingol/doxctl/blob/main/imgs/whats_up_dox__banner.png?raw=true)
 
+[![Security Scan](https://github.com/slmingol/doxctl/actions/workflows/security-scan.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/security-scan.yml)
+
 # TLDR
 `doxctl` is a diagnostic CLI tool that endusers can use to triage connectivity problems stemming from their VPN & DNS setups on their laptops. It can help with the following areas:
 
@@ -9,6 +11,16 @@
 | DNS  | Resolvers, search paths, etc. are set |
 | Resolvers | VPN defined DNS resolvers are defined and reachable |
 | Routing and connectivity | When on the VPN well-known servers are reachable |
+
+## Features
+
+- **Human-readable table output** - Easy to read diagnostic results
+- **Machine-readable formats** - JSON and YAML output for automation, CI/CD pipelines, and monitoring systems
+- **VPN diagnostics** - Check VPN connectivity, routes, and interface status
+- **DNS diagnostics** - Verify DNS resolver configuration and connectivity
+- **Server reachability** - Test connectivity to well-known servers
+
+For details on using JSON/YAML output for automation, see [docs/OUTPUT_FORMATS.md](docs/OUTPUT_FORMATS.md).
 
 # Requirements
 
@@ -86,6 +98,84 @@ Uninstalling /usr/local/Cellar/doxctl/0.0.27-alpha... (5 files, 9.1MB)
 </p>
 </details>
 
+## Docker
+
+Docker images are available for both `amd64` and `arm64` architectures, making `doxctl` compatible with:
+- x86_64 systems (traditional servers, Intel-based laptops)
+- ARM-based systems (Apple M1/M2, Raspberry Pi, AWS Graviton)
+
+### Available Images
+
+Images are published to both GitHub Container Registry (GHCR) and Docker Hub:
+- `ghcr.io/slmingol/doxctl:latest` (multi-arch)
+- `slmingol/doxctl:latest` (multi-arch)
+- Tagged versions: `ghcr.io/slmingol/doxctl:v1.0.0` or `slmingol/doxctl:v1.0.0`
+
+### Quick Start
+
+```bash
+# Pull and run the latest version
+docker run --rm ghcr.io/slmingol/doxctl:latest --help
+
+# Run DNS diagnostics
+docker run --rm ghcr.io/slmingol/doxctl:latest dns --help
+
+# Run VPN diagnostics
+docker run --rm ghcr.io/slmingol/doxctl:latest vpn --help
+
+# Run server connectivity checks
+docker run --rm ghcr.io/slmingol/doxctl:latest svrs --help
+```
+
+### Advanced Usage
+
+#### With Configuration File
+
+```bash
+# Create a config file
+cat > doxctl.yaml <<EOF
+# Your configuration here
+EOF
+
+# Mount and use the config file
+docker run --rm \
+  -v $(pwd)/doxctl.yaml:/root/.doxctl.yaml \
+  ghcr.io/slmingol/doxctl:latest dns -a
+```
+
+#### Interactive Shell
+
+The Docker image is based on Alpine Linux, which includes a shell for debugging:
+
+```bash
+# Start an interactive shell
+docker run --rm -it --entrypoint /bin/sh ghcr.io/slmingol/doxctl:latest
+
+# Inside the container, you can run doxctl commands
+/usr/bin/doxctl --help
+```
+
+#### Network Troubleshooting
+
+For network diagnostics, you may need host network mode:
+
+```bash
+# Run with host network access
+docker run --rm --network host ghcr.io/slmingol/doxctl:latest dns -p
+```
+
+### Architecture-Specific Images
+
+While the multi-arch manifest automatically selects the correct image for your platform, you can explicitly pull architecture-specific images:
+
+```bash
+# AMD64 (x86_64)
+docker pull ghcr.io/slmingol/doxctl:latest-amd64
+
+# ARM64 (Apple Silicon, Graviton, etc.)
+docker pull ghcr.io/slmingol/doxctl:latest-arm64
+```
+
 # Usage
 ## General
 ```
@@ -97,7 +187,6 @@ stemming from the following areas with a laptop or desktop system:
   - DNS, specifically with the configuration of resolvers
   - VPN configuration and network connectivity over it
   - General access to well-known servers
-  - General access to well-known services
   - ... or general network connectivity issues
 
 Usage:
@@ -112,6 +201,7 @@ Available Commands:
 Flags:
   -c, --config string   config file (default is $HOME/.doxctl.yaml)
   -h, --help            help for doxctl
+  -o, --output string   Output format: table, json, yaml (default "table")
   -v, --verbose         Enable verbose output of commands
 
 Use "doxctl [command] --help" for more information about a command.

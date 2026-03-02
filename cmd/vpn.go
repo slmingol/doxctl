@@ -25,12 +25,14 @@ package cmd
 
 import (
 	"doxctl/internal/cmdhelp"
+	"doxctl/internal/output"
 	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gookit/color"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -84,7 +86,7 @@ func vpnExecute(cmd *cobra.Command, args []string) {
 		vpnRteChk()
 		vpnConnChk()
 	default:
-		cmd.Usage()
+		_ = cmd.Usage()
 		fmt.Printf("\n\n\n")
 		os.Exit(1)
 	}
@@ -109,7 +111,7 @@ func ifReachChk() {
 		}
 	}
 
-	var foundOneTunIf bool = false
+	var foundOneTunIf = false
 	if len(tunIfs) > 0 {
 		foundOneTunIf = true
 	}
@@ -121,11 +123,26 @@ func ifReachChk() {
 
 	reachableIfs := strings.TrimRight(string(output2), "\n")
 
-	var allInfsReachable bool = false
+	var allInfsReachable = false
 	if reachableIfs == "0" {
 		allInfsReachable = true
 	}
 
+	// For JSON/YAML output
+	if outputFormat != "table" {
+		result := output.VPNInterfaceCheckResult{
+			Timestamp:              time.Now(),
+			InterfaceCount:         len(netIfs),
+			Interfaces:             netIfs,
+			HasTunInterface:        foundOneTunIf,
+			TunInterfaces:          tunIfs,
+			AllInterfacesReachable: allInfsReachable,
+		}
+		output.Print(outputFormat, result)
+		return
+	}
+
+	// Table output
 	t := table.NewWriter()
 	t.SetTitle("Interfaces Reachable Checks")
 	t.SetOutputMirror(os.Stdout)
@@ -163,11 +180,25 @@ func vpnRteChk() {
 
 	cmdExe2 := exec.Command("bash", "-c", `netstat -r -f inet`)
 	cmdGrep2 := `grep -c ` + vpnIf
-	exeGrep2 := exec.Command("bash", "-c", cmdGrep2)
+	exeGrep2 := exec.Command("bash", "-c", cmdGrep2) // #nosec G204 - vpnIf is from system scutil output
 	output2, _, _ := cmdhelp.Pipeline(cmdExe2, exeGrep2)
 
 	vpnRouteCnt, _ := strconv.Atoi(strings.Split(strings.TrimRight(string(output2), "\n"), " ")[0])
 
+	// For JSON/YAML output
+	if outputFormat != "table" {
+		result := output.VPNRoutesCheckResult{
+			Timestamp:           time.Now(),
+			VPNInterface:        vpnIf,
+			RouteCount:          vpnRouteCnt,
+			MinRoutesRequired:   conf.MinVpnRoutes,
+			HasSufficientRoutes: vpnRouteCnt >= conf.MinVpnRoutes,
+		}
+		output.Print(outputFormat, result)
+		return
+	}
+
+	// Table output
 	t := table.NewWriter()
 	t.SetTitle("VPN Interface Route Checks")
 	t.SetOutputMirror(os.Stdout)
@@ -206,6 +237,17 @@ func vpnConnChk() {
 
 	vpnConnStatus, _ := strconv.Atoi(strings.Split(strings.TrimRight(string(output1), "\n"), " ")[0])
 
+	// For JSON/YAML output
+	if outputFormat != "table" {
+		result := output.VPNConnectionStatusResult{
+			Timestamp:   time.Now(),
+			IsConnected: vpnConnStatus > 0,
+		}
+		output.Print(outputFormat, result)
+		return
+	}
+
+	// Table output
 	t := table.NewWriter()
 	t.SetTitle("VPN Connection Status Checks")
 	t.SetOutputMirror(os.Stdout)

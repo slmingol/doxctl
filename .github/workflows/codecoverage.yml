@@ -12,6 +12,8 @@ jobs:
         platform:
         - ubuntu-latest
     runs-on: ${{ matrix.platform }}
+    permissions:
+      contents: read
     steps:
     - name: Install Go
       uses: actions/setup-go@v5

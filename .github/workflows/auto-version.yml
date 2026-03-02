@@ -26,19 +26,23 @@ jobs:
       - name: Get latest tag
         id: get_tag
         run: |
-          # Get the latest tag matching our pattern
-          LATEST_TAG=$(git tag --list '0.0.*' --sort=-v:refname | head -n1)
+          # Get the latest semantic version tag (excluding pre-release tags)
+          LATEST_TAG=$(git tag --list '[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | grep -v '-' | head -n1)
           
           if [ -z "$LATEST_TAG" ]; then
-            echo "No existing tags found, starting at 0.0.1"
-            NEW_TAG="0.0.1"
+            echo "No existing tags found, starting at 1.0.0"
+            NEW_TAG="1.0.0"
           else
             echo "Latest tag: $LATEST_TAG"
             
-            # Extract the patch version (e.g., 62 from 0.0.62)
-            PATCH=$(echo $LATEST_TAG | sed 's/0\.0\.\([0-9]*\)/\1/')
+            # Extract MAJOR.MINOR.PATCH
+            MAJOR=$(echo $LATEST_TAG | cut -d. -f1)
+            MINOR=$(echo $LATEST_TAG | cut -d. -f2)
+            PATCH=$(echo $LATEST_TAG | cut -d. -f3)
+            
+            # Increment PATCH version
             NEW_PATCH=$((PATCH + 1))
-            NEW_TAG="0.0.${NEW_PATCH}"
+            NEW_TAG="${MAJOR}.${MINOR}.${NEW_PATCH}"
           fi
           
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT

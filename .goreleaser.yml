@@ -34,6 +34,8 @@ dockers:
     - "ghcr.io/slmingol/doxctl:{{ .Tag }}"
     - "slmingol/doxctl:{{ .Tag }}"
     dockerfile: Dockerfile
+    use: buildx
+    goarch: amd64
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.created={{ .Date }}"
@@ -46,6 +48,23 @@ dockers:
       - "--label=org.opencontainers.image.url={{ .GitURL }}"
       - "--label=org.opencontainers.image.version={{ .Version }}"
       - "--platform=linux/amd64"
+  - image_templates: 
+    - "ghcr.io/slmingol/doxctl:{{ .Tag }}"
+    - "slmingol/doxctl:{{ .Tag }}"
+    dockerfile: Dockerfile
+    use: buildx
+    goarch: arm64
+    build_flag_templates:
+      - "--pull"
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.description={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.licenses=MIT"
+      - "--label=org.opencontainers.image.name={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.source={{ .GitURL }}"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.url={{ .GitURL }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
       - "--platform=linux/arm64"
 
 brews:

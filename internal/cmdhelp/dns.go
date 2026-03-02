@@ -61,6 +61,15 @@ func Pipeline(cmds ...*exec.Cmd) (pipeLineOutput, collectedStandardError []byte,
 	// Start each command
 	for _, cmd := range cmds {
 		if err := cmd.Start(); err != nil {
+			// Wait for any commands that were already started
+			for j, c := range cmds {
+				if c.Process != nil {
+					c.Wait() // Ignore error, we're already handling one
+				}
+				if j >= len(cmds) {
+					break
+				}
+			}
 			// Combine all stderr buffers collected so far
 			var combinedStderr bytes.Buffer
 			for _, buf := range stderrBuffers {
@@ -70,18 +79,15 @@ func Pipeline(cmds ...*exec.Cmd) (pipeLineOutput, collectedStandardError []byte,
 		}
 	}
 
-	// Wait for each command to complete
+	// Wait for each command to complete - collect all errors but ensure all complete
+	var firstErr error
 	for _, cmd := range cmds {
-		if err := cmd.Wait(); err != nil {
-			// Combine all stderr buffers
-			var combinedStderr bytes.Buffer
-			for _, buf := range stderrBuffers {
-				combinedStderr.Write(buf.Bytes())
-			}
-			return output.Bytes(), combinedStderr.Bytes(), err
+		if err := cmd.Wait(); err != nil && firstErr == nil {
+			firstErr = err
 		}
 	}
 
+	// Now all commands have completed and all I/O is done
 	// Combine all stderr buffers
 	var combinedStderr bytes.Buffer
 	for _, buf := range stderrBuffers {
@@ -89,5 +95,8 @@ func Pipeline(cmds ...*exec.Cmd) (pipeLineOutput, collectedStandardError []byte,
 	}
 
 	// Return the pipeline output and the collected standard error
+	if firstErr != nil {
+		return output.Bytes(), combinedStderr.Bytes(), firstErr
+	}
 	return output.Bytes(), combinedStderr.Bytes(), nil
 }

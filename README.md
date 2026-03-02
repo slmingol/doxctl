@@ -13,7 +13,7 @@
 # Requirements
 
 For building from source or development:
-- **Go 1.21+** is required
+- **Go 1.25.0+** is required (as specified in go.mod)
 
 # Installation
 ## MacOS

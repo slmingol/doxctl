@@ -10,6 +10,16 @@
 | Resolvers | VPN defined DNS resolvers are defined and reachable |
 | Routing and connectivity | When on the VPN well-known servers are reachable |
 
+## Features
+
+- **Human-readable table output** - Easy to read diagnostic results
+- **Machine-readable formats** - JSON and YAML output for automation, CI/CD pipelines, and monitoring systems
+- **VPN diagnostics** - Check VPN connectivity, routes, and interface status
+- **DNS diagnostics** - Verify DNS resolver configuration and connectivity
+- **Server reachability** - Test connectivity to well-known servers
+
+For details on using JSON/YAML output for automation, see [docs/OUTPUT_FORMATS.md](docs/OUTPUT_FORMATS.md).
+
 # Requirements
 
 For building from source or development:
@@ -112,6 +122,7 @@ Available Commands:
 Flags:
   -c, --config string   config file (default is $HOME/.doxctl.yaml)
   -h, --help            help for doxctl
+  -o, --output string   Output format: table, json, yaml (default "table")
   -v, --verbose         Enable verbose output of commands
 
 Use "doxctl [command] --help" for more information about a command.

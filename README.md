@@ -12,12 +12,13 @@
 # TLDR
 `doxctl` is a diagnostic CLI tool that endusers can use to triage connectivity problems stemming from their VPN & DNS setups on their laptops. It can help with the following areas:
 
-| Area | Description |
-| ---- | ----------- |
-| VPN  | Can servers be reached over the VPN across geo-locations |
-| DNS  | Resolvers, search paths, etc. are set |
-| Resolvers | VPN defined DNS resolvers are defined and reachable |
-| Routing and connectivity | When on the VPN well-known servers are reachable |
+| Command | Description |
+| ------- | ----------- |
+| **dns** | Verify DNS resolver configuration, connectivity, and query responses |
+| **vpn** | Check VPN connection status, network interfaces, and route configuration |
+| **svrs** | Test connectivity to well-known servers through VPN |
+| **svcs** | Multi-datacenter service-level health checks for critical endpoints |
+| **net** | Network performance testing and SLO validation (latency, jitter, packet loss) |
 
 ## Features
 

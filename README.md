@@ -10,6 +10,11 @@
 | Resolvers | VPN defined DNS resolvers are defined and reachable |
 | Routing and connectivity | When on the VPN well-known servers are reachable |
 
+# Requirements
+
+For building from source or development:
+- **Go 1.21+** is required
+
 # Installation
 ## MacOS
 <details><summary>Tree - CLICK ME</summary>

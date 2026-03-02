@@ -36,7 +36,14 @@ import (
 func getResolverIPs() []string {
 	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
 	cmdExe1 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep1 := `grep -A3 'ServerAddresses' | grep -E '` + conf.DomAddrChk + `' | cut -d':' -f2`
+	
+	// Use default pattern if conf is nil or DomAddrChk is empty
+	domAddrPattern := "."
+	if conf != nil && conf.DomAddrChk != "" {
+		domAddrPattern = conf.DomAddrChk
+	}
+	
+	cmdGrep1 := `grep -A3 'ServerAddresses' | grep -E '` + domAddrPattern + `' | cut -d':' -f2`
 	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
 	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
 
@@ -70,18 +77,35 @@ func getVPNInterface() string {
 func getDNSConfig() (domainName, searchDomains, serverAddresses string) {
 	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
 
+	// Use default patterns if conf is nil or fields are empty
+	domNamePattern := "."
+	domSearchPattern := "."
+	domAddrPattern := "."
+	
+	if conf != nil {
+		if conf.DomNameChk != "" {
+			domNamePattern = conf.DomNameChk
+		}
+		if conf.DomSearchChk != "" {
+			domSearchPattern = conf.DomSearchChk
+		}
+		if conf.DomAddrChk != "" {
+			domAddrPattern = conf.DomAddrChk
+		}
+	}
+
 	cmdExe1 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep1 := `grep -q 'DomainName.*` + conf.DomNameChk + `' && echo "DomainName set" || echo "DomainName unset"`
+	cmdGrep1 := `grep -q 'DomainName.*` + domNamePattern + `' && echo "DomainName set" || echo "DomainName unset"`
 	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
 	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
 
 	cmdExe2 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep2 := `grep -A1 'SearchDomains' | grep -qE '` + conf.DomSearchChk + `' && echo "SearchDomains set" || echo "SearchDomains unset"`
+	cmdGrep2 := `grep -A1 'SearchDomains' | grep -qE '` + domSearchPattern + `' && echo "SearchDomains set" || echo "SearchDomains unset"`
 	exeGrep2 := exec.Command("bash", "-c", cmdGrep2)
 	output2, _, _ := cmdhelp.Pipeline(cmdExe2, exeGrep2)
 
 	cmdExe3 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep3 := `grep -A3 'ServerAddresses' | grep -qE '` + conf.DomAddrChk + `' && echo "ServerAddresses set" || echo "ServerAddresses unset"`
+	cmdGrep3 := `grep -A3 'ServerAddresses' | grep -qE '` + domAddrPattern + `' && echo "ServerAddresses set" || echo "ServerAddresses unset"`
 	exeGrep3 := exec.Command("bash", "-c", cmdGrep3)
 	output3, _, _ := cmdhelp.Pipeline(cmdExe3, exeGrep3)
 

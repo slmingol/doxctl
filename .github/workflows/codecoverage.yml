@@ -21,6 +21,10 @@ jobs:
       uses: actions/checkout@v4
     - name: Test
       run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+    - name: Security Scan
+      run: |
+        go install golang.org/x/vuln/cmd/govulncheck@latest
+        govulncheck ./...
     - name: Report coverage
       uses: codecov/codecov-action@v1
       with:

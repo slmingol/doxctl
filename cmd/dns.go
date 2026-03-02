@@ -166,14 +166,18 @@ func dnsResolverPingChk() {
 		var pingReachable, tcpReachable, udpReachable bool
 		var netInterface string
 
-		pinger, _ := ping.NewPinger(ip)
-		pinger.Count = 1
-		pinger.Timeout = 30 * time.Second
-		err := pinger.Run()
+		pinger, err := ping.NewPinger(ip)
 		if err != nil {
 			pingReachable = false
 		} else {
-			pingReachable = true
+			pinger.Count = 1
+			pinger.Timeout = 30 * time.Second
+			err = pinger.Run()
+			if err != nil {
+				pingReachable = false
+			} else {
+				pingReachable = true
+			}
 		}
 
 		resChk = resolverChk{resolverIP: ip, pingReachable: pingReachable}

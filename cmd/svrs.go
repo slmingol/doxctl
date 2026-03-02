@@ -140,7 +140,7 @@ func svrsReachChk() {
 			for _, permutation := range permutations {
 
 				// Attempt to resolve hostname prior to ping
-				ctx, cancel := context.WithTimeout(context.TODO(), (conf.DNSLookupTimeout * time.Millisecond))
+				ctx, cancel := context.WithTimeout(context.Background(), (conf.DNSLookupTimeout * time.Millisecond))
 				defer cancel() // important to avoid a resource leak
 				var r net.Resolver
 				ip, err := r.LookupHost(ctx, permutation)

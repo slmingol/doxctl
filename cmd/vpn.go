@@ -111,7 +111,7 @@ func ifReachChk() {
 		}
 	}
 
-	var foundOneTunIf bool = false
+	var foundOneTunIf bool
 	if len(tunIfs) > 0 {
 		foundOneTunIf = true
 	}
@@ -123,7 +123,7 @@ func ifReachChk() {
 
 	reachableIfs := strings.TrimRight(string(output2), "\n")
 
-	var allInfsReachable bool = false
+	var allInfsReachable bool
 	if reachableIfs == "0" {
 		allInfsReachable = true
 	}

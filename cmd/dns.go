@@ -296,12 +296,6 @@ func dnsResolverPingChk() {
 func dnsResolverDigChk() {
 	rowConfigAutoMerge := table.RowConfig{AutoMerge: true}
 
-	t := table.NewWriter()
-	t.SetTitle("Dig Check against VPN defined DNS Resolvers")
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
-	t.AppendHeader(table.Row{"Hostname to 'dig'", "Resolver IP", "Is resolvable?"}, rowConfigAutoMerge)
-
 	resolverIPs := getResolverIPs()
 
 	var dig dnsutil.Dig

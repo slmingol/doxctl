@@ -27,18 +27,18 @@ jobs:
         id: get_tag
         run: |
           # Get the latest tag matching our pattern
-          LATEST_TAG=$(git tag --list '0.0.*-alpha' --sort=-v:refname | head -n1)
+          LATEST_TAG=$(git tag --list '0.0.*' --sort=-v:refname | head -n1)
           
           if [ -z "$LATEST_TAG" ]; then
-            echo "No existing tags found, starting at 0.0.1-alpha"
-            NEW_TAG="0.0.1-alpha"
+            echo "No existing tags found, starting at 0.0.1"
+            NEW_TAG="0.0.1"
           else
             echo "Latest tag: $LATEST_TAG"
             
-            # Extract the patch version (e.g., 62 from 0.0.62-alpha)
-            PATCH=$(echo $LATEST_TAG | sed 's/0\.0\.\([0-9]*\)-.*/\1/')
+            # Extract the patch version (e.g., 62 from 0.0.62)
+            PATCH=$(echo $LATEST_TAG | sed 's/0\.0\.\([0-9]*\)/\1/')
             NEW_PATCH=$((PATCH + 1))
-            NEW_TAG="0.0.${NEW_PATCH}-alpha"
+            NEW_TAG="0.0.${NEW_PATCH}"
           fi
           
           echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT

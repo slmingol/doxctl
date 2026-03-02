@@ -72,7 +72,15 @@ docker_manifests:
     image_templates:
       - "ghcr.io/slmingol/doxctl:{{ .Tag }}-amd64"
       - "ghcr.io/slmingol/doxctl:{{ .Tag }}-arm64"
+  - name_template: "ghcr.io/slmingol/doxctl:latest"
+    image_templates:
+      - "ghcr.io/slmingol/doxctl:{{ .Tag }}-amd64"
+      - "ghcr.io/slmingol/doxctl:{{ .Tag }}-arm64"
   - name_template: "slmingol/doxctl:{{ .Tag }}"
+    image_templates:
+      - "slmingol/doxctl:{{ .Tag }}-amd64"
+      - "slmingol/doxctl:{{ .Tag }}-arm64"
+  - name_template: "slmingol/doxctl:latest"
     image_templates:
       - "slmingol/doxctl:{{ .Tag }}-amd64"
       - "slmingol/doxctl:{{ .Tag }}-arm64"

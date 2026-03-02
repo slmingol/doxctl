@@ -16,10 +16,13 @@ builds:
       - amd64
       - arm64
 archives:
-  - replacements:
-      darwin: Darwin
-      linux: Linux
-      amd64: x86_64
+  - name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
 checksum:
   name_template: 'checksums.txt'
 snapshot:
@@ -88,10 +91,10 @@ docker_manifests:
       - "slmingol/doxctl:{{ .Tag }}-arm64"
 
 brews:
-  - tap:
+  - repository:
       owner: slmingol
       name: homebrew-tap
-    folder: Formula
+    directory: Formula
     homepage: https://www.github.com/slmingol/doxctl
     description: "Software to create fast and easy drum rolls."
     license: "MIT"

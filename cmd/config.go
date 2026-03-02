@@ -221,7 +221,12 @@ domainName: "bandwidthclec.local"
 digProbeServerA: "idm-01a"
 digProbeServerB: "idm-01b"
 
-# sites & svc servers
+#----------------
+# SITES
+#----------------
+# Sites are used by:
+#   - dns: For dig checks across datacenters
+#   - net: For network performance testing (SLO validation)
 sites:
   - lab1
   - rdu1
@@ -233,8 +238,18 @@ sites:
   - fra1
 
 #----------------
-# SVRS
+# SERVICES
 #----------------
+# Well-known services used by:
+#   - svrs: Server reachability checks (ping-based)
+#   - svcs: Service health checks (HTTP/HTTPS endpoint checks)
+# 
+# For svcs command, health endpoints are checked at:
+#   https://<server>:6443/healthz (OpenShift API pattern)
+# 
+# Use brace expansion for multiple servers:
+#   {a,b,c} expands to: a, b, c
+#   {lab1,rdu1} expands to: lab1, rdu1
 wellKnownSvcs:
   - 
     svc: openshift
@@ -251,13 +266,16 @@ wellKnownSvcs:
       - idm-01{a,b}.{lab1,rdu1,dfw1,lax2,jfk1}.bandwidthclec.local
       - idm-01{a,b}.{lhr1,fra1}.bwnet.us
 
-# timeout is in milliseconds (ms)
+#----------------
+# TIMEOUTS & THRESHOLDS
+#----------------
+# Ping timeout in milliseconds (used by: svrs, net)
 pingTimeout: 250
 
-# ping or reach failure threshold
+# Ping or reach failure threshold (used by: svrs)
 failThreshold: 5
 
-# timeout is in milliseconds (ms)
+# DNS lookup timeout in milliseconds (used by: dns, svrs)
 dnsLookupTimeout: 100
 `) + "\n"
 }

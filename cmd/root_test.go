@@ -86,16 +86,16 @@ func TestRootCmd_HasSubcommands(t *testing.T) {
 
 func TestConfig_Struct(t *testing.T) {
 	cfg := &config{
-		MinVpnRoutes:     5,
-		DomNameChk:       "example.com",
-		DomSearchChk:     "search.example.com",
-		DomAddrChk:       "10.0.0.1",
-		DomainName:       "example.com",
-		ServerA:          "8.8.8.8",
-		ServerB:          "8.8.4.4",
-		Sites:            []string{"site1", "site2"},
-		Openshift:        []string{"oc1", "oc2"},
-		FailThreshold:    3,
+		MinVpnRoutes:  5,
+		DomNameChk:    "example.com",
+		DomSearchChk:  "search.example.com",
+		DomAddrChk:    "10.0.0.1",
+		DomainName:    "example.com",
+		ServerA:       "8.8.8.8",
+		ServerB:       "8.8.4.4",
+		Sites:         []string{"site1", "site2"},
+		Openshift:     []string{"oc1", "oc2"},
+		FailThreshold: 3,
 	}
 
 	if cfg.MinVpnRoutes != 5 {
@@ -270,4 +270,3 @@ func TestExecuteFunction(t *testing.T) {
 	os.Stdout = old
 	io.Copy(io.Discard, r)
 }
-

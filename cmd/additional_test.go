@@ -92,7 +92,7 @@ func TestRootCmdUsage(t *testing.T) {
 	os.Stdout = w
 
 	err := rootCmd.Usage()
-	
+
 	w.Close()
 	os.Stdout = old
 	io.Copy(io.Discard, r)
@@ -109,7 +109,7 @@ func TestDnsCmdUsage(t *testing.T) {
 	os.Stdout = w
 
 	err := dnsCmd.Usage()
-	
+
 	w.Close()
 	os.Stdout = old
 	io.Copy(io.Discard, r)
@@ -126,7 +126,7 @@ func TestVpnCmdUsage(t *testing.T) {
 	os.Stdout = w
 
 	err := vpnCmd.Usage()
-	
+
 	w.Close()
 	os.Stdout = old
 	io.Copy(io.Discard, r)
@@ -143,7 +143,7 @@ func TestSvrsCmdUsage(t *testing.T) {
 	os.Stdout = w
 
 	err := svrsCmd.Usage()
-	
+
 	w.Close()
 	os.Stdout = old
 	io.Copy(io.Discard, r)

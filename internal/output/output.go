@@ -36,9 +36,12 @@ import (
 type Format string
 
 const (
+	// TableFormat specifies table formatted output (default)
 	TableFormat Format = "table"
-	JSONFormat  Format = "json"
-	YAMLFormat  Format = "yaml"
+	// JSONFormat specifies JSON formatted output
+	JSONFormat Format = "json"
+	// YAMLFormat specifies YAML formatted output
+	YAMLFormat Format = "yaml"
 )
 
 // Result is a generic interface for check results
@@ -46,16 +49,16 @@ type Result interface{}
 
 // DNSResolverCheckResult represents DNS resolver configuration check results
 type DNSResolverCheckResult struct {
-	Timestamp         time.Time `json:"timestamp" yaml:"timestamp"`
-	DomainNameSet     bool      `json:"domainNameSet" yaml:"domainNameSet"`
-	SearchDomainsSet  bool      `json:"searchDomainsSet" yaml:"searchDomainsSet"`
-	ServerAddressesSet bool     `json:"serverAddressesSet" yaml:"serverAddressesSet"`
+	Timestamp          time.Time `json:"timestamp" yaml:"timestamp"`
+	DomainNameSet      bool      `json:"domainNameSet" yaml:"domainNameSet"`
+	SearchDomainsSet   bool      `json:"searchDomainsSet" yaml:"searchDomainsSet"`
+	ServerAddressesSet bool      `json:"serverAddressesSet" yaml:"serverAddressesSet"`
 }
 
 // DNSResolverPingCheckResult represents DNS resolver connectivity check results
 type DNSResolverPingCheckResult struct {
-	Timestamp     time.Time                    `json:"timestamp" yaml:"timestamp"`
-	Resolvers     []ResolverConnectivityResult `json:"resolvers" yaml:"resolvers"`
+	Timestamp time.Time                    `json:"timestamp" yaml:"timestamp"`
+	Resolvers []ResolverConnectivityResult `json:"resolvers" yaml:"resolvers"`
 }
 
 // ResolverConnectivityResult represents connectivity check for a single resolver
@@ -69,9 +72,9 @@ type ResolverConnectivityResult struct {
 
 // DNSResolverDigCheckResult represents DNS dig check results
 type DNSResolverDigCheckResult struct {
-	Timestamp time.Time          `json:"timestamp" yaml:"timestamp"`
-	Results   []DigCheckResult   `json:"results" yaml:"results"`
-	Summary   map[string]int     `json:"summary" yaml:"summary"`
+	Timestamp time.Time        `json:"timestamp" yaml:"timestamp"`
+	Results   []DigCheckResult `json:"results" yaml:"results"`
+	Summary   map[string]int   `json:"summary" yaml:"summary"`
 }
 
 // DigCheckResult represents a single dig check result
@@ -83,35 +86,35 @@ type DigCheckResult struct {
 
 // VPNInterfaceCheckResult represents VPN interface reachability check results
 type VPNInterfaceCheckResult struct {
-	Timestamp               time.Time `json:"timestamp" yaml:"timestamp"`
-	InterfaceCount          int       `json:"interfaceCount" yaml:"interfaceCount"`
-	Interfaces              []string  `json:"interfaces" yaml:"interfaces"`
-	HasTunInterface         bool      `json:"hasTunInterface" yaml:"hasTunInterface"`
-	TunInterfaces           []string  `json:"tunInterfaces" yaml:"tunInterfaces"`
-	AllInterfacesReachable  bool      `json:"allInterfacesReachable" yaml:"allInterfacesReachable"`
+	Timestamp              time.Time `json:"timestamp" yaml:"timestamp"`
+	InterfaceCount         int       `json:"interfaceCount" yaml:"interfaceCount"`
+	Interfaces             []string  `json:"interfaces" yaml:"interfaces"`
+	HasTunInterface        bool      `json:"hasTunInterface" yaml:"hasTunInterface"`
+	TunInterfaces          []string  `json:"tunInterfaces" yaml:"tunInterfaces"`
+	AllInterfacesReachable bool      `json:"allInterfacesReachable" yaml:"allInterfacesReachable"`
 }
 
 // VPNRoutesCheckResult represents VPN routes check results
 type VPNRoutesCheckResult struct {
-	Timestamp       time.Time `json:"timestamp" yaml:"timestamp"`
-	VPNInterface    string    `json:"vpnInterface" yaml:"vpnInterface"`
-	RouteCount      int       `json:"routeCount" yaml:"routeCount"`
-	MinRoutesRequired int     `json:"minRoutesRequired" yaml:"minRoutesRequired"`
-	HasSufficientRoutes bool  `json:"hasSufficientRoutes" yaml:"hasSufficientRoutes"`
+	Timestamp           time.Time `json:"timestamp" yaml:"timestamp"`
+	VPNInterface        string    `json:"vpnInterface" yaml:"vpnInterface"`
+	RouteCount          int       `json:"routeCount" yaml:"routeCount"`
+	MinRoutesRequired   int       `json:"minRoutesRequired" yaml:"minRoutesRequired"`
+	HasSufficientRoutes bool      `json:"hasSufficientRoutes" yaml:"hasSufficientRoutes"`
 }
 
 // VPNConnectionStatusResult represents VPN connection status check results
 type VPNConnectionStatusResult struct {
-	Timestamp  time.Time `json:"timestamp" yaml:"timestamp"`
-	IsConnected bool     `json:"isConnected" yaml:"isConnected"`
+	Timestamp   time.Time `json:"timestamp" yaml:"timestamp"`
+	IsConnected bool      `json:"isConnected" yaml:"isConnected"`
 }
 
 // ServerReachabilityCheckResult represents server reachability check results
 type ServerReachabilityCheckResult struct {
-	Timestamp    time.Time              `json:"timestamp" yaml:"timestamp"`
-	Servers      []ServerCheckResult    `json:"servers" yaml:"servers"`
-	PingFailures int                    `json:"pingFailures" yaml:"pingFailures"`
-	ReachFailures int                   `json:"reachFailures" yaml:"reachFailures"`
+	Timestamp     time.Time           `json:"timestamp" yaml:"timestamp"`
+	Servers       []ServerCheckResult `json:"servers" yaml:"servers"`
+	PingFailures  int                 `json:"pingFailures" yaml:"pingFailures"`
+	ReachFailures int                 `json:"reachFailures" yaml:"reachFailures"`
 }
 
 // ServerCheckResult represents a single server check result

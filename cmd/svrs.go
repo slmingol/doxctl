@@ -63,7 +63,7 @@ configuration file.
 				fmt.Fprintf(os.Stderr, "Run 'doxctl config init' to create a sample configuration file.\n\n")
 				os.Exit(1)
 			}
-			
+
 			conf = &config{}
 			err := viper.Unmarshal(&conf)
 			if err != nil {
@@ -73,7 +73,7 @@ configuration file.
 				fmt.Fprintf(os.Stderr, "See .doxctl.yaml.example for a sample configuration.\n\n")
 				os.Exit(1)
 			}
-			
+
 			// Set defaults and validate
 			conf.setDefaults()
 			if err := conf.Validate(); err != nil {

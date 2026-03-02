@@ -161,7 +161,7 @@ func setupTestConfig(t *testing.T) {
 func TestScutilResolverIPs(t *testing.T) {
 	// Test the string processing logic that would be used
 	testData := []string{"  10.0.0.1  ", "  10.0.0.2  ", "  "}
-	
+
 	var cleaned []string
 	for _, ip := range testData {
 		trimmed := string(bytes.TrimSpace([]byte(ip)))
@@ -234,7 +234,7 @@ func TestConfigUnmarshal(t *testing.T) {
 func TestRootCmd_CommandTree(t *testing.T) {
 	// Verify all subcommands are properly registered
 	commands := rootCmd.Commands()
-	
+
 	expectedCommands := map[string]bool{
 		"dns":  false,
 		"vpn":  false,
@@ -259,7 +259,7 @@ func TestRootCmd_PersistentFlags(t *testing.T) {
 	// Test that persistent flags are available to all commands
 	for _, cmd := range rootCmd.Commands() {
 		inheritedFlags := cmd.InheritedFlags()
-		
+
 		configFlag := inheritedFlags.Lookup("config")
 		if configFlag == nil {
 			t.Errorf("Command %s should inherit config flag", cmd.Name())

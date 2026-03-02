@@ -216,10 +216,10 @@ func TestDnsExecute_DigFlag(t *testing.T) {
 func TestScutilResolverIPs_MockData(t *testing.T) {
 	// This function relies on scutil which is macOS-specific
 	// We'll test the logic with mock data instead
-	
+
 	// Test data processing logic
 	lines := []string{"  10.0.0.1  ", "  10.0.0.2  "}
-	
+
 	// Simulate the trimming logic from scutilResolverIPs
 	for i := 0; i < len(lines); i++ {
 		// The function trims spaces, verify we can do the same
@@ -233,10 +233,10 @@ func TestScutilResolverIPs_MockData(t *testing.T) {
 func TestScutilVPNInterface_MockData(t *testing.T) {
 	// This function relies on scutil which is macOS-specific
 	// We'll test the logic with mock data instead
-	
+
 	testOutput := "utun0\n"
 	trimmed := string(bytes.TrimRight([]byte(testOutput), "\n"))
-	
+
 	if trimmed != "utun0" {
 		t.Errorf("Expected 'utun0', got: %s", trimmed)
 	}
@@ -247,7 +247,7 @@ func TestScutilVPNInterface_MockData(t *testing.T) {
 	if len(result) == 0 {
 		result = "N/A"
 	}
-	
+
 	if result != "N/A" {
 		t.Errorf("Expected 'N/A' for empty output, got: %s", result)
 	}

@@ -1,0 +1,64 @@
+name: auto-version
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.github/**'
+
+jobs:
+  auto-tag:
+    name: Auto Version Tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          # Get the latest tag matching our pattern
+          LATEST_TAG=$(git tag --list '0.0.*-alpha' --sort=-v:refname | head -n1)
+          
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No existing tags found, starting at 0.0.1-alpha"
+            NEW_TAG="0.0.1-alpha"
+          else
+            echo "Latest tag: $LATEST_TAG"
+            
+            # Extract the patch version (e.g., 62 from 0.0.62-alpha)
+            PATCH=$(echo $LATEST_TAG | sed 's/0\.0\.\([0-9]*\)-.*/\1/')
+            NEW_PATCH=$((PATCH + 1))
+            NEW_TAG="0.0.${NEW_PATCH}-alpha"
+          fi
+          
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "Next version: $NEW_TAG"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "${{ steps.get_tag.outputs.new_tag }}" >/dev/null 2>&1; then
+            echo "Tag ${{ steps.get_tag.outputs.new_tag }} already exists, skipping"
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create and push tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.get_tag.outputs.new_tag }}
+          git push origin ${{ steps.get_tag.outputs.new_tag }}
+          echo "✅ Created and pushed tag: ${{ steps.get_tag.outputs.new_tag }}"

@@ -177,6 +177,14 @@ domAddrChk: 192.168.1.1
 domainName: example.com
 digProbeServerA: 1.1.1.1
 digProbeServerB: 8.8.8.8
+sites:
+  - site1
+  - site2
+wellKnownSvcs:
+  - svc: test-service
+    svrs:
+      - test-server1
+      - test-server2
 failThreshold: 5
 `
 	if _, err := tmpFile.WriteString(configContent); err != nil {

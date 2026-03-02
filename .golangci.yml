@@ -22,6 +22,8 @@ linters-settings:
       - (io.ReadCloser).Close
       - (io.WriteCloser).Close
       - (*os.File).Close
+      - (*cobra.Command).Usage
+      - doxctl/internal/output.Print
   govet:
     enable-all: true
   revive:

@@ -106,8 +106,6 @@ Usage:
 Available Commands:
   dns         Run diagnostics related to DNS servers (aka. resolvers) configurations
   help        Help about any command
-  net         TBD
-  svcs        TBD
   svrs        Run diagnostics verifying connectivity to well known servers thru a VPN connection
   vpn         Run diagnostics related to VPN connections, network interfaces & configurations
 

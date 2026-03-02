@@ -12,6 +12,9 @@ doxctl
 # Output of the go coverage tool
 *.out
 coverage.txt
+coverage.out
+cmd_cov*.txt
+cmd_coverage.txt
 
 # Go workspace file
 go.work

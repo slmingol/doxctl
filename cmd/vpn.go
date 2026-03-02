@@ -52,11 +52,35 @@ doxctl's 'vpn' subcommand can help triage VPN related configuration issues,
 		viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 		viper.AutomaticEnv()
 
-		// Populate as much info as we can from viper
-		err := viper.Unmarshal(&conf)
-		if err != nil {
-			fmt.Printf("could not retrieve supplied project settings: %s\n", err)
-			os.Exit(1)
+		// Ensure config is loaded
+		if conf == nil {
+			// Try to read config if not already loaded
+			if err := viper.ReadInConfig(); err != nil {
+				fmt.Fprintf(os.Stderr, "\nError: Configuration file not found\n")
+				fmt.Fprintf(os.Stderr, "Details: %v\n\n", err)
+				fmt.Fprintf(os.Stderr, "Run 'doxctl config init' to create a sample configuration file.\n\n")
+				os.Exit(1)
+			}
+			
+			conf = &config{}
+			err := viper.Unmarshal(&conf)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "\nError: Failed to parse configuration file\n")
+				fmt.Fprintf(os.Stderr, "Details: %v\n\n", err)
+				fmt.Fprintf(os.Stderr, "Please check your configuration file for syntax errors.\n")
+				fmt.Fprintf(os.Stderr, "See .doxctl.yaml.example for a sample configuration.\n\n")
+				os.Exit(1)
+			}
+			
+			// Set defaults and validate
+			conf.setDefaults()
+			if err := conf.Validate(); err != nil {
+				fmt.Fprintf(os.Stderr, "\nError: Invalid configuration\n")
+				fmt.Fprintf(os.Stderr, "Details: %v\n\n", err)
+				fmt.Fprintf(os.Stderr, "Please fix the configuration errors above.\n")
+				fmt.Fprintf(os.Stderr, "See .doxctl.yaml.example for a sample configuration.\n\n")
+				os.Exit(1)
+			}
 		}
 	},
 	Run: vpnExecute,

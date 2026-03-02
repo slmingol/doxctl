@@ -27,7 +27,7 @@ release:
 commit:
 	make tag ; git add . ; git commit -m "Makefile commit" ; git push #; make tag
 test:
-	go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+	go test -coverprofile=coverage.txt -covermode=atomic ./...
 
 lint:
 	@which golangci-lint > /dev/null || (echo "golangci-lint not installed. Install from https://golangci-lint.run/usage/install/" && exit 1)

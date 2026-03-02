@@ -1,12 +1,44 @@
-version: 2
-run:
-  timeout: 5m
-  
 linters:
   enable:
-    - govet
-    - staticcheck
-    - gosec
-    - errcheck
-    - ineffassign
-    - unused
+    - errcheck      # Check for unchecked errors
+    - gosimple      # Simplify code
+    - govet         # Vet examines Go source code
+    - ineffassign   # Detect ineffectual assignments
+    - staticcheck   # Go static analysis
+    - unused        # Check for unused code
+    - gofmt         # Format code
+    - goimports     # Manage imports
+    - misspell      # Spell checker
+    - revive        # Fast, configurable linter
+    - gosec         # Security issues
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  govet:
+    enable-all: true
+  revive:
+    rules:
+      - name: exported
+        disabled: false
+      - name: var-naming
+        disabled: false
+      - name: package-comments
+        disabled: true  # Not enforcing package comments for now
+
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+  go: '1.23'  # golangci-lint doesn't support 1.25 yet
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  exclude-rules:
+    # Ignore deprecation warnings for go-ping/ping dependency until it's replaced
+    - linters:
+        - staticcheck
+      text: "github.com/go-ping/ping.*is deprecated"

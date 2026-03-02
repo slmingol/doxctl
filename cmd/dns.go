@@ -25,7 +25,6 @@ package cmd
 
 import (
 	"container/list"
-	"doxctl/internal/cmdhelp"
 	"fmt"
 	"net"
 	"os"
@@ -103,32 +102,8 @@ func dnsResolverChk() {
 		domainName, searchDomains, serverAddresses string
 	}
 
-	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
-
-	cmdExe1 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep1 := `grep -q 'DomainName.*` + conf.DomNameChk + `' && echo "DomainName set" || echo "DomainName unset"`
-	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
-
-	/*if verboseChk {
-		log.Info("log blah", "dnsresolvercmd", cmdBase+"|"+cmdGrep1)
-	}*/
-
-	cmdExe2 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep2 := `grep -A1 'SearchDomains' | grep -qE '` + conf.DomSearchChk + `' && echo "SearchDomains set" || echo "SearchDomains unset"`
-	exeGrep2 := exec.Command("bash", "-c", cmdGrep2)
-	output2, _, _ := cmdhelp.Pipeline(cmdExe2, exeGrep2)
-
-	cmdExe3 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep3 := `grep -A3 'ServerAddresses' | grep -qE '` + conf.DomAddrChk + `' && echo "ServerAddresses set" || echo "ServerAddresses unset"`
-	exeGrep3 := exec.Command("bash", "-c", cmdGrep3)
-	output3, _, _ := cmdhelp.Pipeline(cmdExe3, exeGrep3)
-
 	var dns dnsChks
-
-	dns.domainName = strings.Fields(string(output1))[1]
-	dns.searchDomains = strings.Fields(string(output2))[1]
-	dns.serverAddresses = strings.Fields(string(output3))[1]
+	dns.domainName, dns.searchDomains, dns.serverAddresses = getDNSConfig()
 
 	fmt.Println("")
 
@@ -160,7 +135,7 @@ func dnsResolverPingChk() {
 
 	var resChk resolverChk
 	resChks := list.New()
-	resolverIPs := scutilResolverIPs()
+	resolverIPs := getResolverIPs()
 
 	for _, ip := range resolverIPs {
 		var pingReachable, tcpReachable, udpReachable bool
@@ -191,7 +166,7 @@ func dnsResolverPingChk() {
 					netInterface = strings.Split(string(out), " ")[4]
 				}
 			case "darwin":
-				netInterface = scutilVPNInterface()
+				netInterface = getVPNInterface()
 			}
 
 			target := fmt.Sprintf("%s:%d", ip, 53)
@@ -260,7 +235,7 @@ func dnsResolverDigChk() {
 	t.SetStyle(table.StyleLight)
 	t.AppendHeader(table.Row{"Hostname to 'dig'", "Resolver IP", "Is resolvable?"}, rowConfigAutoMerge)
 
-	resolverIPs := scutilResolverIPs()
+	resolverIPs := getResolverIPs()
 
 	var dig dnsutil.Dig
 	resolverCnt := make(map[string]int)
@@ -335,37 +310,4 @@ func dnsResolverDigChk() {
 	}
 
 	fmt.Printf("\n\n\n")
-}
-
-// scutil
-func scutilResolverIPs() []string {
-	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
-	cmdExe1 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep1 := `grep -A3 'ServerAddresses' | grep -E '` + conf.DomAddrChk + `' | cut -d':' -f2`
-	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
-
-	resolverIPs := strings.Split(strings.TrimRight(string(output1), "\n"), "\n")
-
-	for i := 0; i < len(resolverIPs); i++ {
-		resolverIPs[i] = strings.TrimSpace(resolverIPs[i])
-	}
-
-	return resolverIPs
-}
-
-func scutilVPNInterface() string {
-	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/IPv4\nd.show\n" | scutil`
-	cmdExe1 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep1 := `grep 'InterfaceName' | awk '{print $3}'`
-	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
-
-	vpnInterface := strings.TrimRight(string(output1), "\n")
-
-	if len(vpnInterface) == 0 {
-		vpnInterface = "N/A"
-	}
-
-	return vpnInterface
 }

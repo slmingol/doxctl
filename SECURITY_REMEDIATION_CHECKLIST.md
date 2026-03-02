@@ -72,10 +72,10 @@ Use this checklist to track progress on fixing identified security vulnerabiliti
    - Review migration guide
    - Ensure backward compatibility if needed
 
-3. **Go Version:** Project uses Go 1.16
-   - Some newer dependency versions may require newer Go
-   - Consider updating Go version as well
-   - Check compatibility matrix
+3. **Go Version:** Project uses Go 1.25.0
+   - Modern Go version with latest security patches
+   - All newer dependency versions are compatible
+   - No Go version upgrade needed
 
 ### References
 

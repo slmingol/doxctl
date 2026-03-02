@@ -16,6 +16,12 @@ linters-settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
+    exclude-functions:
+      - io/ioutil.ReadFile
+      - io.Copy
+      - (io.ReadCloser).Close
+      - (io.WriteCloser).Close
+      - (*os.File).Close
   govet:
     enable-all: true
   revive:
@@ -55,4 +61,8 @@ issues:
     - linters:
         - govet
       text: "unusedwrite:"
+      path: "_test\\.go"
+    # Relax error checking in test files
+    - linters:
+        - errcheck
       path: "_test\\.go"

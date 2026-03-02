@@ -26,6 +26,7 @@ package cmd
 import (
 	"context"
 	"net"
+	"os"
 	"os/exec"
 	"time"
 
@@ -99,8 +100,7 @@ func (e *realCommandExecutor) Execute(name string, args ...string) ([]byte, erro
 type realFileReader struct{}
 
 func (r *realFileReader) ReadFile(filename string) ([]byte, error) {
-	// We'll implement this when we need it
-	return nil, nil
+	return os.ReadFile(filename)
 }
 
 // realBraceExpander wraps the gobrex package

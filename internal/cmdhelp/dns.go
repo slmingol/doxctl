@@ -37,7 +37,11 @@ func Pipeline(cmds ...*exec.Cmd) (pipeLineOutput, collectedStandardError []byte,
 
 	// Collect the output from the command(s)
 	var output bytes.Buffer
-	var stderr bytes.Buffer
+	// Use separate stderr buffers for each command to avoid race conditions
+	stderrBuffers := make([]*bytes.Buffer, len(cmds))
+	for i := range stderrBuffers {
+		stderrBuffers[i] = &bytes.Buffer{}
+	}
 
 	last := len(cmds) - 1
 	for i, cmd := range cmds[:last] {
@@ -46,27 +50,44 @@ func Pipeline(cmds ...*exec.Cmd) (pipeLineOutput, collectedStandardError []byte,
 		if cmds[i+1].Stdin, err = cmd.StdoutPipe(); err != nil {
 			return nil, nil, err
 		}
-		// Connect each command's stderr to a buffer
-		cmd.Stderr = &stderr
+		// Connect each command's stderr to its own buffer
+		cmd.Stderr = stderrBuffers[i]
 	}
 
 	// Connect the output and error for the last command
-	cmds[last].Stdout, cmds[last].Stderr = &output, &stderr
+	cmds[last].Stdout = &output
+	cmds[last].Stderr = stderrBuffers[last]
 
 	// Start each command
 	for _, cmd := range cmds {
 		if err := cmd.Start(); err != nil {
-			return output.Bytes(), stderr.Bytes(), err
+			// Combine all stderr buffers collected so far
+			var combinedStderr bytes.Buffer
+			for _, buf := range stderrBuffers {
+				combinedStderr.Write(buf.Bytes())
+			}
+			return output.Bytes(), combinedStderr.Bytes(), err
 		}
 	}
 
 	// Wait for each command to complete
 	for _, cmd := range cmds {
 		if err := cmd.Wait(); err != nil {
-			return output.Bytes(), stderr.Bytes(), err
+			// Combine all stderr buffers
+			var combinedStderr bytes.Buffer
+			for _, buf := range stderrBuffers {
+				combinedStderr.Write(buf.Bytes())
+			}
+			return output.Bytes(), combinedStderr.Bytes(), err
 		}
 	}
 
+	// Combine all stderr buffers
+	var combinedStderr bytes.Buffer
+	for _, buf := range stderrBuffers {
+		combinedStderr.Write(buf.Bytes())
+	}
+
 	// Return the pipeline output and the collected standard error
-	return output.Bytes(), stderr.Bytes(), nil
+	return output.Bytes(), combinedStderr.Bytes(), nil
 }

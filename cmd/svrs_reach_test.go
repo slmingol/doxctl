@@ -90,15 +90,6 @@ func (m *mockBraceExpander) Expand(pattern string) []string {
 
 // ========== Test Helpers ==========
 
-func setupTestConfigReach() {
-	conf = &config{
-		DNSLookupTimeout: 1000, // 1 second
-		PingTimeout:      2000, // 2 seconds
-		FailThreshold:    3,
-		Svcs:             []svc{},
-	}
-}
-
 func setupTestConfigWithServers() {
 	conf = &config{
 		DNSLookupTimeout: 1000,

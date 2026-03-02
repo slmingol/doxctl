@@ -163,6 +163,11 @@ func TestDNSResolverPingChkWithDeps_Success(t *testing.T) {
 					return []byte("       10.20.1.1\n"), nil
 				}
 			}
+			// Linux: ip route get command
+			if name == "ip" && len(args) >= 3 && args[0] == "route" && args[1] == "get" {
+				// Mock output: "10.20.1.1 via 192.168.1.1 dev eth0 src 192.168.1.100"
+				return []byte("10.20.1.1 via 192.168.1.1 dev eth0 src 192.168.1.100\n"), nil
+			}
 			return []byte(""), nil
 		},
 	}

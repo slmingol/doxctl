@@ -85,7 +85,39 @@ go tool cover -html=coverage.txt
 - Follow the [Effective Go](https://golang.org/doc/effective_go.html) guidelines
 - Use `gofmt` to format your code (this is enforced)
 - Run `go vet` to catch common mistakes
+- Run `make lint` to run golangci-lint before submitting PRs
 - Use meaningful variable and function names
+
+### Linting
+
+The project uses [golangci-lint](https://golangci-lint.run/) for code quality enforcement. 
+
+**Installation:**
+```bash
+# macOS
+brew install golangci-lint
+
+# Linux/WSL
+curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin
+```
+
+**Running locally:**
+```bash
+make lint
+```
+
+The linting configuration is in `.golangci.yml` and includes checks for:
+- Unchecked errors (errcheck)
+- Code simplification (gosimple)
+- Static analysis (staticcheck, govet)
+- Ineffectual assignments (ineffassign)
+- Unused code (unused)
+- Code formatting (gofmt, goimports)
+- Spelling errors (misspell)
+- Code review issues (revive)
+- Security vulnerabilities (gosec)
+
+**Note:** Linting is automatically run in CI/CD on all pull requests.
 
 ### Code Organization
 
@@ -122,7 +154,12 @@ go tool cover -html=coverage.txt
    make test
    ```
 
-4. **Commit Your Changes**
+4. **Lint Your Code**
+   ```bash
+   make lint
+   ```
+
+5. **Commit Your Changes**
    - Follow the commit message conventions (see below)
    - Keep commits atomic and focused
 

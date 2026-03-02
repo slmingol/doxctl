@@ -150,7 +150,7 @@ func TestDNSResolverPingChkWithDeps_Success(t *testing.T) {
 		execFunc: func(name string, args ...string) ([]byte, error) {
 			if name == "bash" && len(args) >= 2 && args[0] == "-c" {
 				cmd := args[1]
-				// Scutil call
+				// Scutil call (macOS)
 				if contains(cmd, "scutil") && !contains(cmd, "echo") {
 					return []byte(`<dictionary> {
   ServerAddresses : <array> {
@@ -158,7 +158,7 @@ func TestDNSResolverPingChkWithDeps_Success(t *testing.T) {
   }
 }`), nil
 				}
-				// Grep for server addresses
+				// Grep for server addresses (macOS)
 				if contains(cmd, "grep") && contains(cmd, "ServerAddresses") {
 					return []byte("       10.20.1.1\n"), nil
 				}
@@ -168,7 +168,9 @@ func TestDNSResolverPingChkWithDeps_Success(t *testing.T) {
 	}
 
 	mockFile := &mockFileReader{
-		files: map[string][]byte{},
+		files: map[string][]byte{
+			"/etc/resolv.conf": []byte("nameserver 10.20.1.1\n"),
+		},
 	}
 
 	pingedHosts := make(map[string]bool)

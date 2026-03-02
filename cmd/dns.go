@@ -33,6 +33,8 @@ import (
 	"strings"
 	"time"
 
+	"doxctl/internal/output"
+
 	"github.com/go-ping/ping"
 	"github.com/gookit/color"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -48,7 +50,6 @@ var (
 )
 
 const dnsPort = 53
-
 
 var dnsCmd = &cobra.Command{
 	Use:   "dns",
@@ -70,7 +71,7 @@ general access to DNS resolvers and name resolution against DNS resolvers.`,
 				fmt.Fprintf(os.Stderr, "Run 'doxctl config init' to create a sample configuration file.\n\n")
 				os.Exit(1)
 			}
-			
+
 			conf = &config{}
 			err := viper.Unmarshal(&conf)
 			if err != nil {
@@ -80,7 +81,7 @@ general access to DNS resolvers and name resolution against DNS resolvers.`,
 				fmt.Fprintf(os.Stderr, "See .doxctl.yaml.example for a sample configuration.\n\n")
 				os.Exit(1)
 			}
-			
+
 			// Set defaults and validate
 			conf.setDefaults()
 			if err := conf.Validate(); err != nil {

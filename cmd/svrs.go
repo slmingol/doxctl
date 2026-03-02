@@ -27,15 +27,12 @@ import (
 	"context"
 	"doxctl/internal/output"
 	"fmt"
-	"net"
 	"os"
 	"strings"
 	"time"
 
-	"github.com/go-ping/ping"
 	"github.com/gookit/color"
 	"github.com/jedib0t/go-pretty/v6/table"
-	gobrex "github.com/kujtimiihoxha/go-brace-expansion"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -112,6 +109,11 @@ func svrsExecute(cmd *cobra.Command, args []string) {
 
 // Check if well known servers are pingable & reachable
 func svrsReachChk() {
+	svrsReachChkWithDeps(NewDNSResolver(), NewBraceExpander())
+}
+
+// svrsReachChkWithDeps allows dependency injection for testing
+func svrsReachChkWithDeps(resolver DNSResolver, expander BraceExpander) {
 	if outputFormat == "table" {
 		color.Info.Tips("Attempting to ping all well known servers, this may take a few...\n")
 	}
@@ -135,15 +137,14 @@ func svrsReachChk() {
 		}
 
 		for _, j := range i.Svrs {
-			permutations := gobrex.Expand(j)
+			permutations := expander.Expand(j)
 
 			for _, permutation := range permutations {
 
 				// Attempt to resolve hostname prior to ping
 				ctx, cancel := context.WithTimeout(context.Background(), (conf.DNSLookupTimeout * time.Millisecond))
 				defer cancel() // important to avoid a resource leak
-				var r net.Resolver
-				ip, err := r.LookupHost(ctx, permutation)
+				ip, err := resolver.LookupHost(ctx, permutation)
 
 				if err != nil || len(ip) == 0 {
 					serverResults = append(serverResults, output.ServerCheckResult{
@@ -156,7 +157,7 @@ func svrsReachChk() {
 				}
 
 				// Attempt to ping each host, any that fail keep a tally
-				pinger, err := ping.NewPinger(permutation)
+				pinger, err := NewPinger(permutation)
 				if err != nil {
 					serverResults = append(serverResults, output.ServerCheckResult{
 						Host:        permutation,
@@ -168,13 +169,9 @@ func svrsReachChk() {
 					continue
 				}
 
-				pinger.Timeout = conf.PingTimeout * time.Millisecond
-				pOut := make(chan *ping.Statistics)
-				go func(p *ping.Pinger, s chan *ping.Statistics) {
-					_ = p.Run()
-					s <- p.Statistics()
-				}(pinger, pOut)
-				stats := <-pOut
+				pinger.SetTimeout(conf.PingTimeout * time.Millisecond)
+				_ = pinger.Run()
+				stats := pinger.Statistics()
 				pingPerf := fmt.Sprintf("rnd-trp avg = %v", stats.AvgRtt)
 
 				// Tally fails due to failed/missing responses

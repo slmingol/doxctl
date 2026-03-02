@@ -193,7 +193,9 @@ func TestDnsResolverPingChkCoverage(t *testing.T) {
 	dnsResolverPingChk()
 }
 
-// TestScutilVPNInterfaceCoverage tests scutilVPNInterface
+// TestScutilVPNInterfaceCoverage tests scutilVPNInterface  
+// DISABLED: scutilVPNInterface function no longer exists
+/*
 func TestScutilVPNInterfaceCoverage(t *testing.T) {
 	if runtime.GOOS != "darwin" {
 		t.Skip("Skipping macOS-specific test")
@@ -208,6 +210,7 @@ func TestScutilVPNInterfaceCoverage(t *testing.T) {
 	iface := scutilVPNInterface()
 	t.Logf("VPN interface: %s", iface)
 }
+*/
 
 // TestIfReachChkCoverage tests ifReachChk
 func TestIfReachChkCoverage(t *testing.T) {

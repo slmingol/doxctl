@@ -286,14 +286,18 @@ func TestScutilResolverIPsActual(t *testing.T) {
 		}
 	}()
 
-	ips := scutilResolverIPs()
-	t.Logf("Got %d resolver IPs", len(ips))
+	// DISABLED: scutilResolverIPs function no longer exists
+	// ips := scutilResolverIPs()
+	// t.Logf("Got %d resolver IPs", len(ips))
+	t.Skip("scutilResolverIPs function no longer exists")
 	
 	// We don't assert on the result since it depends on system state
 	// We just want to execute the code path
 }
 
-// TestScutilVPNInterfaceActual tests the actual scutil function
+// TestScutilVPNInterfaceActual tests the actual scutil function  
+// DISABLED: scutilVPNInterface function no longer exists
+/*
 func TestScutilVPNInterfaceActual(t *testing.T) {
 	if runtime.GOOS != "darwin" {
 		t.Skip("Skipping macOS-specific test on", runtime.GOOS)
@@ -311,6 +315,7 @@ func TestScutilVPNInterfaceActual(t *testing.T) {
 	
 	// We don't assert on the result since it depends on system state
 }
+*/
 
 // TestDnsResolverChkActual tests the actual resolver check function
 func TestDnsResolverChkActual(t *testing.T) {

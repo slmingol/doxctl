@@ -1,5 +1,7 @@
 # REF: https://github.com/goreleaser/example/blob/master/.goreleaser.yaml
 
+version: 2
+
 project_name: doxctl
 before:
   hooks:

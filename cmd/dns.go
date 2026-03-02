@@ -167,13 +167,17 @@ func dnsResolverPingChk() {
 		var netInterface string
 
 		pinger, err := ping.NewPinger(ip)
-		pinger.Count = 1
-		pinger.Timeout = 30 * time.Second
-		err = pinger.Run()
 		if err != nil {
 			pingReachable = false
 		} else {
-			pingReachable = true
+			pinger.Count = 1
+			pinger.Timeout = 30 * time.Second
+			err = pinger.Run()
+			if err != nil {
+				pingReachable = false
+			} else {
+				pingReachable = true
+			}
 		}
 
 		resChk = resolverChk{resolverIP: ip, pingReachable: pingReachable}
@@ -194,7 +198,7 @@ func dnsResolverPingChk() {
 				netInterface = scutilVPNInterface()
 			}
 
-			target := fmt.Sprintf("%s:%d", ip, 53)
+			target := net.JoinHostPort(ip, "53")
 
 			// TCP check
 			_, errTCP := net.DialTimeout("tcp", target, 5*time.Second)

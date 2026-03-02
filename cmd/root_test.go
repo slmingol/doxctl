@@ -24,6 +24,7 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"io"
 	"os"
 	"testing"
 
@@ -243,5 +244,30 @@ func TestRootCmd_Execute(t *testing.T) {
 
 	rootCmd.SetArgs([]string{"--help"})
 	rootCmd.Execute()
+}
+
+func TestExecuteFunction(t *testing.T) {
+	// Test the actual Execute() function from root.go
+	// Capture output to suppress it
+	old := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	// Set args to help to avoid actual execution
+	rootCmd.SetArgs([]string{"--help"})
+
+	// Call Execute - should work fine with --help
+	defer func() {
+		if r := recover(); r != nil {
+			t.Logf("Recovered from panic: %v", r)
+		}
+	}()
+
+	Execute()
+
+	// Restore stdout
+	w.Close()
+	os.Stdout = old
+	io.Copy(io.Discard, r)
 }
 

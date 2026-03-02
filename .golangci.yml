@@ -75,3 +75,7 @@ issues:
         - gosec
       text: "G104:"
       path: "_test\\.go"
+    # Ignore G104 for output.Print - output formatting errors are not critical
+    - linters:
+        - gosec
+      text: "G104:.*output\\.Print"

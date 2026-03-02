@@ -56,6 +56,49 @@ type config struct {
 	FailThreshold    int           `mapstructure:"failThreshold"`
 }
 
+// Validate checks if the configuration is valid
+func (c *config) Validate() error {
+	if c.DomainName == "" {
+		return fmt.Errorf("domainName is required in configuration file")
+	}
+	
+	if len(c.Sites) == 0 {
+		return fmt.Errorf("at least one site must be defined in the 'sites' configuration")
+	}
+	
+	if len(c.Svcs) == 0 {
+		return fmt.Errorf("at least one service must be defined in 'wellKnownSvcs' configuration")
+	}
+	
+	// Validate each service has required fields
+	for i, svc := range c.Svcs {
+		if svc.Svc == "" {
+			return fmt.Errorf("wellKnownSvcs[%d]: 'svc' field is required", i)
+		}
+		if len(svc.Svrs) == 0 {
+			return fmt.Errorf("wellKnownSvcs[%d] (%s): at least one server must be defined in 'svrs'", i, svc.Svc)
+		}
+	}
+	
+	return nil
+}
+
+// setDefaults sets default values for optional configuration fields
+func (c *config) setDefaults() {
+	if c.PingTimeout == 0 {
+		c.PingTimeout = 250 * time.Millisecond
+	}
+	if c.DNSLookupTimeout == 0 {
+		c.DNSLookupTimeout = 100 * time.Millisecond
+	}
+	if c.FailThreshold == 0 {
+		c.FailThreshold = 5
+	}
+	if c.MinVpnRoutes == 0 {
+		c.MinVpnRoutes = 5
+	}
+}
+
 var (
 	cfgFile            string
 	verboseChk, allChk bool
@@ -111,6 +154,7 @@ func initConfig() {
 
 		// Search config in home directory with name ".doxctl" (without extension).
 		viper.AddConfigPath(home)
+		viper.AddConfigPath(".")
 		viper.SetConfigName(".doxctl")
 	}
 
@@ -121,10 +165,30 @@ func initConfig() {
 		fmt.Println("")
 		color.Note.Tips("Using config file: " + viper.ConfigFileUsed() + "\n")
 		//fmt.Fprintln(os.Stderr, "\n**NOTE:** Using config file:", viper.ConfigFileUsed(), "\n")
+	} else {
+		// Config file is optional for some commands (like 'config init')
+		// Commands that require config will validate in their PreRun
+		return
 	}
 
-	conf := &config{}
+	conf = &config{}
 	if err := viper.Unmarshal(conf); err != nil {
-		fmt.Printf("unable to decode into config struct, %v", err)
+		fmt.Fprintf(os.Stderr, "\nError: Failed to parse configuration file '%s'\n", viper.ConfigFileUsed())
+		fmt.Fprintf(os.Stderr, "Details: %v\n\n", err)
+		fmt.Fprintf(os.Stderr, "Please check your configuration file for syntax errors.\n")
+		fmt.Fprintf(os.Stderr, "See .doxctl.yaml.example for a sample configuration.\n\n")
+		os.Exit(1)
+	}
+
+	// Set default values
+	conf.setDefaults()
+
+	// Validate configuration
+	if err := conf.Validate(); err != nil {
+		fmt.Fprintf(os.Stderr, "\nError: Invalid configuration in '%s'\n", viper.ConfigFileUsed())
+		fmt.Fprintf(os.Stderr, "Details: %v\n\n", err)
+		fmt.Fprintf(os.Stderr, "Please fix the configuration errors above.\n")
+		fmt.Fprintf(os.Stderr, "See .doxctl.yaml.example for a sample configuration.\n\n")
+		os.Exit(1)
 	}
 }

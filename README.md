@@ -2,7 +2,7 @@
   <img src="https://github.com/slmingol/doxctl/blob/main/imgs/whats_up_dox__banner.png?raw=true" alt="dox logo">
 </p>
 
-[![Release Version](https://img.shields.io/github/v/release/slmingol/doxctl?include_prereleases&label=version&color=blue)](https://github.com/slmingol/doxctl/releases/latest)
+[![Release Version](https://img.shields.io/github/v/release/slmingol/doxctl?label=version&color=blue)](https://github.com/slmingol/doxctl/releases/latest)
 [![Build & Release](https://github.com/slmingol/doxctl/actions/workflows/build-release.yml/badge.svg?event=push)](https://github.com/slmingol/doxctl/actions/workflows/build-release.yml)
 [![CodeQL](https://github.com/slmingol/doxctl/actions/workflows/codeql.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/codeql.yml)
 [![Lint](https://github.com/slmingol/doxctl/actions/workflows/lint.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/lint.yml)
@@ -48,20 +48,18 @@ $ brew install slmingol/tap/doxctl
 ```
 $ brew install slmingol/tap/doxctl
 ==> Installing doxctl from slmingol/tap
-==> Downloading https://ghcr.io/v2/homebrew/core/go/manifests/1.16.4
+==> Downloading https://ghcr.io/v2/homebrew/core/go/manifests/1.25.0
 ######################################################################## 100.0%
-==> Downloading https://ghcr.io/v2/homebrew/core/go/blobs/sha256:8aa23b394e05aaef495604670401f9308c01c3c30a1857077493a80d1719e089
-==> Downloading from https://pkg-containers.githubusercontent.com/ghcr1/blobs/sha256:8aa23b394e05aaef495604670401f9308c01c3c30a1857077493a80d1719e089?se=202
+==> Downloading https://ghcr.io/v2/homebrew/core/go/blobs/sha256:...
 ######################################################################## 100.0%
-==> Downloading https://github.com/slmingol/doxctl/releases/download/0.0.27-alpha/doxctl_0.0.27-alpha_Darwin_x86_64.tar.gz
-==> Downloading from https://github-releases.githubusercontent.com/367779289/09fcfe00-c133-11eb-9f76-3f053be7f72c?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Cre
+==> Downloading https://github.com/slmingol/doxctl/releases/download/1.0.1/doxctl_1.0.1_Darwin_x86_64.tar.gz
 ######################################################################## 100.0%
 ==> Installing dependencies for slmingol/tap/doxctl: go
 ==> Installing slmingol/tap/doxctl dependency: go
-==> Pouring go--1.16.4.catalina.bottle.tar.gz
-🍺  /usr/local/Cellar/go/1.16.4: 9,956 files, 503.6MB
+==> Pouring go--1.25.0.arm64_sequoia.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/go/1.25.0: 9,956 files, 503.6MB
 ==> Installing slmingol/tap/doxctl
-🍺  /usr/local/Cellar/doxctl/0.0.27-alpha: 5 files, 9.1MB, built in 4 seconds
+🍺  /opt/homebrew/Cellar/doxctl/1.0.1: 5 files, 9.1MB, built in 4 seconds
 ```
 
 #### search
@@ -77,8 +75,6 @@ $ brew update
 Updated 2 taps (homebrew/cask and slmingol/tap).
 ==> Updated Formulae
 slmingol/tap/doxctl ✔
-==> Deleted Casks
-appstudio                              filedrop                               hex                                    rss
 
 You have 96 outdated formulae and 10 outdated casks installed.
 You can upgrade them with brew upgrade
@@ -87,20 +83,19 @@ or list them with brew outdated.
 
 $ brew upgrade doxctl
 ==> Upgrading 1 outdated package:
-slmingol/tap/doxctl 0.0.27-alpha -> 0.0.28-alpha
-==> Upgrading slmingol/tap/doxctl 0.0.27-alpha -> 0.0.28-alpha
-==> Downloading https://github.com/slmingol/doxctl/releases/download/0.0.28-alpha/doxctl_0.0.28-alpha_Darwin_x86_64.tar.gz
-==> Downloading from https://github-releases.githubusercontent.com/367779289/c7d4bc00-c134-11eb-8b3d-622ae425b081?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Cre
+slmingol/tap/doxctl 1.0.0 -> 1.0.1
+==> Upgrading slmingol/tap/doxctl 1.0.0 -> 1.0.1
+==> Downloading https://github.com/slmingol/doxctl/releases/download/1.0.1/doxctl_1.0.1_Darwin_x86_64.tar.gz
 ######################################################################## 100.0%
-🍺  /usr/local/Cellar/doxctl/0.0.28-alpha: 5 files, 9.1MB, built in 4 seconds
-Removing: /usr/local/Cellar/doxctl/0.0.27-alpha... (5 files, 9.1MB)
-Removing: /Users/smingolelli/Library/Caches/Homebrew/doxctl--0.0.27-alpha.tar.gz... (3.4MB)
+🍺  /opt/homebrew/Cellar/doxctl/1.0.1: 5 files, 9.1MB, built in 4 seconds
+Removing: /opt/homebrew/Cellar/doxctl/1.0.0... (5 files, 9.1MB)
+Removing: /Users/smingolelli/Library/Caches/Homebrew/doxctl--1.0.0.tar.gz... (3.4MB)
 ```
 
 #### Uninstall
 ```
 $ brew uninstall doxctl
-Uninstalling /usr/local/Cellar/doxctl/0.0.27-alpha... (5 files, 9.1MB)
+Uninstalling /opt/homebrew/Cellar/doxctl/1.0.1... (5 files, 9.1MB)
 ```
 </p>
 </details>
@@ -116,7 +111,7 @@ Docker images are available for both `amd64` and `arm64` architectures, making `
 Images are published to both GitHub Container Registry (GHCR) and Docker Hub:
 - `ghcr.io/slmingol/doxctl:latest` (multi-arch)
 - `slmingol/doxctl:latest` (multi-arch)
-- Tagged versions: `ghcr.io/slmingol/doxctl:v1.0.0` or `slmingol/doxctl:v1.0.0`
+- Tagged versions: `ghcr.io/slmingol/doxctl:1.0.1` or `slmingol/doxctl:1.0.1`
 
 ### Quick Start
 

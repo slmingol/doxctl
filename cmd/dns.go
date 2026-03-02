@@ -214,7 +214,7 @@ func dnsResolverPingChkWithDeps(executor CommandExecutor, fileReader FileReader,
 					netInterface = strings.Split(string(out), " ")[4]
 				}
 			case "darwin":
-				netInterface = getVPNInterfaceWithDeps(executor)
+				netInterface = getVPNInterface()
 			}
 
 			target := fmt.Sprintf("%s:%d", ip, dnsPort)

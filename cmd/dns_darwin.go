@@ -27,15 +27,21 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"doxctl/internal/cmdhelp"
-	"os/exec"
 	"strings"
 )
 
 // getResolverIPs returns DNS resolver IPs using macOS scutil
 func getResolverIPs() []string {
+	return getResolverIPsWithDeps(NewCommandExecutor(), NewFileReader())
+}
+
+// getResolverIPsWithDeps allows dependency injection for testing
+func getResolverIPsWithDeps(executor CommandExecutor, fileReader FileReader) []string {
 	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
-	cmdExe1 := exec.Command("bash", "-c", cmdBase)
+	out1, err := executor.Execute("bash", "-c", cmdBase)
+	if err != nil {
+		return []string{}
+	}
 
 	// Use default pattern if conf is nil or DomAddrChk is empty
 	domAddrPattern := "."
@@ -44,10 +50,12 @@ func getResolverIPs() []string {
 	}
 
 	cmdGrep1 := `grep -A3 'ServerAddresses' | grep -E '` + domAddrPattern + `' | cut -d':' -f2`
-	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
+	out2, err := executor.Execute("bash", "-c", "echo \""+string(out1)+"\" | "+cmdGrep1)
+	if err != nil {
+		return []string{}
+	}
 
-	resolverIPs := strings.Split(strings.TrimRight(string(output1), "\n"), "\n")
+	resolverIPs := strings.Split(strings.TrimRight(string(out2), "\n"), "\n")
 
 	for i := 0; i < len(resolverIPs); i++ {
 		resolverIPs[i] = strings.TrimSpace(resolverIPs[i])
@@ -58,13 +66,24 @@ func getResolverIPs() []string {
 
 // getVPNInterface returns VPN interface name using macOS scutil
 func getVPNInterface() string {
-	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/IPv4\nd.show\n" | scutil`
-	cmdExe1 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep1 := `grep 'InterfaceName' | awk '{print $3}'`
-	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
+	return getVPNInterfaceWithDeps(NewCommandExecutor())
+}
 
-	vpnInterface := strings.TrimRight(string(output1), "\n")
+// getVPNInterfaceWithDeps allows dependency injection for testing
+func getVPNInterfaceWithDeps(executor CommandExecutor) string {
+	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/IPv4\nd.show\n" | scutil`
+	out1, err := executor.Execute("bash", "-c", cmdBase)
+	if err != nil {
+		return "N/A"
+	}
+
+	cmdGrep1 := `grep 'InterfaceName' | awk '{print $3}'`
+	out2, err := executor.Execute("bash", "-c", "echo \""+string(out1)+"\" | "+cmdGrep1)
+	if err != nil {
+		return "N/A"
+	}
+
+	vpnInterface := strings.TrimRight(string(out2), "\n")
 
 	if len(vpnInterface) == 0 {
 		vpnInterface = "N/A"
@@ -75,8 +94,11 @@ func getVPNInterface() string {
 
 // getDNSConfig returns DNS configuration status using macOS scutil
 func getDNSConfig() (domainName, searchDomains, serverAddresses string) {
-	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
+	return getDNSConfigWithDeps(NewCommandExecutor(), NewFileReader())
+}
 
+// getDNSConfigWithDeps allows dependency injection for testing
+func getDNSConfigWithDeps(executor CommandExecutor, fileReader FileReader) (domainName, searchDomains, serverAddresses string) {
 	// Use default patterns if conf is nil or fields are empty
 	domNamePattern := "."
 	domSearchPattern := "."
@@ -94,24 +116,32 @@ func getDNSConfig() (domainName, searchDomains, serverAddresses string) {
 		}
 	}
 
-	cmdExe1 := exec.Command("bash", "-c", cmdBase)
+	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
+
+	out, err := executor.Execute("bash", "-c", cmdBase)
+	if err != nil {
+		return "unset", "unset", "unset"
+	}
+	scutilOutput := string(out)
+
 	cmdGrep1 := `grep -q 'DomainName.*` + domNamePattern + `' && echo "DomainName set" || echo "DomainName unset"`
-	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
+	out1, _ := executor.Execute("bash", "-c", "echo \""+scutilOutput+"\" | "+cmdGrep1)
 
-	cmdExe2 := exec.Command("bash", "-c", cmdBase)
 	cmdGrep2 := `grep -A1 'SearchDomains' | grep -qE '` + domSearchPattern + `' && echo "SearchDomains set" || echo "SearchDomains unset"`
-	exeGrep2 := exec.Command("bash", "-c", cmdGrep2)
-	output2, _, _ := cmdhelp.Pipeline(cmdExe2, exeGrep2)
+	out2, _ := executor.Execute("bash", "-c", "echo \""+scutilOutput+"\" | "+cmdGrep2)
 
-	cmdExe3 := exec.Command("bash", "-c", cmdBase)
 	cmdGrep3 := `grep -A3 'ServerAddresses' | grep -qE '` + domAddrPattern + `' && echo "ServerAddresses set" || echo "ServerAddresses unset"`
-	exeGrep3 := exec.Command("bash", "-c", cmdGrep3)
-	output3, _, _ := cmdhelp.Pipeline(cmdExe3, exeGrep3)
+	out3, _ := executor.Execute("bash", "-c", "echo \""+scutilOutput+"\" | "+cmdGrep3)
 
-	domainName = strings.Fields(string(output1))[1]
-	searchDomains = strings.Fields(string(output2))[1]
-	serverAddresses = strings.Fields(string(output3))[1]
+	if fields := strings.Fields(string(out1)); len(fields) > 1 {
+		domainName = fields[1]
+	}
+	if fields := strings.Fields(string(out2)); len(fields) > 1 {
+		searchDomains = fields[1]
+	}
+	if fields := strings.Fields(string(out3)); len(fields) > 1 {
+		serverAddresses = fields[1]
+	}
 
 	return domainName, searchDomains, serverAddresses
 }

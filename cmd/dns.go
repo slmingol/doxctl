@@ -28,17 +28,14 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"os/exec"
 	"runtime"
 	"strings"
 	"time"
 
 	"doxctl/internal/output"
 
-	"github.com/go-ping/ping"
 	"github.com/gookit/color"
 	"github.com/jedib0t/go-pretty/v6/table"
-	gobrex "github.com/kujtimiihoxha/go-brace-expansion"
 	"github.com/lixiangzhong/dnsutil"
 	"github.com/miekg/dns"
 	"github.com/spf13/cobra"
@@ -126,12 +123,17 @@ func dnsExecute(cmd *cobra.Command, args []string) {
 
 // Check if VPN configured DNS is setup
 func dnsResolverChk() {
+	dnsResolverChkWithDeps(NewCommandExecutor(), NewFileReader())
+}
+
+// dnsResolverChkWithDeps allows dependency injection for testing
+func dnsResolverChkWithDeps(executor CommandExecutor, fileReader FileReader) {
 	type dnsChks struct {
 		domainName, searchDomains, serverAddresses string
 	}
 
 	var dns dnsChks
-	dns.domainName, dns.searchDomains, dns.serverAddresses = getDNSConfig()
+	dns.domainName, dns.searchDomains, dns.serverAddresses = getDNSConfigWithDeps(executor, fileReader)
 
 	// For JSON/YAML output
 	if outputFormat != "table" {
@@ -169,6 +171,11 @@ func dnsResolverChk() {
 
 // Check if DNS resolvers are pingable & reachable via TCP/UDP
 func dnsResolverPingChk() {
+	dnsResolverPingChkWithDeps(NewCommandExecutor(), NewFileReader(), NewPinger)
+}
+
+// dnsResolverPingChkWithDeps allows dependency injection for testing
+func dnsResolverPingChkWithDeps(executor CommandExecutor, fileReader FileReader, pingerFactory func(string) (Pinger, error)) {
 	type resolverChk struct {
 		resolverIP, netInterface                  string
 		pingReachable, tcpReachable, udpReachable bool
@@ -176,18 +183,17 @@ func dnsResolverPingChk() {
 
 	var resChk resolverChk
 	resChks := list.New()
-	resolverIPs := getResolverIPs()
+	resolverIPs := getResolverIPsWithDeps(executor, fileReader)
 
 	for _, ip := range resolverIPs {
 		var pingReachable, tcpReachable, udpReachable bool
 		var netInterface string
 
-		pinger, err := ping.NewPinger(ip)
+		pinger, err := pingerFactory(ip)
 		if err != nil {
 			pingReachable = false
 		} else {
-			pinger.Count = 1
-			pinger.Timeout = 30 * time.Second
+			pinger.SetTimeout(30 * time.Second)
 			err = pinger.Run()
 			if err != nil {
 				pingReachable = false
@@ -201,17 +207,14 @@ func dnsResolverPingChk() {
 		if pingReachable {
 			switch runtime.GOOS {
 			case "linux":
-				cmdExeIPRouteGet := exec.Command("ip", "route", "get", ip) // #nosec G204 - ip is from DNS resolver list
-
-				if out, err := cmdExeIPRouteGet.CombinedOutput(); err != nil {
-					if _, ok := err.(*exec.ExitError); ok {
-						netInterface = "N/A"
-					}
+				out, err := executor.Execute("ip", "route", "get", ip) // #nosec G204 - ip is from DNS resolver list
+				if err != nil {
+					netInterface = "N/A"
 				} else {
 					netInterface = strings.Split(string(out), " ")[4]
 				}
 			case "darwin":
-				netInterface = getVPNInterface()
+				netInterface = getVPNInterfaceWithDeps(executor)
 			}
 
 			target := fmt.Sprintf("%s:%d", ip, dnsPort)
@@ -294,9 +297,14 @@ func dnsResolverPingChk() {
 
 // Check if DNS resolvers return well known server records
 func dnsResolverDigChk() {
+	dnsResolverDigChkWithDeps(NewCommandExecutor(), NewFileReader(), NewBraceExpander())
+}
+
+// dnsResolverDigChkWithDeps allows dependency injection for testing
+func dnsResolverDigChkWithDeps(executor CommandExecutor, fileReader FileReader, expander BraceExpander) {
 	rowConfigAutoMerge := table.RowConfig{AutoMerge: true}
 
-	resolverIPs := getResolverIPs()
+	resolverIPs := getResolverIPsWithDeps(executor, fileReader)
 
 	var dig dnsutil.Dig
 	resolverCnt := make(map[string]int)
@@ -308,7 +316,7 @@ func dnsResolverDigChk() {
 		}
 
 		for _, j := range i.Svrs {
-			permutations := gobrex.Expand(j)
+			permutations := expander.Expand(j)
 
 			for _, permutation := range permutations {
 				for _, ip := range resolverIPs {

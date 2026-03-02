@@ -27,27 +27,29 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"bufio"
-	"os"
 	"regexp"
 	"strings"
 )
 
 // getResolverIPs returns DNS resolver IPs by parsing /etc/resolv.conf
 func getResolverIPs() []string {
+	return getResolverIPsWithDeps(NewCommandExecutor(), NewFileReader())
+}
+
+// getResolverIPsWithDeps allows dependency injection for testing
+func getResolverIPsWithDeps(executor CommandExecutor, fileReader FileReader) []string {
 	var resolverIPs []string
 
-	file, err := os.Open("/etc/resolv.conf")
+	fileContent, err := fileReader.ReadFile("/etc/resolv.conf")
 	if err != nil {
 		return resolverIPs
 	}
-	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
+	lines := strings.Split(string(fileContent), "\n")
 	nameserverRegex := regexp.MustCompile(`^nameserver\s+(.+)$`)
 
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
 		if matches := nameserverRegex.FindStringSubmatch(line); matches != nil {
 			ip := strings.TrimSpace(matches[1])
 			// Filter by configured domain address check if available
@@ -68,21 +70,26 @@ func getResolverIPs() []string {
 // getVPNInterface returns VPN interface name on Linux
 // This attempts to detect the VPN interface by common naming patterns
 func getVPNInterface() string {
+	return getVPNInterfaceWithDeps(NewFileReader())
+}
+
+// getVPNInterfaceWithDeps allows dependency injection for testing
+func getVPNInterfaceWithDeps(fileReader FileReader) string {
 	// Common VPN interface names: tun0, ppp0, vpn0, etc.
 	vpnPatterns := []string{"tun", "ppp", "vpn", "wg"}
 
-	file, err := os.Open("/proc/net/route")
+	fileContent, err := fileReader.ReadFile("/proc/net/route")
 	if err != nil {
 		return "N/A"
 	}
-	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
+	lines := strings.Split(string(fileContent), "\n")
 	// Skip header line
-	scanner.Scan()
-
-	for scanner.Scan() {
-		fields := strings.Fields(scanner.Text())
+	for i, line := range lines {
+		if i == 0 {
+			continue
+		}
+		fields := strings.Fields(line)
 		if len(fields) > 0 {
 			iface := fields[0]
 			for _, pattern := range vpnPatterns {
@@ -98,21 +105,25 @@ func getVPNInterface() string {
 
 // getDNSConfig returns DNS configuration status by parsing /etc/resolv.conf
 func getDNSConfig() (domainName, searchDomains, serverAddresses string) {
-	file, err := os.Open("/etc/resolv.conf")
+	return getDNSConfigWithDeps(NewCommandExecutor(), NewFileReader())
+}
+
+// getDNSConfigWithDeps allows dependency injection for testing
+func getDNSConfigWithDeps(executor CommandExecutor, fileReader FileReader) (domainName, searchDomains, serverAddresses string) {
+	fileContent, err := fileReader.ReadFile("/etc/resolv.conf")
 	if err != nil {
 		return "unset", "unset", "unset"
 	}
-	defer file.Close()
 
 	var foundDomain, foundSearch, foundNameserver bool
 
-	scanner := bufio.NewScanner(file)
+	lines := strings.Split(string(fileContent), "\n")
 	domainRegex := regexp.MustCompile(`^domain\s+(.+)$`)
 	searchRegex := regexp.MustCompile(`^search\s+(.+)$`)
 	nameserverRegex := regexp.MustCompile(`^nameserver\s+(.+)$`)
 
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
 
 		// Check for domain
 		if matches := domainRegex.FindStringSubmatch(line); matches != nil {

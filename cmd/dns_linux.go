@@ -51,7 +51,7 @@ func getResolverIPs() []string {
 		if matches := nameserverRegex.FindStringSubmatch(line); matches != nil {
 			ip := strings.TrimSpace(matches[1])
 			// Filter by configured domain address check if available
-			if conf.DomAddrChk != "" {
+			if conf != nil && conf.DomAddrChk != "" {
 				matched, _ := regexp.MatchString(conf.DomAddrChk, ip)
 				if matched {
 					resolverIPs = append(resolverIPs, ip)
@@ -117,7 +117,7 @@ func getDNSConfig() (domainName, searchDomains, serverAddresses string) {
 		// Check for domain
 		if matches := domainRegex.FindStringSubmatch(line); matches != nil {
 			domain := strings.TrimSpace(matches[1])
-			if conf.DomNameChk != "" {
+			if conf != nil && conf.DomNameChk != "" {
 				matched, _ := regexp.MatchString(conf.DomNameChk, domain)
 				if matched {
 					foundDomain = true
@@ -130,7 +130,7 @@ func getDNSConfig() (domainName, searchDomains, serverAddresses string) {
 		// Check for search domains
 		if matches := searchRegex.FindStringSubmatch(line); matches != nil {
 			searchList := strings.TrimSpace(matches[1])
-			if conf.DomSearchChk != "" {
+			if conf != nil && conf.DomSearchChk != "" {
 				matched, _ := regexp.MatchString(conf.DomSearchChk, searchList)
 				if matched {
 					foundSearch = true
@@ -143,7 +143,7 @@ func getDNSConfig() (domainName, searchDomains, serverAddresses string) {
 		// Check for nameservers
 		if matches := nameserverRegex.FindStringSubmatch(line); matches != nil {
 			ip := strings.TrimSpace(matches[1])
-			if conf.DomAddrChk != "" {
+			if conf != nil && conf.DomAddrChk != "" {
 				matched, _ := regexp.MatchString(conf.DomAddrChk, ip)
 				if matched {
 					foundNameserver = true

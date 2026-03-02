@@ -25,6 +25,7 @@ package cmd
 
 import (
 	"context"
+	"doxctl/internal/output"
 	"fmt"
 	"net"
 	"os"
@@ -79,7 +80,7 @@ func svrsExecute(cmd *cobra.Command, args []string) {
 	case allChk:
 		svrsReachChk()
 	default:
-		cmd.Usage()
+		_ = cmd.Usage()
 		fmt.Printf("\n\n\n")
 		os.Exit(1)
 	}
@@ -87,18 +88,9 @@ func svrsExecute(cmd *cobra.Command, args []string) {
 
 // Check if well known servers are pingable & reachable
 func svrsReachChk() {
-	color.Info.Tips("Attempting to ping all well known servers, this may take a few...\n")
-
-	// Table head
-	t := table.NewWriter()
-	t.SetTitle("Well known Servers Reachable Checks")
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
-	t.SetColumnConfigs([]table.ColumnConfig{
-		{Number: 1, WidthMin: 40},
-		{Number: 2, WidthMin: 20},
-	})
-	t.AppendHeader(table.Row{"Host", "Service", "Reachable?", "Ping Performance"})
+	if outputFormat == "table" {
+		color.Info.Tips("Attempting to ping all well known servers, this may take a few...\n")
+	}
 
 	/* Walk through list of hosts, attempt to ping 'em.
 	 *
@@ -111,9 +103,12 @@ func svrsReachChk() {
 	 */
 	pingFailures := 0
 	reachFailures := 0
+	var serverResults []output.ServerCheckResult
 
 	for _, i := range conf.Svcs {
-		fmt.Printf("   --- Working through svc: %s\n", i.Svc)
+		if outputFormat == "table" {
+			fmt.Printf("   --- Working through svc: %s\n", i.Svc)
+		}
 
 		for _, j := range i.Svrs {
 			permutations := gobrex.Expand(j)
@@ -127,14 +122,24 @@ func svrsReachChk() {
 				ip, err := r.LookupHost(ctx, permutation)
 
 				if err != nil || len(ip) == 0 {
-					t.AppendRow([]interface{}{permutation, i.Svc, false, "N/A"})
+					serverResults = append(serverResults, output.ServerCheckResult{
+						Host:        permutation,
+						Service:     i.Svc,
+						Reachable:   false,
+						Performance: "N/A",
+					})
 					continue
 				}
 
 				// Attempt to ping each host, any that fail keep a tally
 				pinger, err := ping.NewPinger(permutation)
 				if err != nil {
-					t.AppendRow([]interface{}{permutation, i.Svc, false, "N/A"})
+					serverResults = append(serverResults, output.ServerCheckResult{
+						Host:        permutation,
+						Service:     i.Svc,
+						Reachable:   false,
+						Performance: "N/A",
+					})
 					pingFailures++
 					continue
 				}
@@ -142,7 +147,7 @@ func svrsReachChk() {
 				pinger.Timeout = conf.PingTimeout * time.Millisecond
 				pOut := make(chan *ping.Statistics)
 				go func(p *ping.Pinger, s chan *ping.Statistics) {
-					p.Run()
+					_ = p.Run()
 					s <- p.Statistics()
 				}(pinger, pOut)
 				stats := <-pOut
@@ -154,12 +159,29 @@ func svrsReachChk() {
 					reachFailures++
 				}
 
-				t.AppendRow([]interface{}{permutation, i.Svc, packetAck, pingPerf})
-
+				serverResults = append(serverResults, output.ServerCheckResult{
+					Host:        permutation,
+					Service:     i.Svc,
+					Reachable:   packetAck,
+					Performance: pingPerf,
+				})
 			}
 		}
-		t.AppendSeparator()
 	}
+
+	// For JSON/YAML output
+	if outputFormat != "table" {
+		result := output.ServerReachabilityCheckResult{
+			Timestamp:     time.Now(),
+			Servers:       serverResults,
+			PingFailures:  pingFailures,
+			ReachFailures: reachFailures,
+		}
+		output.Print(outputFormat, result)
+		return
+	}
+
+	// Table output
 	fmt.Printf("\n\n   ...one sec, preparing `ping` results...\n\n")
 
 	if pingFailures > conf.FailThreshold || reachFailures > conf.FailThreshold {
@@ -169,6 +191,25 @@ func svrsReachChk() {
 
 	time.Sleep(4 * time.Second)
 
+	t := table.NewWriter()
+	t.SetTitle("Well known Servers Reachable Checks")
+	t.SetOutputMirror(os.Stdout)
+	t.SetStyle(table.StyleLight)
+	t.SetColumnConfigs([]table.ColumnConfig{
+		{Number: 1, WidthMin: 40},
+		{Number: 2, WidthMin: 20},
+	})
+	t.AppendHeader(table.Row{"Host", "Service", "Reachable?", "Ping Performance"})
+
+	var currentService string
+	for _, result := range serverResults {
+		t.AppendRow([]interface{}{result.Host, result.Service, result.Reachable, result.Performance})
+		// Add separator when service changes
+		if currentService != "" && currentService != result.Service {
+			t.AppendSeparator()
+		}
+		currentService = result.Service
+	}
 	t.AppendSeparator()
 	t.Render()
 

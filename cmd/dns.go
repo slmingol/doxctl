@@ -25,7 +25,6 @@ package cmd
 
 import (
 	"container/list"
-	"doxctl/internal/cmdhelp"
 	"fmt"
 	"net"
 	"os"
@@ -47,6 +46,9 @@ import (
 var (
 	resolverChk, pingChk, digChk bool
 )
+
+const dnsPort = 53
+
 
 var dnsCmd = &cobra.Command{
 	Use:   "dns",
@@ -91,7 +93,7 @@ func dnsExecute(cmd *cobra.Command, args []string) {
 		dnsResolverPingChk()
 		dnsResolverDigChk()
 	default:
-		cmd.Usage()
+		_ = cmd.Usage()
 		fmt.Printf("\n\n\n")
 		os.Exit(1)
 	}
@@ -103,33 +105,22 @@ func dnsResolverChk() {
 		domainName, searchDomains, serverAddresses string
 	}
 
-	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
-
-	cmdExe1 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep1 := `grep -q 'DomainName.*` + conf.DomNameChk + `' && echo "DomainName set" || echo "DomainName unset"`
-	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
-
-	/*if verboseChk {
-		log.Info("log blah", "dnsresolvercmd", cmdBase+"|"+cmdGrep1)
-	}*/
-
-	cmdExe2 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep2 := `grep -A1 'SearchDomains' | grep -qE '` + conf.DomSearchChk + `' && echo "SearchDomains set" || echo "SearchDomains unset"`
-	exeGrep2 := exec.Command("bash", "-c", cmdGrep2)
-	output2, _, _ := cmdhelp.Pipeline(cmdExe2, exeGrep2)
-
-	cmdExe3 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep3 := `grep -A3 'ServerAddresses' | grep -qE '` + conf.DomAddrChk + `' && echo "ServerAddresses set" || echo "ServerAddresses unset"`
-	exeGrep3 := exec.Command("bash", "-c", cmdGrep3)
-	output3, _, _ := cmdhelp.Pipeline(cmdExe3, exeGrep3)
-
 	var dns dnsChks
+	dns.domainName, dns.searchDomains, dns.serverAddresses = getDNSConfig()
 
-	dns.domainName = strings.Fields(string(output1))[1]
-	dns.searchDomains = strings.Fields(string(output2))[1]
-	dns.serverAddresses = strings.Fields(string(output3))[1]
+	// For JSON/YAML output
+	if outputFormat != "table" {
+		result := output.DNSResolverCheckResult{
+			Timestamp:          time.Now(),
+			DomainNameSet:      dns.domainName == "set",
+			SearchDomainsSet:   dns.searchDomains == "set",
+			ServerAddressesSet: dns.serverAddresses == "set",
+		}
+		output.Print(outputFormat, result)
+		return
+	}
 
+	// Table output
 	fmt.Println("")
 
 	t := table.NewWriter()
@@ -160,20 +151,24 @@ func dnsResolverPingChk() {
 
 	var resChk resolverChk
 	resChks := list.New()
-	resolverIPs := scutilResolverIPs()
+	resolverIPs := getResolverIPs()
 
 	for _, ip := range resolverIPs {
 		var pingReachable, tcpReachable, udpReachable bool
 		var netInterface string
 
 		pinger, err := ping.NewPinger(ip)
-		pinger.Count = 1
-		pinger.Timeout = 30 * time.Second
-		err = pinger.Run()
 		if err != nil {
 			pingReachable = false
 		} else {
-			pingReachable = true
+			pinger.Count = 1
+			pinger.Timeout = 30 * time.Second
+			err = pinger.Run()
+			if err != nil {
+				pingReachable = false
+			} else {
+				pingReachable = true
+			}
 		}
 
 		resChk = resolverChk{resolverIP: ip, pingReachable: pingReachable}
@@ -181,7 +176,7 @@ func dnsResolverPingChk() {
 		if pingReachable {
 			switch runtime.GOOS {
 			case "linux":
-				cmdExeIPRouteGet := exec.Command("ip", "route", "get", ip)
+				cmdExeIPRouteGet := exec.Command("ip", "route", "get", ip) // #nosec G204 - ip is from DNS resolver list
 
 				if out, err := cmdExeIPRouteGet.CombinedOutput(); err != nil {
 					if _, ok := err.(*exec.ExitError); ok {
@@ -191,10 +186,10 @@ func dnsResolverPingChk() {
 					netInterface = strings.Split(string(out), " ")[4]
 				}
 			case "darwin":
-				netInterface = scutilVPNInterface()
+				netInterface = getVPNInterface()
 			}
 
-			target := fmt.Sprintf("%s:%d", ip, 53)
+			target := fmt.Sprintf("%s:%d", ip, dnsPort)
 
 			// TCP check
 			_, errTCP := net.DialTimeout("tcp", target, 5*time.Second)
@@ -220,6 +215,28 @@ func dnsResolverPingChk() {
 		}
 	}
 
+	// For JSON/YAML output
+	if outputFormat != "table" {
+		var resolvers []output.ResolverConnectivityResult
+		for e := resChks.Front(); e != nil; e = e.Next() {
+			itemResChk := resolverChk(e.Value.(resolverChk))
+			resolvers = append(resolvers, output.ResolverConnectivityResult{
+				ResolverIP:    itemResChk.resolverIP,
+				NetInterface:  itemResChk.netInterface,
+				PingReachable: itemResChk.pingReachable,
+				TCPReachable:  itemResChk.tcpReachable,
+				UDPReachable:  itemResChk.udpReachable,
+			})
+		}
+		result := output.DNSResolverPingCheckResult{
+			Timestamp: time.Now(),
+			Resolvers: resolvers,
+		}
+		output.Print(outputFormat, result)
+		return
+	}
+
+	// Table output
 	t := table.NewWriter()
 	t.SetTitle("VPN defined DNS Resolver Connectivity Checks")
 	t.SetOutputMirror(os.Stdout)
@@ -260,10 +277,11 @@ func dnsResolverDigChk() {
 	t.SetStyle(table.StyleLight)
 	t.AppendHeader(table.Row{"Hostname to 'dig'", "Resolver IP", "Is resolvable?"}, rowConfigAutoMerge)
 
-	resolverIPs := scutilResolverIPs()
+	resolverIPs := getResolverIPs()
 
 	var dig dnsutil.Dig
 	resolverCnt := make(map[string]int)
+	var digResults []output.DigCheckResult
 
 	for _, i := range conf.Svcs {
 		if i.Svc != "idm" {
@@ -275,7 +293,7 @@ func dnsResolverDigChk() {
 
 			for _, permutation := range permutations {
 				for _, ip := range resolverIPs {
-					dig.SetDNS(ip)
+					_ = dig.SetDNS(ip)
 					msg, err := dig.GetMsg(dns.TypeA, permutation)
 
 					isResolvable := false
@@ -283,7 +301,12 @@ func dnsResolverDigChk() {
 						isResolvable = true
 					}
 
-					t.AppendRow([]interface{}{permutation, ip, isResolvable}, rowConfigAutoMerge)
+					// Collect for JSON/YAML output
+					digResults = append(digResults, output.DigCheckResult{
+						Hostname:     permutation,
+						ResolverIP:   ip,
+						IsResolvable: isResolvable,
+					})
 
 					if !isResolvable {
 						continue
@@ -291,9 +314,33 @@ func dnsResolverDigChk() {
 
 					resolverCnt[ip]++
 				}
-
-				t.AppendSeparator()
 			}
+		}
+	}
+
+	// For JSON/YAML output
+	if outputFormat != "table" {
+		result := output.DNSResolverDigCheckResult{
+			Timestamp: time.Now(),
+			Results:   digResults,
+			Summary:   resolverCnt,
+		}
+		output.Print(outputFormat, result)
+		return
+	}
+
+	// Table output
+	t := table.NewWriter()
+	t.SetTitle("Dig Check against VPN defined DNS Resolvers")
+	t.SetOutputMirror(os.Stdout)
+	t.SetStyle(table.StyleLight)
+	t.AppendHeader(table.Row{"Hostname to 'dig'", "Resolver IP", "Is resolvable?"}, rowConfigAutoMerge)
+
+	for _, result := range digResults {
+		t.AppendRow([]interface{}{result.Hostname, result.ResolverIP, result.IsResolvable}, rowConfigAutoMerge)
+		// Add separator after each hostname's results
+		if result.ResolverIP == resolverIPs[len(resolverIPs)-1] {
+			t.AppendSeparator()
 		}
 	}
 
@@ -335,37 +382,4 @@ func dnsResolverDigChk() {
 	}
 
 	fmt.Printf("\n\n\n")
-}
-
-// scutil
-func scutilResolverIPs() []string {
-	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
-	cmdExe1 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep1 := `grep -A3 'ServerAddresses' | grep -E '` + conf.DomAddrChk + `' | cut -d':' -f2`
-	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
-
-	resolverIPs := strings.Split(strings.TrimRight(string(output1), "\n"), "\n")
-
-	for i := 0; i < len(resolverIPs); i++ {
-		resolverIPs[i] = strings.TrimSpace(resolverIPs[i])
-	}
-
-	return resolverIPs
-}
-
-func scutilVPNInterface() string {
-	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/IPv4\nd.show\n" | scutil`
-	cmdExe1 := exec.Command("bash", "-c", cmdBase)
-	cmdGrep1 := `grep 'InterfaceName' | awk '{print $3}'`
-	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
-	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
-
-	vpnInterface := strings.TrimRight(string(output1), "\n")
-
-	if len(vpnInterface) == 0 {
-		vpnInterface = "N/A"
-	}
-
-	return vpnInterface
 }

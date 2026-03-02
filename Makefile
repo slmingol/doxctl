@@ -29,6 +29,10 @@ commit:
 test:
 	go test -coverprofile=coverage.txt -covermode=atomic ./...
 
+lint:
+	@which golangci-lint > /dev/null || (echo "golangci-lint not installed. Install from https://golangci-lint.run/usage/install/" && exit 1)
+	golangci-lint run --timeout=5m
+
 ### Useful for debugging ###
 #goreleaser release --skip-validate --rm-dist --debug #--skip-publish
 

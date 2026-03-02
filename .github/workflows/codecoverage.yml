@@ -29,8 +29,10 @@ jobs:
       with:
         version: v1.62
         install-mode: goinstall
-    - name: Test
-      run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+    - name: Test with Race Detector
+      run: go test -v -race ./...
+    - name: Test with Coverage
+      run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
     - name: Security Scan
       run: |
         go install golang.org/x/vuln/cmd/govulncheck@latest

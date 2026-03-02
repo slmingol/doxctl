@@ -27,7 +27,7 @@ jobs:
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v9
       with:
-        version: v2.10
+        version: v1.62
     - name: Test
       run: go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
     - name: Security Scan

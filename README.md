@@ -1,5 +1,9 @@
 ![dox logo](https://github.com/slmingol/doxctl/blob/main/imgs/whats_up_dox__banner.png?raw=true)
 
+[![Build & Release](https://github.com/slmingol/doxctl/actions/workflows/build-release.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/build-release.yml)
+[![CodeQL](https://github.com/slmingol/doxctl/actions/workflows/codeql.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/codeql.yml)
+[![Lint](https://github.com/slmingol/doxctl/actions/workflows/lint.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/lint.yml)
+[![Code Coverage](https://github.com/slmingol/doxctl/actions/workflows/codecoverage.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/codecoverage.yml)
 [![Security Scan](https://github.com/slmingol/doxctl/actions/workflows/security-scan.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/security-scan.yml)
 
 # TLDR
@@ -893,6 +897,118 @@ ServerAddresses  set
 ```
 </p>
 </details>
+
+## Development
+
+### Prerequisites
+
+- **Go 1.25.0+** (as specified in go.mod)
+- **Git** for version control
+
+### Building from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/slmingol/doxctl.git
+cd doxctl
+
+# Build the binary
+go build -o doxctl .
+
+# Run the binary
+./doxctl --help
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+go test ./...
+
+# Run tests with coverage
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out
+```
+
+### Code Quality
+
+The project uses [golangci-lint](https://golangci-lint.run/) for code quality enforcement:
+
+```bash
+# Install golangci-lint (if not already installed)
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+# Run linter
+golangci-lint run
+
+# Run with auto-fix for some issues
+golangci-lint run --fix
+```
+
+### Development Workflow
+
+1. **Make changes** to the code
+2. **Run tests**: `go test ./...`
+3. **Run linter**: `golangci-lint run`
+4. **Build**: `go build -o doxctl .`
+5. **Test locally**: `./doxctl [command]`
+
+## Security Features
+
+This project implements multiple layers of security and code quality checks:
+
+### Automated Security Scanning
+
+- **CodeQL Analysis**: Runs on every push and pull request to identify security vulnerabilities
+- **Security Scan Workflow**: Dedicated security scanning workflow runs on all commits
+- **Dependabot**: Automatically monitors dependencies and creates PRs for security updates
+  - Checks Go modules weekly
+  - Checks GitHub Actions weekly
+
+### Code Quality Enforcement
+
+- **golangci-lint**: Comprehensive linting with multiple analyzers:
+  - `errcheck`: Ensures error handling
+  - `gosec`: Security-focused static analysis
+  - `staticcheck`: Advanced Go static analysis
+  - `gofmt`: Code formatting
+  - `misspell`: Spelling checks
+  - And many more (see `.golangci.yml`)
+
+### Reporting Security Issues
+
+Please see [SECURITY.md](SECURITY.md) for our security policy and instructions on reporting vulnerabilities.
+
+## Platform Support
+
+### Current Status
+
+**macOS**: Fully supported
+- Uses native `scutil` command for DNS configuration
+- Tested on Intel and Apple Silicon (M1/M2)
+
+**Linux**: Partial support
+- Multi-arch builds available (amd64, arm64)
+- Some DNS features rely on macOS-specific `scutil` command
+- VPN and server connectivity checks work across platforms
+
+### Docker Deployment
+
+Docker images support both architectures:
+- **amd64**: Traditional x86_64 systems
+- **arm64**: Apple M1/M2, AWS Graviton, Raspberry Pi
+
+See the [Docker](#docker) section for usage examples.
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Code of conduct
+- Development guidelines
+- Pull request process
+- Coding standards
+
+For security-related contributions, please review [SECURITY.md](SECURITY.md) first.
 
 ## Resources
 

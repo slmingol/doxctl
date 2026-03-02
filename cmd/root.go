@@ -61,15 +61,15 @@ func (c *config) Validate() error {
 	if c.DomainName == "" {
 		return fmt.Errorf("domainName is required in configuration file")
 	}
-	
+
 	if len(c.Sites) == 0 {
 		return fmt.Errorf("at least one site must be defined in the 'sites' configuration")
 	}
-	
+
 	if len(c.Svcs) == 0 {
 		return fmt.Errorf("at least one service must be defined in 'wellKnownSvcs' configuration")
 	}
-	
+
 	// Validate each service has required fields
 	for i, svc := range c.Svcs {
 		if svc.Svc == "" {
@@ -79,7 +79,7 @@ func (c *config) Validate() error {
 			return fmt.Errorf("wellKnownSvcs[%d] (%s): at least one server must be defined in 'svrs'", i, svc.Svc)
 		}
 	}
-	
+
 	return nil
 }
 

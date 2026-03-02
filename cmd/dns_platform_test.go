@@ -31,7 +31,7 @@ func TestGetVPNInterface(t *testing.T) {
 func TestGetDNSConfig(t *testing.T) {
 	// This test just ensures the function can be called without panic
 	domain, search, servers := getDNSConfig()
-	
+
 	if domain == "" {
 		t.Error("getDNSConfig should return a non-empty domain string")
 	}

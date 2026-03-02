@@ -36,13 +36,13 @@ import (
 func getResolverIPs() []string {
 	cmdBase := `printf "get State:/Network/Service/com.cisco.anyconnect/DNS\nd.show\n" | scutil`
 	cmdExe1 := exec.Command("bash", "-c", cmdBase)
-	
+
 	// Use default pattern if conf is nil or DomAddrChk is empty
 	domAddrPattern := "."
 	if conf != nil && conf.DomAddrChk != "" {
 		domAddrPattern = conf.DomAddrChk
 	}
-	
+
 	cmdGrep1 := `grep -A3 'ServerAddresses' | grep -E '` + domAddrPattern + `' | cut -d':' -f2`
 	exeGrep1 := exec.Command("bash", "-c", cmdGrep1)
 	output1, _, _ := cmdhelp.Pipeline(cmdExe1, exeGrep1)
@@ -81,7 +81,7 @@ func getDNSConfig() (domainName, searchDomains, serverAddresses string) {
 	domNamePattern := "."
 	domSearchPattern := "."
 	domAddrPattern := "."
-	
+
 	if conf != nil {
 		if conf.DomNameChk != "" {
 			domNamePattern = conf.DomNameChk

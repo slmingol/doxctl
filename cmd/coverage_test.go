@@ -193,7 +193,7 @@ func TestDnsResolverPingChkCoverage(t *testing.T) {
 	dnsResolverPingChk()
 }
 
-// TestScutilVPNInterfaceCoverage tests scutilVPNInterface  
+// TestScutilVPNInterfaceCoverage tests scutilVPNInterface
 // DISABLED: scutilVPNInterface function no longer exists
 /*
 func TestScutilVPNInterfaceCoverage(t *testing.T) {

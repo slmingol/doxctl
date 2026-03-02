@@ -62,7 +62,7 @@ func TestDnsExecuteFunction(t *testing.T) {
 				t.Logf("Function panicked (expected if VPN not connected): %v", r)
 			}
 		}()
-		
+
 		dnsExecute(dnsCmd, []string{})
 	})
 
@@ -77,11 +77,11 @@ func TestDnsExecuteWithMockedData(t *testing.T) {
 	setupMinimalConfig()
 
 	tests := []struct {
-		name         string
-		resolverChk  bool
-		pingChk      bool
-		digChk       bool
-		allChk       bool
+		name        string
+		resolverChk bool
+		pingChk     bool
+		digChk      bool
+		allChk      bool
 	}{
 		{"resolver check", true, false, false, false},
 		{"ping check", false, true, false, false},
@@ -290,12 +290,12 @@ func TestScutilResolverIPsActual(t *testing.T) {
 	// ips := scutilResolverIPs()
 	// t.Logf("Got %d resolver IPs", len(ips))
 	t.Skip("scutilResolverIPs function no longer exists")
-	
+
 	// We don't assert on the result since it depends on system state
 	// We just want to execute the code path
 }
 
-// TestScutilVPNInterfaceActual tests the actual scutil function  
+// TestScutilVPNInterfaceActual tests the actual scutil function
 // DISABLED: scutilVPNInterface function no longer exists
 /*
 func TestScutilVPNInterfaceActual(t *testing.T) {
@@ -312,7 +312,7 @@ func TestScutilVPNInterfaceActual(t *testing.T) {
 
 	iface := scutilVPNInterface()
 	t.Logf("Got VPN interface: %s", iface)
-	
+
 	// We don't assert on the result since it depends on system state
 }
 */
@@ -501,7 +501,7 @@ func TestSvrsReachChkActual(t *testing.T) {
 	// Restore stdout
 	w.Close()
 	os.Stdout = old
-	
+
 	// Read and discard output
 	buf := new(bytes.Buffer)
 	io.Copy(buf, r)

@@ -180,7 +180,7 @@ var configInitCmd = &cobra.Command{
 		exampleContent := getExampleConfig()
 
 		// Write the example config to the target path
-		if err := os.WriteFile(targetPath, []byte(exampleContent), 0644); err != nil {
+		if err := os.WriteFile(targetPath, []byte(exampleContent), 0600); err != nil {
 			fmt.Fprintf(os.Stderr, "\nError: Could not create configuration file\n")
 			fmt.Fprintf(os.Stderr, "Details: %v\n\n", err)
 			os.Exit(1)

@@ -1,4 +1,6 @@
-![dox logo](https://github.com/slmingol/doxctl/blob/main/imgs/whats_up_dox__banner.png?raw=true)
+<p align="center">
+  <img src="https://github.com/slmingol/doxctl/blob/main/imgs/whats_up_dox__banner.png?raw=true" alt="dox logo">
+</p>
 
 [![Release Version](https://img.shields.io/github/v/release/slmingol/doxctl?include_prereleases&label=version&color=blue)](https://github.com/slmingol/doxctl/releases/latest)
 [![Build & Release](https://github.com/slmingol/doxctl/actions/workflows/build-release.yml/badge.svg?event=push)](https://github.com/slmingol/doxctl/actions/workflows/build-release.yml)

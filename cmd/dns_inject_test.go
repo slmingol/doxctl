@@ -32,8 +32,8 @@ import (
 
 // mockCommandExecutor allows controlling command execution in tests
 type mockCommandExecutor struct {
-	commands map[string][]byte // Map of command to output
-	err      error             // Error to return
+	commands map[string][]byte                       // Map of command to output
+	err      error                                   // Error to return
 	execFunc func(string, ...string) ([]byte, error) // Optional custom execution function
 }
 
@@ -41,22 +41,22 @@ func (m *mockCommandExecutor) Execute(name string, args ...string) ([]byte, erro
 	if m.err != nil {
 		return nil, m.err
 	}
-	
+
 	// If a custom function is provided, use it
 	if m.execFunc != nil {
 		return m.execFunc(name, args...)
 	}
-	
+
 	// Create a key from the command and args
 	key := name
 	for _, arg := range args {
 		key += " " + arg
 	}
-	
+
 	if output, ok := m.commands[key]; ok {
 		return output, nil
 	}
-	
+
 	return []byte(""), nil
 }
 
@@ -166,11 +166,11 @@ func TestDNSResolverPingChkWithDeps_Success(t *testing.T) {
 			return []byte(""), nil
 		},
 	}
-	
+
 	mockFile := &mockFileReader{
 		files: map[string][]byte{},
 	}
-	
+
 	pingedHosts := make(map[string]bool)
 	mockPingerFactory := func(host string) (Pinger, error) {
 		pingedHosts[host] = true
@@ -181,10 +181,10 @@ func TestDNSResolverPingChkWithDeps_Success(t *testing.T) {
 			avgRtt:     10,
 		}, nil
 	}
-	
+
 	// Should not panic
 	dnsResolverPingChkWithDeps(mockExec, mockFile, mockPingerFactory)
-	
+
 	if !pingedHosts["10.20.1.1"] {
 		t.Error("Expected to ping 10.20.1.1")
 	}
@@ -203,7 +203,7 @@ func contains(s, substr string) bool {
 func TestDNSResolverPingChkWithDeps_PingFailure(t *testing.T) {
 	setupDNSTestConfig()
 	outputFormat = "json"
-	
+
 	mockExec := &mockCommandExecutor{
 		commands: map[string][]byte{},
 	}
@@ -233,11 +233,11 @@ func TestDNSResolverPingChkWithDeps_NoResolvers(t *testing.T) {
 			return []byte(""), nil
 		},
 	}
-	
+
 	mockFile := &mockFileReader{
 		files: map[string][]byte{},
 	}
-	
+
 	pingerCalled := false
 	mockPingerFactory := func(host string) (Pinger, error) {
 		// Empty string might be passed due to strings.Split("", "\n") returning [""]
@@ -247,10 +247,10 @@ func TestDNSResolverPingChkWithDeps_NoResolvers(t *testing.T) {
 		}
 		return nil, errors.New("no pinger for empty host")
 	}
-	
+
 	// Should not panic even with no resolvers
 	dnsResolverPingChkWithDeps(mockExec, mockFile, mockPingerFactory)
-	
+
 	if pingerCalled {
 		t.Error("Pinger was called for a real host when no resolvers were available")
 	}
@@ -259,15 +259,15 @@ func TestDNSResolverPingChkWithDeps_NoResolvers(t *testing.T) {
 func TestDNSResolverDigChkWithDeps_Success(t *testing.T) {
 	setupDNSTestConfig()
 	outputFormat = "json"
-	
+
 	mockExec := &mockCommandExecutor{
 		commands: map[string][]byte{},
 	}
-	
+
 	mockFile := &mockFileReader{
 		files: map[string][]byte{},
 	}
-	
+
 	mockExpander := &mockBraceExpander{
 		expansions: map[string][]string{
 			"server1.example.com": {"server1.example.com"},

@@ -42,3 +42,17 @@ issues:
     - linters:
         - staticcheck
       text: "github.com/go-ping/ping.*is deprecated"
+    # Ignore fieldalignment - premature optimization for a CLI tool
+    - linters:
+        - govet
+      text: "fieldalignment:"
+    # Ignore shadow warnings in tests
+    - linters:
+        - govet
+      text: "shadow:"
+      path: "_test\\.go"
+    # Ignore unusedwrite in test fixtures
+    - linters:
+        - govet
+      text: "unusedwrite:"
+      path: "_test\\.go"

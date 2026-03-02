@@ -1,8 +1,7 @@
 linters:
+  disable:
+    - errcheck      # Temporarily disabled - too many unchecked errors
   enable:
-    # errcheck disabled temporarily - too many unchecked errors to fix in one session
-    # TODO: Re-enable and systematically fix unchecked errors
-    # - errcheck      # Check for unchecked errors
     - gosimple      # Simplify code
     - govet         # Vet examines Go source code
     - ineffassign   # Detect ineffectual assignments

@@ -1,5 +1,7 @@
 ![dox logo](https://github.com/slmingol/doxctl/blob/main/imgs/whats_up_dox__banner.png?raw=true)
 
+[![Security Scan](https://github.com/slmingol/doxctl/actions/workflows/security-scan.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/security-scan.yml)
+
 # TLDR
 `doxctl` is a diagnostic CLI tool that endusers can use to triage connectivity problems stemming from their VPN & DNS setups on their laptops. It can help with the following areas:
 

@@ -76,13 +76,3 @@ func TestRootCmdHasSubcommands(t *testing.T) {
 		}
 	}
 }
-
-// TestExecute verifies that Execute function is exported
-func TestExecute(t *testing.T) {
-	// We verify Execute is exported by checking rootCmd is properly configured
-	// Direct calling Execute would exit the process, so we test its dependencies
-	if rootCmd.RunE == nil && rootCmd.Run == nil {
-		// This is expected for root command as it has no Run function
-		// It delegates to subcommands
-	}
-}

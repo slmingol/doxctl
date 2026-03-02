@@ -6,7 +6,6 @@ Copyright © 2021 Sam Mingolelli <github@lamolabs.org>
 package output_test
 
 import (
-	"bytes"
 	"doxctl/internal/output"
 	"encoding/json"
 	"testing"
@@ -169,7 +168,6 @@ func TestDNSResolverPingCheck(t *testing.T) {
 }
 
 func TestPrintFormat(t *testing.T) {
-	// Redirect stdout to capture output
 	tests := []struct {
 		name   string
 		format string
@@ -190,8 +188,6 @@ func TestPrintFormat(t *testing.T) {
 				ServerAddressesSet: true,
 			}
 
-			// Capture stdout
-			old := bytes.Buffer{}
 			err := output.Print(tt.format, result)
 
 			if tt.valid {
@@ -203,8 +199,6 @@ func TestPrintFormat(t *testing.T) {
 					t.Errorf("Expected error for invalid format %s", tt.format)
 				}
 			}
-
-			_ = old
 		})
 	}
 }

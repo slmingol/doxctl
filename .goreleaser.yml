@@ -126,23 +126,23 @@ docker_manifests:
       - "ghcr.io/slmingol/doxctl:{{ .Tag }}-amd64"
       - "ghcr.io/slmingol/doxctl:{{ .Tag }}-arm64"
 
-# Homebrew formula publishing disabled - requires PAT with repo scope
-# brews:
-#   - repository:
-#       owner: slmingol
-#       name: homebrew-tap
-#     directory: Formula
-#     homepage: https://www.github.com/slmingol/doxctl
-#     description: "Software to create fast and easy drum rolls."
-#     license: "MIT"
-#     commit_author:
-#       name: goreleaserbot
-#       email: goreleaser@lamolabs.org
-#     dependencies:
-#       - name: go
-#       - name: coreutils
-#     test: |
-#       system "#{bin}/doxctl"
-#     install: |
-#       bin.install "doxctl"
+brews:
+  - repository:
+      owner: slmingol
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Formula
+    homepage: https://www.github.com/slmingol/doxctl
+    description: "Diagnostic CLI tool for VPN & DNS connectivity troubleshooting"
+    license: "MIT"
+    commit_author:
+      name: goreleaserbot
+      email: goreleaser@lamolabs.org
+    dependencies:
+      - name: go
+      - name: coreutils
+    test: |
+      system "#{bin}/doxctl --version"
+    install: |
+      bin.install "doxctl"
 

@@ -179,6 +179,94 @@ docker pull ghcr.io/slmingol/doxctl:latest-amd64
 docker pull ghcr.io/slmingol/doxctl:latest-arm64
 ```
 
+# Configuration
+
+`doxctl` uses a YAML configuration file located at `$HOME/.doxctl.yaml` by default. You can specify a different location using the `-c` or `--config` flag.
+
+## Config Command
+
+The `config` command helps you manage your configuration file:
+
+```bash
+# Create an example configuration file
+doxctl config init
+
+# Display current configuration
+doxctl config show
+
+# Validate configuration file
+doxctl config validate
+```
+
+## Configuration Options
+
+### VPN Settings
+
+```yaml
+# Minimum number of VPN routes required (for vpnRoutesChk)
+minVpnRoutes: 5
+```
+
+### DNS Settings
+
+```yaml
+# Domain name checks (regex patterns)
+domNameChk: "bandwidth.local"
+domSearchChk: "[0-1].*bandwidth"
+domAddrChk: "[0-1].*10.5"
+
+# DNS dig probe servers
+domainName: "bandwidthclec.local"
+digProbeServerA: "idm-01a"
+digProbeServerB: "idm-01b"
+```
+
+### Multi-Datacenter Sites
+
+```yaml
+# List of sites for multi-datacenter health checks
+sites:
+  - lab1
+  - rdu1
+  - atl1
+  - dfw1
+  - lax2
+  - jfk1
+  - lhr1
+  - fra1
+```
+
+### Well-Known Services
+
+Define services and their server endpoints for connectivity and health checks:
+
+```yaml
+wellKnownSvcs:
+  - svc: openshift
+    svrs:
+      - ocp-master-01{a,b,c}.{lab1,rdu1,dfw1}.bandwidthclec.local
+  - svc: idm
+    svrs:
+      - idm-01{a,b}.{lab1,rdu1,dfw1,lax2,jfk1}.bandwidthclec.local
+```
+
+### Timeouts and Thresholds
+
+```yaml
+# Ping timeout in milliseconds
+pingTimeout: 250
+
+# DNS lookup timeout in milliseconds
+dnsLookupTimeout: 100
+
+# Failure threshold for connectivity checks
+failThreshold: 5
+```
+
+### Complete Example
+
+See [.doxctl.yaml.example](.doxctl.yaml.example) in the repository for a complete example configuration file.
+
 # Usage
 ## General
 ```

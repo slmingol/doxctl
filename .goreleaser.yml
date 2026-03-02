@@ -12,6 +12,7 @@ builds:
       - darwin
     goarch:
       - amd64
+      - arm64
 archives:
   - replacements:
       darwin: Darwin
@@ -45,6 +46,7 @@ dockers:
       - "--label=org.opencontainers.image.url={{ .GitURL }}"
       - "--label=org.opencontainers.image.version={{ .Version }}"
       - "--platform=linux/amd64"
+      - "--platform=linux/arm64"
 
 brews:
   - tap:

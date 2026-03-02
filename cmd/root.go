@@ -60,6 +60,7 @@ var (
 	cfgFile            string
 	verboseChk, allChk bool
 	conf               *config
+	outputFormat       string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -91,6 +92,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.doxctl.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&verboseChk, "verbose", "v", false, "Enable verbose output of commands")
+	rootCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", "table", "Output format: table, json, yaml")
 
 	if err := viper.BindPFlags(rootCmd.PersistentFlags()); err != nil {
 		fmt.Printf("error reading flags: %s\n", err)

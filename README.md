@@ -202,6 +202,8 @@ Usage:
 Available Commands:
   dns         Run diagnostics related to DNS servers (aka. resolvers) configurations
   help        Help about any command
+  net         Network performance testing and SLO validation
+  svcs        Service-level health checks for multi-datacenter endpoints
   svrs        Run diagnostics verifying connectivity to well known servers thru a VPN connection
   vpn         Run diagnostics related to VPN connections, network interfaces & configurations
 
@@ -213,6 +215,218 @@ Flags:
 
 Use "doxctl [command] --help" for more information about a command.
 ```
+
+------------------------------------------------------------------------------
+
+## NET
+```
+$ doxctl net -h
+
+Test network connectivity and performance against defined SLO thresholds.
+
+This command measures:
+  - Average, minimum, and maximum latency
+  - Jitter (latency variance)
+  - Packet loss percentage
+  - SLO compliance (latency threshold)
+
+Examples:
+  # Test network performance to configured targets
+  doxctl net --perf
+
+  # Set custom SLO threshold (default: 50ms)
+  doxctl net --perf --slo 100
+
+  # Specify number of packets to send (default: 10)
+  doxctl net --perf --packets 20
+
+Usage:
+  doxctl net [flags]
+
+Flags:
+  -h, --help          help for net
+  -n, --packets int   Number of packets to send (default 10)
+  -p, --perf          Run network performance tests
+  -s, --slo float     SLO threshold in milliseconds (default 50)
+
+Global Flags:
+  -c, --config string   config file (default is $HOME/.doxctl.yaml)
+  -o, --output string   Output format: table, json, yaml (default "table")
+  -v, --verbose         Enable verbose output of commands
+```
+
+### Example Output
+
+#### Network Performance Check
+
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+##### With Good Performance
+```
+$ doxctl net --perf
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ Network Performance & SLO Validation                                            │
+├───────────────────────┬──────────┬──────────┬──────────┬─────────────┬────────┬─────────┬────────┤
+│ TARGET                │ AVG (MS) │ MIN (MS) │ MAX (MS) │ JITTER (MS) │ LOSS % │ SLO     │ STATUS │
+├───────────────────────┼──────────┼──────────┼──────────┼─────────────┼────────┼─────────┼────────┤
+│ lab1.example.com      │ 12.50    │ 10.20    │ 15.80    │ 1.20        │ 0.0    │ 50 ms   │ ✓ PASS │
+│ rdu1.example.com      │ 18.30    │ 15.10    │ 22.50    │ 2.10        │ 0.0    │ 50 ms   │ ✓ PASS │
+│ dfw1.example.com      │ 45.20    │ 42.00    │ 48.90    │ 1.80        │ 0.0    │ 50 ms   │ ✓ PASS │
+└───────────────────────┴──────────┴──────────┴──────────┴─────────────┴────────┴─────────┴────────┘
+
+Summary: 3/3 targets meeting SLO (100.0% success rate)
+```
+
+##### With Performance Issues
+```
+$ doxctl net --perf
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│ Network Performance & SLO Validation                                            │
+├───────────────────────┬──────────┬──────────┬──────────┬─────────────┬────────┬─────────┬────────┤
+│ TARGET                │ AVG (MS) │ MIN (MS) │ MAX (MS) │ JITTER (MS) │ LOSS % │ SLO     │ STATUS │
+├───────────────────────┼──────────┼──────────┼──────────┼─────────────┼────────┼─────────┼────────┤
+│ lab1.example.com      │ 12.50    │ 10.20    │ 15.80    │ 1.20        │ 0.0    │ 50 ms   │ ✓ PASS │
+│ rdu1.example.com      │ 85.40    │ 78.10    │ 95.20    │ 5.30        │ 2.5    │ 50 ms   │ ✗ FAIL │
+│ dfw1.example.com      │ 45.20    │ 42.00    │ 48.90    │ 1.80        │ 8.0    │ 50 ms   │ ✗ FAIL │
+└───────────────────────┴──────────┴──────────┴──────────┴─────────────┴────────┴─────────┴────────┘
+
+Summary: 1/3 targets meeting SLO (33.3% success rate)
+```
+
+##### JSON Output
+```
+$ doxctl net --perf -o json
+
+{
+  "timestamp": "2026-03-02T10:30:00Z",
+  "results": [
+    {
+      "timestamp": "2026-03-02T10:30:00Z",
+      "target": "lab1.example.com",
+      "avgLatencyMs": 12.5,
+      "minLatencyMs": 10.2,
+      "maxLatencyMs": 15.8,
+      "jitterMs": 1.2,
+      "packetLoss": 0.0,
+      "meetsSLO": true,
+      "sloThreshold": 50.0
+    }
+  ],
+  "summary": {
+    "totalTargets": 1,
+    "passing": 1,
+    "failing": 0
+  }
+}
+```
+</p>
+</details>
+
+------------------------------------------------------------------------------
+
+## SVCS
+```
+$ doxctl svcs -h
+
+Check the health and availability of services across multiple datacenters.
+
+This command performs HTTP/HTTPS health checks on service endpoints and measures:
+  - Response time
+  - HTTP status codes
+  - Service availability
+  - Multi-datacenter service health
+
+Examples:
+  # Check health of all configured services
+  doxctl svcs --health
+
+  # Set custom timeout (default: 5 seconds)
+  doxctl svcs --health --timeout 10
+
+  # Skip TLS verification for self-signed certificates
+  doxctl svcs --health --insecure
+
+Usage:
+  doxctl svcs [flags]
+
+Flags:
+  -H, --health        Run service health checks
+  -h, --help          help for svcs
+  -k, --insecure      Skip TLS certificate verification
+  -t, --timeout int   HTTP request timeout in seconds (default 5)
+
+Global Flags:
+  -c, --config string   config file (default is $HOME/.doxctl.yaml)
+  -o, --output string   Output format: table, json, yaml (default "table")
+  -v, --verbose         Enable verbose output of commands
+```
+
+### Example Output
+
+#### Service Health Checks
+
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+##### All Services Healthy
+```
+$ doxctl svcs --health
+
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│ Service Health Checks                                                                    │
+├───────────┬───────────────────────────────────────────────┬─────────────┬──────────────┬───────────┬───────┤
+│ SERVICE   │ ENDPOINT                                      │ STATUS CODE │ RESPONSE (MS)│ STATUS    │ ERROR │
+├───────────┼───────────────────────────────────────────────┼─────────────┼──────────────┼───────────┼───────┤
+│ openshift │ https://ocp-master-01a.lab1.example.com:6443  │ 200         │ 45.23        │ ✓ Healthy │       │
+│ openshift │ https://ocp-master-01b.rdu1.example.com:6443  │ 200         │ 32.18        │ ✓ Healthy │       │
+│ elastic   │ https://es-master-01a.lab1.example.com:6443   │ 200         │ 28.45        │ ✓ Healthy │       │
+│ elastic   │ https://es-master-01b.rdu1.example.com:6443   │ 200         │ 22.91        │ ✓ Healthy │       │
+└───────────┴───────────────────────────────────────────────┴─────────────┴──────────────┴───────────┴───────┘
+
+Summary: 4/4 services healthy (100.0% availability)
+```
+
+##### With Service Failures
+```
+$ doxctl svcs --health
+
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Service Health Checks                                                                            │
+├───────────┬───────────────────────────────────────────────┬─────────────┬──────────────┬──────────┬──────────────────────┤
+│ SERVICE   │ ENDPOINT                                      │ STATUS CODE │ RESPONSE (MS)│ STATUS   │ ERROR                │
+├───────────┼───────────────────────────────────────────────┼─────────────┼──────────────┼──────────┼──────────────────────┤
+│ openshift │ https://ocp-master-01a.lab1.example.com:6443  │ 200         │ 45.23        │ ✓ Healthy│                      │
+│ openshift │ https://ocp-master-01b.rdu1.example.com:6443  │ -           │ -            │ ✗ Failed │ connection refused   │
+│ elastic   │ https://es-master-01a.lab1.example.com:6443   │ 503         │ 125.40       │ ✗ Failed │                      │
+│ elastic   │ https://es-master-01b.rdu1.example.com:6443   │ 200         │ 22.91        │ ✓ Healthy│                      │
+└───────────┴───────────────────────────────────────────────┴─────────────┴──────────────┴──────────┴──────────────────────┘
+
+Summary: 2/4 services healthy (50.0% availability)
+```
+
+##### YAML Output
+```
+$ doxctl svcs --health -o yaml
+
+timestamp: 2026-03-02T10:35:00Z
+results:
+  - timestamp: 2026-03-02T10:35:00Z
+    service: openshift
+    endpoint: https://ocp-master-01a.lab1.example.com:6443/healthz
+    responseTimeMs: 45.23
+    statusCode: 200
+    healthy: true
+    error: ""
+summary:
+  total: 1
+  healthy: 1
+  failed: 0
+```
+</p>
+</details>
 
 ------------------------------------------------------------------------------
 

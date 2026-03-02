@@ -180,7 +180,7 @@ func dnsResolverPingChk() {
 		var pingReachable, tcpReachable, udpReachable bool
 		var netInterface string
 
-		pinger, pingErr := ping.NewPinger(ip)
+		pinger, _ := ping.NewPinger(ip)
 		pinger.Count = 1
 		pinger.Timeout = 30 * time.Second
 		err := pinger.Run()
@@ -189,8 +189,6 @@ func dnsResolverPingChk() {
 		} else {
 			pingReachable = true
 		}
-
-		_ = pingErr // Suppress unused variable warning
 
 		resChk = resolverChk{resolverIP: ip, pingReachable: pingReachable}
 

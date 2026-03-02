@@ -1,10 +1,10 @@
 ![dox logo](https://github.com/slmingol/doxctl/blob/main/imgs/whats_up_dox__banner.png?raw=true)
 
-[![Build & Release](https://github.com/slmingol/doxctl/actions/workflows/build-release.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/build-release.yml)
-[![CodeQL](https://github.com/slmingol/doxctl/actions/workflows/codeql.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/codeql.yml)
-[![Lint](https://github.com/slmingol/doxctl/actions/workflows/lint.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/lint.yml)
-[![Code Coverage](https://github.com/slmingol/doxctl/actions/workflows/codecoverage.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/codecoverage.yml)
-[![Security Scan](https://github.com/slmingol/doxctl/actions/workflows/security-scan.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/security-scan.yml)
+[![Build & Release](https://github.com/slmingol/doxctl/actions/workflows/build-release.yml/badge.svg?branch=main)](https://github.com/slmingol/doxctl/actions/workflows/build-release.yml)
+[![CodeQL](https://github.com/slmingol/doxctl/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/slmingol/doxctl/actions/workflows/codeql.yml)
+[![Lint](https://github.com/slmingol/doxctl/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/slmingol/doxctl/actions/workflows/lint.yml)
+[![Code Coverage](https://github.com/slmingol/doxctl/actions/workflows/codecoverage.yml/badge.svg?branch=main)](https://github.com/slmingol/doxctl/actions/workflows/codecoverage.yml)
+[![Security Scan](https://github.com/slmingol/doxctl/actions/workflows/security-scan.yml/badge.svg?branch=main)](https://github.com/slmingol/doxctl/actions/workflows/security-scan.yml)
 
 # TLDR
 `doxctl` is a diagnostic CLI tool that endusers can use to triage connectivity problems stemming from their VPN & DNS setups on their laptops. It can help with the following areas:

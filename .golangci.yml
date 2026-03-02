@@ -15,17 +15,18 @@ linters:
     - gosec         # Security issues
 
 linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-    exclude-functions:
-      - io/ioutil.ReadFile
-      - io.Copy
-      - (io.ReadCloser).Close
-      - (io.WriteCloser).Close
-      - (*os.File).Close
-      - (*cobra.Command).Usage
-      - doxctl/internal/output.Print
+  # errcheck settings commented out while linter is disabled
+  # errcheck:
+  #   check-type-assertions: true
+  #   check-blank: true
+  #   exclude-functions:
+  #     - io/ioutil.ReadFile
+  #     - io.Copy
+  #     - (io.ReadCloser).Close
+  #     - (io.WriteCloser).Close
+  #     - (*os.File).Close
+  #     - (*cobra.Command).Usage
+  #     - doxctl/internal/output.Print
   govet:
     enable-all: true
   revive:

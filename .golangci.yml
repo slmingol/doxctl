@@ -66,3 +66,8 @@ issues:
     - linters:
         - errcheck
       path: "_test\\.go"
+    # Relax gosec error checking in test files
+    - linters:
+        - gosec
+      text: "G104:"
+      path: "_test\\.go"

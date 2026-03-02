@@ -79,7 +79,7 @@ func svrsExecute(cmd *cobra.Command, args []string) {
 	case allChk:
 		svrsReachChk()
 	default:
-		cmd.Usage()
+		_ = cmd.Usage()
 		fmt.Printf("\n\n\n")
 		os.Exit(1)
 	}
@@ -142,7 +142,7 @@ func svrsReachChk() {
 				pinger.Timeout = conf.PingTimeout * time.Millisecond
 				pOut := make(chan *ping.Statistics)
 				go func(p *ping.Pinger, s chan *ping.Statistics) {
-					p.Run()
+					_ = p.Run()
 					s <- p.Statistics()
 				}(pinger, pOut)
 				stats := <-pOut

@@ -49,7 +49,7 @@ func TestDnsCmd(t *testing.T) {
 // TestDnsCmdFlags tests that dns command has expected flags
 func TestDnsCmdFlags(t *testing.T) {
 	expectedFlags := []string{"resolverChk", "pingChk", "digChk", "allChk"}
-	
+
 	for _, flagName := range expectedFlags {
 		flag := dnsCmd.Flags().Lookup(flagName)
 		if flag == nil {

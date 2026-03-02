@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # See: https://goreleaser.com/ci/actions/
 
@@ -27,14 +27,14 @@ jobs:
         id: go
 
       - name: Docker Login (ghcr.io)
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
 
       - name: Docker Login (dockerhub)
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GO_RELEASER_DOCKERHUB_TOKEN }}

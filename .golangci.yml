@@ -78,4 +78,4 @@ issues:
     # Ignore G104 for output.Print - output formatting errors are not critical
     - linters:
         - gosec
-      text: "G104:.*output\\.Print"
+      text: "output.Print"

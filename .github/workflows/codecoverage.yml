@@ -32,7 +32,7 @@ jobs:
         go install golang.org/x/vuln/cmd/govulncheck@latest
         govulncheck ./...
     - name: Report coverage
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v4
       with:
         file: coverage.txt
         fail_ci_if_error: true

@@ -33,11 +33,9 @@ echo -e "${GREEN}✓ VPN Connected${NC}"
 
 # Extract DNS configuration
 SEARCH_DOMAIN=$(scutil --dns | grep "search domain\[0\]" | head -1 | sed 's/.*: //')
-DOMAIN=$(scutil --dns | grep "domain " | head -1 | awk '{print $3}')
 
 echo "  DNS Servers: $(echo $VPN_DNS | tr '\n' ', ' | sed 's/,$//')"
 echo "  Search Domain: ${SEARCH_DOMAIN:-none}"
-echo "  Domain: ${DOMAIN:-none}"
 echo
 
 # Create resolv.conf for container
@@ -45,7 +43,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESOLV_FILE="$SCRIPT_DIR/resolv.conf.vpn"
 
 cat > "$RESOLV_FILE" <<EOF
-domain ${DOMAIN:-local}
+domain ${SEARCH_DOMAIN:-local}
 search ${SEARCH_DOMAIN:-local}
 $(echo "$VPN_DNS" | while read dns; do echo "nameserver $dns"; done)
 EOF

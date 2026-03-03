@@ -87,6 +87,10 @@ Examples:
 	Run: func(cmd *cobra.Command, args []string) {
 		if allChk || netPerfChk {
 			netPerformanceCheck()
+		} else {
+			_ = cmd.Usage()
+			fmt.Printf("\n")
+			os.Exit(1)
 		}
 	},
 }
@@ -114,10 +118,13 @@ func netPerformanceCheckWithDeps(config *config, sloMs float64, packetCount int,
 	// Get targets from config (use sites as network targets)
 	targets := config.Sites
 	if len(targets) == 0 {
-		fmt.Println("No network targets configured in 'sites'")
+		fmt.Println("")
+		fmt.Printf("\033[1;33mWARNING:\033[0m No network targets configured in 'sites'\n")
+		fmt.Printf("Please add sites to your configuration file to run network performance tests.\n")
 		return
 	}
 
+	var pingerErrors int
 	// Test each target
 	for _, target := range targets {
 		// Create a ping target (e.g., site1.bandwidthclec.local)
@@ -125,7 +132,8 @@ func netPerformanceCheckWithDeps(config *config, sloMs float64, packetCount int,
 
 		pinger, err := pingerFactory(pingTarget)
 		if err != nil {
-			// Skip this target
+			// Track pinger creation errors
+			pingerErrors++
 			continue
 		}
 
@@ -162,6 +170,27 @@ func netPerformanceCheckWithDeps(config *config, sloMs float64, packetCount int,
 	}
 
 	result.Summary.TotalTargets = len(result.Results)
+
+	// Check if no results were generated
+	if len(result.Results) == 0 {
+		fmt.Println("")
+		fmt.Printf("\033[1;31mERROR:\033[0m Unable to run network performance tests\n\n")
+		if pingerErrors > 0 {
+			fmt.Printf("Failed to create ping instances for all %d target(s).\n", pingerErrors)
+			fmt.Printf("\033[1;33mCommon causes:\033[0m\n")
+			fmt.Printf("  • Running in container without CAP_NET_RAW capability\n")
+			fmt.Printf("  • Insufficient permissions to create raw sockets\n")
+			fmt.Printf("  • Network isolation preventing ICMP packets\n\n")
+			fmt.Printf("\033[1;36mSolutions:\033[0m\n")
+			fmt.Printf("  • Run container with: --cap-add=CAP_NET_RAW\n")
+			fmt.Printf("  • Or run with: --privileged (less secure)\n")
+			fmt.Printf("  • Or run doxctl directly on the host (not in container)\n")
+		} else {
+			fmt.Printf("No targets responded to ping requests.\n")
+		}
+		fmt.Println()
+		return
+	}
 
 	// Output results
 	switch outputFormat {

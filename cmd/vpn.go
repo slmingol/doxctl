@@ -109,7 +109,7 @@ func vpnExecute(cmd *cobra.Command, args []string) {
 		vpnConnChk()
 	default:
 		_ = cmd.Usage()
-		fmt.Printf("\n\n\n")
+		fmt.Printf("\n")
 		os.Exit(1)
 	}
 }
@@ -121,6 +121,62 @@ func ifReachChk() {
 
 // ifReachChkWithDeps allows dependency injection for testing
 func ifReachChkWithDeps(executor CommandExecutor) {
+	// Check if running in container with host VPN data
+	hostIfCount := os.Getenv("HOST_VPN_IF_COUNT")
+	hostNetIfs := os.Getenv("HOST_VPN_NET_IFS")
+	hostHasTun := os.Getenv("HOST_VPN_HAS_TUN")
+	hostTunIfs := os.Getenv("HOST_VPN_TUN_IFS")
+	hostAllReachable := os.Getenv("HOST_VPN_ALL_IFS_REACHABLE")
+
+	if hostIfCount != "" {
+		// Use host-provided data
+		ifCount, _ := strconv.Atoi(hostIfCount)
+		netIfs := strings.Fields(hostNetIfs)
+		foundOneTunIf := (hostHasTun == "true")
+		tunIfs := strings.Fields(hostTunIfs)
+		allInfsReachable := (hostAllReachable == "true")
+
+		// For JSON/YAML output
+		if outputFormat != "table" {
+			result := output.VPNInterfaceCheckResult{
+				Timestamp:              time.Now(),
+				InterfaceCount:         ifCount,
+				Interfaces:             netIfs,
+				HasTunInterface:        foundOneTunIf,
+				TunInterfaces:          tunIfs,
+				AllInterfacesReachable: allInfsReachable,
+			}
+			output.Print(outputFormat, result)
+			return
+		}
+
+		// Table output
+		t := table.NewWriter()
+		t.SetTitle("Interfaces Reachable Checks")
+		t.SetOutputMirror(os.Stdout)
+		t.SetStyle(table.StyleLight)
+		t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
+		t.AppendRow([]interface{}{"How many network interfaces found?", ifCount, netIfs})
+		t.AppendRow([]interface{}{"At least 1 interface's a utun device?", foundOneTunIf, tunIfs})
+		t.AppendRow([]interface{}{"All active interfaces are reporting as reachable?", allInfsReachable})
+		t.AppendSeparator()
+		t.SetColumnConfigs([]table.ColumnConfig{
+			{Number: 1, WidthMin: 50},
+			{Number: 2, WidthMin: 30},
+		})
+		t.Render()
+
+		if len(tunIfs) < 1 {
+			fmt.Println("")
+			color.Warn.Tips(`
+
+   Your VPN client does not appear to be defining a TUN interface properly,
+   your VPN is either not connected or it's misconfigured!`)
+		}
+		return
+	}
+
+	// Original logic for non-container execution
 	cmdBase := `scutil --nwi`
 
 	output1, err := executor.Execute("bash", "-c", cmdBase+" | grep 'Network interfaces:' | cut -d\" \" -f 3-")
@@ -192,8 +248,6 @@ func ifReachChkWithDeps(executor CommandExecutor) {
    Your VPN client does not appear to be defining a TUN interface properly,
    your VPN is either not connected or it's misconfigured!`)
 	}
-
-	fmt.Printf("\n\n\n")
 }
 
 // Test if VPNs interface defines at least MinVpnRoutes routes
@@ -203,6 +257,53 @@ func vpnRteChk() {
 
 // vpnRteChkWithDeps allows dependency injection for testing
 func vpnRteChkWithDeps(executor CommandExecutor) {
+	// Check if running in container with host VPN data
+	hostVpnIf := os.Getenv("HOST_VPN_INTERFACE")
+	hostRouteCount := os.Getenv("HOST_VPN_ROUTE_COUNT")
+
+	if hostVpnIf != "" && hostRouteCount != "" {
+		// Use host-provided data
+		vpnIf := hostVpnIf
+		vpnRouteCnt, _ := strconv.Atoi(hostRouteCount)
+
+		// For JSON/YAML output
+		if outputFormat != "table" {
+			result := output.VPNRoutesCheckResult{
+				Timestamp:           time.Now(),
+				VPNInterface:        vpnIf,
+				RouteCount:          vpnRouteCnt,
+				MinRoutesRequired:   conf.MinVpnRoutes,
+				HasSufficientRoutes: vpnRouteCnt >= conf.MinVpnRoutes,
+			}
+			output.Print(outputFormat, result)
+			return
+		}
+
+		// Table output
+		t := table.NewWriter()
+		t.SetTitle("VPN Interface Route Checks")
+		t.SetOutputMirror(os.Stdout)
+		t.SetStyle(table.StyleLight)
+		t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
+		t.AppendRow([]interface{}{fmt.Sprintf("At least [%d] routes using interface [%s]?", conf.MinVpnRoutes, vpnIf), vpnRouteCnt >= conf.MinVpnRoutes, vpnRouteCnt})
+		t.AppendSeparator()
+		t.SetColumnConfigs([]table.ColumnConfig{
+			{Number: 1, WidthMin: 50},
+			{Number: 2, WidthMin: 30},
+		})
+		t.Render()
+
+		if vpnRouteCnt < conf.MinVpnRoutes {
+			fmt.Println("")
+			color.Warn.Tips(`
+
+   Your VPN client does not appear to be defining a TUN interface properly,
+   it's either not connected or it's misconfigured!`)
+		}
+		return
+	}
+
+	// Original logic for non-container execution
 	output1, err := executor.Execute("bash", "-c", "scutil --nwi | grep 'Network interfaces:' | grep -o utun[0-9] || echo \"NIL\"")
 	if err != nil {
 		output1 = []byte("NIL")
@@ -251,8 +352,6 @@ func vpnRteChkWithDeps(executor CommandExecutor) {
    Your VPN client does not appear to be defining a TUN interface properly,
    it's either not connected or it's misconfigured!`)
 	}
-
-	fmt.Printf("\n\n\n")
 }
 
 // Test if VPN connection status reports as 'connected'
@@ -262,6 +361,51 @@ func vpnConnChk() {
 
 // vpnConnChkWithDeps allows dependency injection for testing
 func vpnConnChkWithDeps(executor CommandExecutor) {
+	// Check if running in container with host VPN data
+	hostVpnConnected := os.Getenv("HOST_VPN_CONNECTED")
+
+	if hostVpnConnected != "" {
+		// Use host-provided data
+		vpnConnStatus := 0
+		if hostVpnConnected == "true" {
+			vpnConnStatus = 1
+		}
+
+		// For JSON/YAML output
+		if outputFormat != "table" {
+			result := output.VPNConnectionStatusResult{
+				Timestamp:   time.Now(),
+				IsConnected: vpnConnStatus > 0,
+			}
+			output.Print(outputFormat, result)
+			return
+		}
+
+		// Table output
+		t := table.NewWriter()
+		t.SetTitle("VPN Connection Status Checks")
+		t.SetOutputMirror(os.Stdout)
+		t.SetStyle(table.StyleLight)
+		t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
+		t.AppendRow([]interface{}{"VPN Client reports connection status as 'Connected'?", vpnConnStatus > 0})
+		t.AppendSeparator()
+		t.SetColumnConfigs([]table.ColumnConfig{
+			{Number: 1, WidthMin: 50},
+			{Number: 2, WidthMin: 30},
+		})
+		t.Render()
+
+		if vpnConnStatus == 0 {
+			fmt.Println("")
+			color.Warn.Tips(`
+
+   Your VPN client's does not appear to be a state of 'connected',
+   it's either down or misconfigured!`)
+		}
+		return
+	}
+
+	// Original logic for non-container execution
 	cmdBase := `/opt/cisco/anyconnect/bin/vpn`
 	if runtime.GOOS == "linux" {
 		cmdBase = `/opt/cisco/anyconnect/bin/vpnui`
@@ -305,6 +449,4 @@ func vpnConnChkWithDeps(executor CommandExecutor) {
    Your VPN client's does not appear to be a state of 'connected',
    it's either down or misconfigured!`)
 	}
-
-	fmt.Printf("\n\n\n")
 }

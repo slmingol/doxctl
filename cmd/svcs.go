@@ -28,11 +28,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"doxctl/internal/output"
 
-	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -92,6 +92,10 @@ Examples:
 	Run: func(cmd *cobra.Command, args []string) {
 		if allChk || svcsHealthChk {
 			serviceHealthCheck()
+		} else {
+			_ = cmd.Usage()
+			fmt.Printf("\n")
+			os.Exit(1)
 		}
 	},
 }
@@ -126,19 +130,35 @@ func serviceHealthCheckWithDeps(config *config, client HTTPClient) {
 
 	// Iterate through configured services
 	for _, svc := range config.Svcs {
+		// Default port to 6443 if not specified
+		port := svc.Port
+		if port == 0 {
+			port = 6443
+		}
+
+		// Default path to /healthz if not specified
+		path := svc.Path
+		if path == "" {
+			path = "/healthz"
+		}
+
 		// For each server in the service
 		for _, svr := range svc.Svrs {
-			// Construct service endpoint URL
-			// Assuming OpenShift API endpoint pattern
-			endpoint := fmt.Sprintf("https://%s:6443/healthz", svr)
+			// Expand brace expressions - handle nested braces by calling expand multiple times
+			expanded := expandBraces(svr)
 
-			healthResult := checkServiceEndpoint(svc.Svc, endpoint, client)
-			result.Results = append(result.Results, healthResult)
+			for _, expandedSvr := range expanded {
+				// Construct service endpoint URL
+				endpoint := fmt.Sprintf("https://%s:%d%s", expandedSvr, port, path)
 
-			if healthResult.Healthy {
-				result.Summary.Healthy++
-			} else {
-				result.Summary.Failed++
+				healthResult := checkServiceEndpoint(svc.Svc, endpoint, client)
+				result.Results = append(result.Results, healthResult)
+
+				if healthResult.Healthy {
+					result.Summary.Healthy++
+				} else {
+					result.Summary.Failed++
+				}
 			}
 		}
 	}
@@ -154,6 +174,55 @@ func serviceHealthCheckWithDeps(config *config, client HTTPClient) {
 	default:
 		printSvcHealthTable(result)
 	}
+}
+
+// expandBraces recursively expands nested brace expressions
+func expandBraces(s string) []string {
+	// Find first opening brace
+	start := strings.Index(s, "{")
+	if start == -1 {
+		// No braces, return as-is
+		return []string{s}
+	}
+
+	// Find matching closing brace
+	depth := 0
+	end := -1
+	for i := start; i < len(s); i++ {
+		if s[i] == '{' {
+			depth++
+		} else if s[i] == '}' {
+			depth--
+			if depth == 0 {
+				end = i
+				break
+			}
+		}
+	}
+
+	if end == -1 {
+		// No matching brace, return as-is
+		return []string{s}
+	}
+
+	// Extract the options between braces
+	options := strings.Split(s[start+1:end], ",")
+	prefix := s[:start]
+	suffix := s[end+1:]
+
+	// Expand this level
+	var results []string
+	for _, opt := range options {
+		results = append(results, prefix+opt+suffix)
+	}
+
+	// Recursively expand each result (for nested braces)
+	var finalResults []string
+	for _, r := range results {
+		finalResults = append(finalResults, expandBraces(r)...)
+	}
+
+	return finalResults
 }
 
 // checkServiceEndpoint performs a single health check against an endpoint
@@ -194,56 +263,72 @@ func checkServiceEndpoint(serviceName, endpoint string, client HTTPClient) svcHe
 }
 
 func printSvcHealthTable(result svcHealthOutput) {
-	fmt.Println()
+	// Table headers - compact version
+	headers := []string{"Service", "Endpoint", "Status", "Response (ms)"}
+	if verboseChk {
+		headers = append(headers, "Error")
+	}
 
-	t := table.NewWriter()
-	t.SetTitle("Service Health Checks")
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
-	t.AppendHeader(table.Row{"Service", "Endpoint", "Status Code", "Response (ms)", "Status", "Error"})
-
+	var rows [][]string
 	for _, r := range result.Results {
-		status := "✓ Healthy"
+		// Status icon
+		status := "✓"
 		if !r.Healthy {
-			status = "✗ Failed"
+			status = "✗"
 		}
 
-		statusCodeStr := "-"
-		if r.StatusCode > 0 {
-			statusCodeStr = fmt.Sprintf("%d", r.StatusCode)
-		}
-
+		// Response time
 		responseTimeStr := "-"
 		if r.ResponseTimeMs > 0 {
 			responseTimeStr = fmt.Sprintf("%.2f", r.ResponseTimeMs)
 		}
 
-		errorStr := ""
-		if r.Error != "" {
-			// Trim long error messages
-			if len(r.Error) > 40 {
-				errorStr = r.Error[:37] + "..."
-			} else {
-				errorStr = r.Error
-			}
+		// Extract hostname:port from endpoint URL (remove protocol and path)
+		host := r.Endpoint
+		// Remove https:// or http:// prefix
+		if strings.HasPrefix(host, "https://") {
+			host = host[8:]
+		} else if strings.HasPrefix(host, "http://") {
+			host = host[7:]
+		}
+		// Remove path (keep hostname:port)
+		if idx := strings.Index(host, "/"); idx != -1 {
+			host = host[:idx]
 		}
 
-		t.AppendRow([]interface{}{
+		row := []string{
 			r.Service,
-			r.Endpoint,
-			statusCodeStr,
-			responseTimeStr,
+			host,
 			status,
-			errorStr,
-		})
+			responseTimeStr,
+		}
+
+		// Add error column only in verbose mode
+		if verboseChk {
+			errorStr := ""
+			if r.Error != "" {
+				// In verbose mode, show more of the error (truncate at 120 chars)
+				if len(r.Error) > 120 {
+					errorStr = r.Error[:117] + "..."
+				} else {
+					errorStr = r.Error
+				}
+			}
+			row = append(row, errorStr)
+		}
+
+		rows = append(rows, row)
 	}
 
-	t.Render()
+	fmt.Print(createStyledTable(headers, rows, "Service Health Checks (HTTPS)"))
 
 	// Print summary
-	fmt.Printf("\nSummary: %d/%d services healthy (%.1f%% availability)\n",
+	availability := 0.0
+	if result.Summary.Total > 0 {
+		availability = float64(result.Summary.Healthy) / float64(result.Summary.Total) * 100
+	}
+	fmt.Printf("\nSummary: %d/%d services healthy (%.1f%% availability)\n\n",
 		result.Summary.Healthy,
 		result.Summary.Total,
-		float64(result.Summary.Healthy)/float64(result.Summary.Total)*100)
-	fmt.Println()
+		availability)
 }

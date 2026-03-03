@@ -245,7 +245,10 @@ sites:
 #   - svcs: Service health checks (HTTP/HTTPS endpoint checks)
 # 
 # For svcs command, health endpoints are checked at:
-#   https://<server>:6443/healthz (OpenShift API pattern)
+#   https://<server>:<port><path>
+# 
+# Port defaults to 6443 if not specified (OpenShift API pattern)
+# Path defaults to /healthz if not specified
 # 
 # Use brace expansion for multiple servers:
 #   {a,b,c} expands to: a, b, c
@@ -253,15 +256,21 @@ sites:
 wellKnownSvcs:
   - 
     svc: openshift
+    port: 6443
+    path: /healthz
     svrs:
       - ocp-master-01{a,b,c}.{lab1,rdu1,dfw1,lax2,jfk1}.bandwidthclec.local
       - ocp-master-01{a,b,c}.{lhr1,fra1}.bwnet.us
   - 
     svc: elastic
+    port: 9200
+    path: /_cluster/health
     svrs:
       - es-master-01{a,b,c}.{lab1,rdu1}.bandwidthclec.local
   - 
     svc: idm
+    port: 443
+    path: /ipa/ui/
     svrs:
       - idm-01{a,b}.{lab1,rdu1,dfw1,lax2,jfk1}.bandwidthclec.local
       - idm-01{a,b}.{lhr1,fra1}.bwnet.us

@@ -179,6 +179,17 @@ docker pull ghcr.io/slmingol/doxctl:latest-amd64
 docker pull ghcr.io/slmingol/doxctl:latest-arm64
 ```
 
+### Running on macOS with VPN
+
+When running `doxctl` in containers on macOS, VPN DNS settings require special handling because containers run in a Linux VM that cannot access macOS network APIs. We provide a wrapper script that automatically extracts your macOS VPN DNS configuration and passes it to the container.
+
+For detailed instructions, see [MACOS.md](MACOS.md).
+
+```bash
+# Quick start with the wrapper
+./doxctl-container dns -a
+```
+
 # Configuration
 
 `doxctl` uses a YAML configuration file located at `$HOME/.doxctl.yaml` by default. You can specify a different location using the `-c` or `--config` flag.

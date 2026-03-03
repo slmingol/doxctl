@@ -62,7 +62,7 @@ func RunWithSpinner(message string, fn func() error) error {
 	}
 
 	// ASCII spinner frames
-	frames := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+	frames := []string{"█", "▓", "▒", "░", " ", "░", "▒", "▓"}
 
 	// Track whether to stop the spinner
 	var wg sync.WaitGroup

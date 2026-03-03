@@ -36,6 +36,8 @@ Use the `doxctl-container` wrapper script which:
 ./doxctl-container dns -a
 ```
 
+**Note:** The full test suite (`-a` flag) performs connectivity checks (ping, TCP/UDP) and DNS resolution for all configured hosts, which can take 30-60 seconds to complete. The tool is working - please be patient while tests run.
+
 ### Example Output
 
 ```

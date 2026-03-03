@@ -31,11 +31,10 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"doxctl/internal/output"
 
-	"github.com/gookit/color"
-	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/lixiangzhong/dnsutil"
 	"github.com/miekg/dns"
 	"github.com/spf13/cobra"
@@ -47,6 +46,133 @@ var (
 )
 
 const dnsPort = 53
+
+type tableData struct {
+	headers []string
+	rows    [][]string
+}
+
+// createStyledTable creates a table with Ocean theme colors
+func createStyledTable(headers []string, rows [][]string, title string) string {
+	return createStyledTableWithSeparators(headers, rows, title, nil)
+}
+
+// createStyledTableWithSeparators creates a table with optional row separators
+func createStyledTableWithSeparators(headers []string, rows [][]string, title string, separatorAfter []int) string {
+	var output strings.Builder
+
+	// Title bar with Ocean theme - Sky blue text on deep blue background
+	output.WriteString("\n\033[38;2;135;206;250;48;2;0;0;139;1m " + title + " \033[0m\n")
+
+	// Calculate column widths with extra padding
+	colWidths := make([]int, len(headers))
+	for i, h := range headers {
+		colWidths[i] = utf8.RuneCountInString(h)
+	}
+	for _, row := range rows {
+		for i, cell := range row {
+			if i < len(colWidths) && utf8.RuneCountInString(cell) > colWidths[i] {
+				colWidths[i] = utf8.RuneCountInString(cell)
+			}
+		}
+	}
+	// Add modest padding to make tables readable, but cap at max width
+	for i := range colWidths {
+		padding := colWidths[i] / 10 // 10% padding instead of 20%
+		if padding < 2 {
+			padding = 2
+		}
+		colWidths[i] += padding
+
+		// Cap column width at 45 characters to prevent excessive wrapping
+		if colWidths[i] > 45 {
+			colWidths[i] = 45
+		}
+	}
+
+	// Ocean theme ANSI RGB colors
+	borderColor := "\033[38;2;0;128;128m"   // Teal borders
+	headerColor := "\033[38;2;0;255;255;1m" // Bright cyan bold headers
+	cellColor := "\033[38;2;211;211;211m"   // Light gray text
+	reset := "\033[0m"
+
+	// Top border
+	output.WriteString(borderColor + "╭")
+	for i, w := range colWidths {
+		output.WriteString(strings.Repeat("─", w+2))
+		if i < len(colWidths)-1 {
+			output.WriteString("┬")
+		}
+	}
+	output.WriteString("╮" + reset + "\n")
+
+	// Headers
+	output.WriteString(borderColor + "│" + reset)
+	for i, h := range headers {
+		paddingNeeded := colWidths[i] - utf8.RuneCountInString(h)
+		output.WriteString(headerColor + " " + h + strings.Repeat(" ", paddingNeeded) + " " + reset + borderColor + "│" + reset)
+	}
+	output.WriteString("\n")
+
+	// Header separator
+	output.WriteString(borderColor + "├")
+	for i, w := range colWidths {
+		output.WriteString(strings.Repeat("─", w+2))
+		if i < len(colWidths)-1 {
+			output.WriteString("┼")
+		}
+	}
+	output.WriteString("┤" + reset + "\n")
+
+	// Data rows
+	for rowIdx, row := range rows {
+		output.WriteString(borderColor + "│" + reset)
+		for i, cell := range row {
+			if i < len(colWidths) {
+				// Truncate cell if it exceeds column width
+				displayCell := cell
+				cellWidth := utf8.RuneCountInString(cell)
+				if cellWidth > colWidths[i] {
+					// Truncate by runes, not bytes
+					runes := []rune(cell)
+					displayCell = string(runes[:colWidths[i]-3]) + "..."
+				}
+				paddingNeeded := colWidths[i] - utf8.RuneCountInString(displayCell)
+				output.WriteString(cellColor + " " + displayCell + strings.Repeat(" ", paddingNeeded) + " " + reset + borderColor + "│" + reset)
+			}
+		}
+		output.WriteString("\n")
+
+		// Add separator row if requested
+		if separatorAfter != nil {
+			for _, sepIdx := range separatorAfter {
+				if rowIdx == sepIdx && rowIdx < len(rows)-1 {
+					output.WriteString(borderColor + "├")
+					for i, w := range colWidths {
+						output.WriteString(strings.Repeat("─", w+2))
+						if i < len(colWidths)-1 {
+							output.WriteString("┼")
+						}
+					}
+					output.WriteString("┤" + reset + "\n")
+					break
+				}
+			}
+		}
+	}
+
+	// Bottom border
+	output.WriteString(borderColor + "╰")
+	for i, w := range colWidths {
+		output.WriteString(strings.Repeat("─", w+2))
+		if i < len(colWidths)-1 {
+			output.WriteString("┴")
+		}
+	}
+	output.WriteString("╯" + reset + "\n")
+
+	return output.String()
+}
 
 var dnsCmd = &cobra.Command{
 	Use:   "dns",
@@ -111,12 +237,18 @@ func dnsExecute(cmd *cobra.Command, args []string) {
 	case digChk:
 		dnsResolverDigChk()
 	case allChk:
+		// Display prominent note for full test suite
+		fmt.Println()
+		fmt.Printf("\033[38;2;0;128;128m%s\033[0m\n", strings.Repeat("─", 80))
+		fmt.Printf("\033[38;2;255;215;0;48;2;0;0;139;1m ⚠ NOTE ⚠ \033[0m \033[1;93mFull test suite runs connectivity and DNS resolution checks (may take 30-60s)\033[0m\n")
+		fmt.Printf("\033[38;2;0;128;128m%s\033[0m\n", strings.Repeat("─", 80))
+		fmt.Println()
 		dnsResolverChk()
 		dnsResolverPingChk()
 		dnsResolverDigChk()
 	default:
 		_ = cmd.Usage()
-		fmt.Printf("\n\n\n")
+		fmt.Printf("\n")
 		os.Exit(1)
 	}
 }
@@ -148,25 +280,18 @@ func dnsResolverChkWithDeps(executor CommandExecutor, fileReader FileReader) {
 	}
 
 	// Table output
-	fmt.Println("")
+	headers := []string{"Property Description", "Value"}
 
-	t := table.NewWriter()
-	t.SetTitle("VPN defined DNS Resolver Checks")
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
-	t.AppendHeader(table.Row{"Property Description", "Value"})
-	t.AppendRow([]interface{}{"DomainName defined?", dns.domainName})
-	t.AppendRow([]interface{}{"SearchDomains defined?", dns.searchDomains})
-	t.AppendRow([]interface{}{"ServerAddresses defined?", dns.serverAddresses})
-	t.AppendSeparator()
-	t.SetColumnConfigs([]table.ColumnConfig{
-		{Number: 1, WidthMin: 40},
-		{Number: 2, WidthMin: 30},
-	})
-	t.Render()
+	rows := [][]string{
+		{"DomainName defined?", dns.domainName},
+		{"SearchDomains defined?", dns.searchDomains},
+		{"ServerAddresses defined?", dns.serverAddresses},
+	}
+
+	fmt.Print(createStyledTable(headers, rows, "VPN defined DNS Resolver Checks"))
 
 	fmt.Printf("\n")
-	color.Info.Prompt("Any values of unset indicate that the VPN client is not defining DNS resolver(s) properly!\n\n")
+	fmt.Printf("\033[36;1mINFO:\033[0m %s\n", "Any values of unset indicate that the VPN client is not defining DNS resolver(s) properly!")
 }
 
 // Check if DNS resolvers are pingable & reachable via TCP/UDP
@@ -273,34 +398,46 @@ func dnsResolverPingChkWithDeps(executor CommandExecutor, fileReader FileReader,
 	}
 
 	// Table output
-	t := table.NewWriter()
-	t.SetTitle("VPN defined DNS Resolver Connectivity Checks")
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
-	t.AppendHeader(table.Row{"Property Description", "IP", "Net i/f", "Value"})
+	headers := []string{"Property Description", "IP", "Net i/f", "Value"}
+
+	var rows [][]string
+	var separatorIndices []int
+	rowIdx := 0
 	for e := resChks.Front(); e != nil; e = e.Next() {
 		itemResChk := resolverChk(e.Value.(resolverChk))
-		t.AppendRow([]interface{}{"Resovler is pingable?", itemResChk.resolverIP, itemResChk.netInterface, itemResChk.pingReachable})
-		t.AppendRow([]interface{}{"Reachable via TCP?", itemResChk.resolverIP, itemResChk.netInterface, itemResChk.tcpReachable})
-		t.AppendRow([]interface{}{"Reachable via UDP?", itemResChk.resolverIP, itemResChk.netInterface, itemResChk.udpReachable})
-		t.AppendSeparator()
+		rows = append(rows, []string{
+			"Resovler is pingable?",
+			itemResChk.resolverIP,
+			itemResChk.netInterface,
+			fmt.Sprintf("%v", itemResChk.pingReachable),
+		})
+		rows = append(rows, []string{
+			"Reachable via TCP?",
+			itemResChk.resolverIP,
+			itemResChk.netInterface,
+			fmt.Sprintf("%v", itemResChk.tcpReachable),
+		})
+		rows = append(rows, []string{
+			"Reachable via UDP?",
+			itemResChk.resolverIP,
+			itemResChk.netInterface,
+			fmt.Sprintf("%v", itemResChk.udpReachable),
+		})
+		// Add separator after each resolver's 3 rows (except after the last one)
+		if e.Next() != nil {
+			separatorIndices = append(separatorIndices, rowIdx+2)
+		}
+		rowIdx += 3
 	}
-	t.SetColumnConfigs([]table.ColumnConfig{
-		{Number: 1, WidthMin: 40},
-		{Number: 2, WidthMin: 13},
-		{Number: 3, WidthMin: 13},
-	})
-	t.Render()
+
+	fmt.Print(createStyledTableWithSeparators(headers, rows, "VPN defined DNS Resolver Connectivity Checks", separatorIndices))
 
 	if len(resolverIPs) <= 1 {
 		fmt.Println("")
-		color.Warn.Tips(`
-
-   Your VPN client does not appear to be defining any DNS resolver(s) properly,
-   you're either not connected via VPN or it's misconfigured!`)
+		fmt.Printf("\033[1;33mWARNING:\033[0m %s\n%s\n",
+			"Your VPN client does not appear to be defining any DNS resolver(s) properly,",
+			"you're either not connected via VPN or it's misconfigured!")
 	}
-
-	fmt.Printf("\n\n\n")
 }
 
 // Check if DNS resolvers return well known server records
@@ -310,8 +447,6 @@ func dnsResolverDigChk() {
 
 // dnsResolverDigChkWithDeps allows dependency injection for testing
 func dnsResolverDigChkWithDeps(executor CommandExecutor, fileReader FileReader, expander BraceExpander) {
-	rowConfigAutoMerge := table.RowConfig{AutoMerge: true}
-
 	resolverIPs := getResolverIPsWithDeps(executor, fileReader)
 
 	var dig dnsutil.Dig
@@ -373,56 +508,56 @@ func dnsResolverDigChkWithDeps(executor CommandExecutor, fileReader FileReader, 
 	}
 
 	// Table output
-	t := table.NewWriter()
-	t.SetTitle("Dig Check against VPN defined DNS Resolvers")
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
-	t.AppendHeader(table.Row{"Hostname to 'dig'", "Resolver IP", "Is resolvable?"}, rowConfigAutoMerge)
+	headers := []string{"Hostname to 'dig'", "Resolver IP", "Is resolvable?"}
 
-	for _, result := range digResults {
-		t.AppendRow([]interface{}{result.Hostname, result.ResolverIP, result.IsResolvable}, rowConfigAutoMerge)
-		// Add separator after each hostname's results
-		if result.ResolverIP == resolverIPs[len(resolverIPs)-1] {
-			t.AppendSeparator()
+	var rows [][]string
+	var separatorIndices []int
+	numResolvers := len(resolverIPs)
+
+	for rowIdx, result := range digResults {
+		rows = append(rows, []string{
+			result.Hostname,
+			result.ResolverIP,
+			fmt.Sprintf("%v", result.IsResolvable),
+		})
+
+		// Add separator after each hostname's complete set of resolver checks
+		// (every numResolvers rows), but not after the last hostname
+		if numResolvers > 0 && (rowIdx+1)%numResolvers == 0 && rowIdx < len(digResults)-1 {
+			separatorIndices = append(separatorIndices, rowIdx)
 		}
 	}
 
-	t.SetColumnConfigs([]table.ColumnConfig{
-		{Number: 1, WidthMin: 40, AutoMerge: true},
-		{Number: 2, WidthMin: 20},
-		{Number: 3, WidthMin: 15},
-	})
-
+	// Add summary row
 	var summary string
 	idx := 1
-
 	for i, j := range resolverCnt {
-		// only 1 resolver?
 		if len(resolverCnt) == 1 {
 			i = "N/A"
 		}
-
-		summary = fmt.Sprintf("%s(%s): %d", summary, i, j)
-
-		// only 1 resolver or the last one?
-		if len(resolverCnt) == 1 || len(resolverCnt) == idx {
-			break
+		if idx > 1 {
+			summary += " | "
 		}
-
+		summary += fmt.Sprintf("(%s): %d", i, j)
 		idx++
-		summary = summary + "\n"
 	}
 
-	t.AppendFooter([]interface{}{"successesful queries", summary})
-	t.Render()
+	if summary != "" {
+		// Add separator before summary row if we have data rows
+		if len(rows) > 0 {
+			separatorIndices = append(separatorIndices, len(rows)-1)
+		}
+		rows = append(rows, []string{"SUCCESSFUL QUERIES", summary, ""})
+	}
+
+	fmt.Print(createStyledTableWithSeparators(headers, rows, "Dig Check against VPN defined DNS Resolvers", separatorIndices))
 
 	if len(resolverIPs) <= 1 {
 		fmt.Println("")
-		color.Warn.Tips(`
-
-	   Your VPN client does not appear to be defining any DNS resolver(s) properly,
-	   you're either not connected via VPN or it's misconfigured!`)
+		fmt.Printf("\033[1;33mWARNING:\033[0m %s\n%s\n",
+			"Your VPN client does not appear to be defining any DNS resolver(s) properly,",
+			"you're either not connected via VPN or it's misconfigured!")
 	}
 
-	fmt.Printf("\n\n\n")
+	fmt.Printf("\n")
 }

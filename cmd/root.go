@@ -26,9 +26,9 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
-	"github.com/gookit/color"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -38,6 +38,8 @@ import (
 type svc struct {
 	Svc  string   `mapstructure:"svc"`
 	Svrs []string `mapstructure:"svrs"`
+	Port int      `mapstructure:"port"` // Optional: defaults to 6443
+	Path string   `mapstructure:"path"` // Optional: defaults to /healthz
 }
 
 type config struct {
@@ -127,7 +129,7 @@ stemming from the following areas with a laptop or desktop system:
 func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
 
-	fmt.Printf("\n\n\n")
+	fmt.Printf("\n")
 }
 
 func init() {
@@ -163,8 +165,20 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
+		// Build the message with proper padding to 80 chars
+		configFile := viper.ConfigFileUsed()
+		textContent := fmt.Sprintf(" ℹ NOTE  Using config file: %s", configFile)
+		// Calculate padding needed (accounting for ANSI codes that won't be visible)
+		padding := 80 - len(textContent)
+		if padding < 0 {
+			padding = 0
+		}
+
 		fmt.Println("")
-		color.Note.Tips("Using config file: " + viper.ConfigFileUsed() + "\n")
+		fmt.Printf("\033[38;2;0;128;128m%s\033[0m\n", strings.Repeat("─", 80))
+		fmt.Printf("\033[48;2;0;64;64m\033[38;2;0;255;255;1m ℹ NOTE \033[0m\033[48;2;0;64;64m\033[1;97m Using config file: \033[38;2;135;206;250;1m%s\033[1;97m%s\033[0m\n",
+			configFile, strings.Repeat(" ", padding))
+		fmt.Printf("\033[38;2;0;128;128m%s\033[0m\n", strings.Repeat("─", 80))
 		//fmt.Fprintln(os.Stderr, "\n**NOTE:** Using config file:", viper.ConfigFileUsed(), "\n")
 	} else {
 		// Config file is optional for some commands (like 'config init')

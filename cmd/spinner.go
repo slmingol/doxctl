@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -61,8 +62,8 @@ func RunWithSpinner(message string, fn func() error) error {
 		return fn()
 	}
 
-	// ASCII spinner frames
-	frames := []string{"█", "▓", "▒", "░", " ", "░", "▒", "▓"}
+	// ASCII spinner frames - bouncing ball
+	frames := []string{"●     ", " ●    ", "  ●   ", "   ●  ", "    ● ", "     ●", "    ● ", "   ●  ", "  ●   ", " ●    "}
 
 	// Track whether to stop the spinner
 	var wg sync.WaitGroup
@@ -72,16 +73,18 @@ func RunWithSpinner(message string, fn func() error) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+		// Hide cursor
+		fmt.Fprintf(os.Stderr, "\033[?25l")
 		i := 0
 		for {
 			select {
 			case <-done:
-				// Clear the spinner line and show completion
-				fmt.Fprintf(os.Stderr, "\r\033[K")
+				// Clear the spinner line and show cursor
+				fmt.Fprintf(os.Stderr, "\r\033[K\033[?25h")
 				return
 			default:
 				// Print spinner frame
-				fmt.Fprintf(os.Stderr, "\r%s %s...", frames[i%len(frames)], message)
+				fmt.Fprintf(os.Stderr, "\r%s %s", message, frames[i%len(frames)])
 				i++
 				time.Sleep(100 * time.Millisecond)
 			}
@@ -99,7 +102,10 @@ func RunWithSpinner(message string, fn func() error) error {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "\r\033[K❌ %s: %v\n", message, err)
 	} else {
-		fmt.Fprintf(os.Stderr, "\r\033[K✓ %s\n", message)
+		// Ocean theme teal divider
+		fmt.Fprintf(os.Stderr, "\r\033[K\033[38;2;0;128;128m%s\033[0m\n", strings.Repeat("─", 80))
+		fmt.Fprintf(os.Stderr, "✓ %s\n", message)
+		fmt.Fprintf(os.Stderr, "\033[38;2;0;128;128m%s\033[0m\n", strings.Repeat("─", 80))
 	}
 
 	return err

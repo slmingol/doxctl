@@ -102,7 +102,7 @@ func svrsExecute(cmd *cobra.Command, args []string) {
 		svrsReachChk()
 	default:
 		_ = cmd.Usage()
-		fmt.Printf("\n\n\n")
+		fmt.Printf("\n")
 		os.Exit(1)
 	}
 }

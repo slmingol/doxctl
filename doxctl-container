@@ -50,6 +50,43 @@ EOF
 
 echo -e "${GREEN}✓ Created DNS config${NC}"
 
+# Gather VPN diagnostic information for passing to container
+# Get network interfaces
+NET_IFS=$(scutil --nwi 2>/dev/null | grep 'Network interfaces:' | cut -d" " -f 3- || echo "")
+IF_COUNT=$(echo "$NET_IFS" | wc -w | tr -d ' ')
+
+# Check for TUN interfaces
+TUN_IFS=$(echo "$NET_IFS" | tr ' ' '\n' | grep 'tun' || echo "")
+HAS_TUN="false"
+if [ -n "$TUN_IFS" ]; then
+    HAS_TUN="true"
+fi
+
+# Get VPN interface (first utun found)
+VPN_IF=$(scutil --nwi 2>/dev/null | grep 'Network interfaces:' | grep -o 'utun[0-9]' | head -1 || echo "NIL")
+
+# Count VPN routes
+if [ "$VPN_IF" != "NIL" ]; then
+    VPN_ROUTE_COUNT=$(netstat -r -f inet 2>/dev/null | grep -c "$VPN_IF" || echo "0")
+else
+    VPN_ROUTE_COUNT="0"
+fi
+
+# Check VPN client connection status (Cisco AnyConnect)
+VPN_CONNECTED="false"
+if [ -x "/opt/cisco/anyconnect/bin/vpn" ]; then
+    if /opt/cisco/anyconnect/bin/vpn state 2>/dev/null | grep -q 'state: Connected'; then
+        VPN_CONNECTED="true"
+    fi
+fi
+
+# Check if all interfaces are reachable
+UNREACHABLE_COUNT=$(scutil --nwi 2>/dev/null | grep address -B1 -A1 | grep -E "flags|reach" | paste - - | column -t | grep -v Reachable | wc -l | tr -d ' ')
+ALL_IFS_REACHABLE="false"
+if [ "$UNREACHABLE_COUNT" = "0" ]; then
+    ALL_IFS_REACHABLE="true"
+fi
+
 # Build DNS flags for podman
 DNS_FLAGS=""
 for dns in $VPN_DNS; do
@@ -69,16 +106,19 @@ fi
 echo -e "${GREEN}✓ Launching container...${NC}"
 echo
 
-# If running with -a flag, show note about test duration
-if [[ " $@ " =~ " -a " ]] || [[ " $@ " =~ " --allChk " ]]; then
-    echo -e "${YELLOW}Note: Full test suite runs connectivity and DNS resolution checks (may take 30-60s)${NC}"
-    echo
-fi
-
-# Run container
-exec podman run --rm \
+# Run container with CAP_NET_RAW for ping functionality
+exec podman run --rm -it \
+    --cap-add=CAP_NET_RAW \
     $DNS_FLAGS \
     -v "$RESOLV_FILE:/etc/resolv.conf:ro" \
     $CONFIG_MOUNT \
+    -e "HOST_VPN_NET_IFS=$NET_IFS" \
+    -e "HOST_VPN_IF_COUNT=$IF_COUNT" \
+    -e "HOST_VPN_TUN_IFS=$TUN_IFS" \
+    -e "HOST_VPN_HAS_TUN=$HAS_TUN" \
+    -e "HOST_VPN_INTERFACE=$VPN_IF" \
+    -e "HOST_VPN_ROUTE_COUNT=$VPN_ROUTE_COUNT" \
+    -e "HOST_VPN_CONNECTED=$VPN_CONNECTED" \
+    -e "HOST_VPN_ALL_IFS_REACHABLE=$ALL_IFS_REACHABLE" \
     doxctl:latest \
     "$@"

@@ -182,6 +182,11 @@ func dnsResolverPingChkWithDeps(executor CommandExecutor, fileReader FileReader,
 	}
 
 	var resChk resolverChk
+
+	// Show progress message for table output
+	if outputFormat == "table" {
+		fmt.Println("\n⏳ Checking DNS resolver connectivity (ping, TCP, UDP)...")
+	}
 	resChks := list.New()
 	resolverIPs := getResolverIPsWithDeps(executor, fileReader)
 
@@ -305,6 +310,11 @@ func dnsResolverDigChkWithDeps(executor CommandExecutor, fileReader FileReader, 
 	rowConfigAutoMerge := table.RowConfig{AutoMerge: true}
 
 	resolverIPs := getResolverIPsWithDeps(executor, fileReader)
+
+	// Show progress message for table output
+	if outputFormat == "table" {
+		fmt.Println("\n⏳ Testing DNS resolution for configured hosts...")
+	}
 
 	var dig dnsutil.Dig
 	resolverCnt := make(map[string]int)

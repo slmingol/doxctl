@@ -182,71 +182,73 @@ func dnsResolverPingChkWithDeps(executor CommandExecutor, fileReader FileReader,
 	}
 
 	var resChk resolverChk
-	// Show progress message for table output
-	if outputFormat == "table" {
-		fmt.Fprintf(os.Stdout, "\n⏳ Checking DNS resolver connectivity (ping, TCP, UDP)...\n")
-		os.Stdout.Sync()
-	}
-
 	resChks := list.New()
 	resolverIPs := getResolverIPsWithDeps(executor, fileReader)
 
-	for _, ip := range resolverIPs {
-		var pingReachable, tcpReachable, udpReachable bool
-		var netInterface string
+	// Wrap the connectivity checks in a spinner
+	err := RunWithSpinner("Checking DNS resolver connectivity (ping, TCP, UDP)", func() error {
+		for _, ip := range resolverIPs {
+			var pingReachable, tcpReachable, udpReachable bool
+			var netInterface string
 
-		pinger, err := pingerFactory(ip)
-		if err != nil {
-			pingReachable = false
-		} else {
-			pinger.SetTimeout(30 * time.Second)
-			err = pinger.Run()
+			pinger, err := pingerFactory(ip)
 			if err != nil {
 				pingReachable = false
 			} else {
-				pingReachable = true
-			}
-		}
-
-		resChk = resolverChk{resolverIP: ip, pingReachable: pingReachable}
-
-		if pingReachable {
-			switch runtime.GOOS {
-			case "linux":
-				out, err := executor.Execute("ip", "route", "get", ip) // #nosec G204 - ip is from DNS resolver list
+				pinger.SetTimeout(30 * time.Second)
+				err = pinger.Run()
 				if err != nil {
-					netInterface = "N/A"
+					pingReachable = false
 				} else {
-					netInterface = strings.Split(string(out), " ")[4]
+					pingReachable = true
 				}
-			case "darwin":
-				netInterface = getVPNInterface()
 			}
 
-			target := fmt.Sprintf("%s:%d", ip, dnsPort)
+			resChk = resolverChk{resolverIP: ip, pingReachable: pingReachable}
 
-			// TCP check
-			_, errTCP := net.DialTimeout("tcp", target, 5*time.Second)
+			if pingReachable {
+				switch runtime.GOOS {
+				case "linux":
+					out, err := executor.Execute("ip", "route", "get", ip) // #nosec G204 - ip is from DNS resolver list
+					if err != nil {
+						netInterface = "N/A"
+					} else {
+						netInterface = strings.Split(string(out), " ")[4]
+					}
+				case "darwin":
+					netInterface = getVPNInterface()
+				}
 
-			tcpReachable = false
-			if errTCP == nil {
-				tcpReachable = true
+				target := fmt.Sprintf("%s:%d", ip, dnsPort)
+
+				// TCP check
+				_, errTCP := net.DialTimeout("tcp", target, 5*time.Second)
+
+				tcpReachable = false
+				if errTCP == nil {
+					tcpReachable = true
+				}
+
+				// UDP check
+				_, errUDP := net.DialTimeout("udp", target, 5*time.Second)
+
+				udpReachable = false
+				if errUDP == nil {
+					udpReachable = true
+				}
+
+				// Collect results
+				resChk.netInterface = netInterface
+				resChk.tcpReachable = tcpReachable
+				resChk.udpReachable = udpReachable
+				resChks.PushBack(resChk)
 			}
-
-			// UDP check
-			_, errUDP := net.DialTimeout("udp", target, 5*time.Second)
-
-			udpReachable = false
-			if errUDP == nil {
-				udpReachable = true
-			}
-
-			// Collect results
-			resChk.netInterface = netInterface
-			resChk.tcpReachable = tcpReachable
-			resChk.udpReachable = udpReachable
-			resChks.PushBack(resChk)
 		}
+		return nil
+	})
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error during connectivity checks: %v\n", err)
 	}
 
 	// For JSON/YAML output
@@ -310,51 +312,53 @@ func dnsResolverDigChk() {
 func dnsResolverDigChkWithDeps(executor CommandExecutor, fileReader FileReader, expander BraceExpander) {
 	rowConfigAutoMerge := table.RowConfig{AutoMerge: true}
 
-	// Show progress message for table output
-	if outputFormat == "table" {
-		fmt.Fprintf(os.Stdout, "\n⏳ Testing DNS resolution for configured hosts...\n")
-		os.Stdout.Sync()
-	}
-
 	resolverIPs := getResolverIPsWithDeps(executor, fileReader)
 
 	var dig dnsutil.Dig
 	resolverCnt := make(map[string]int)
 	var digResults []output.DigCheckResult
 
-	for _, i := range conf.Svcs {
-		if i.Svc != "idm" {
-			continue
-		}
+	// Wrap DNS resolution in a spinner
+	err := RunWithSpinner("Testing DNS resolution for configured hosts", func() error {
+		for _, i := range conf.Svcs {
+			if i.Svc != "idm" {
+				continue
+			}
 
-		for _, j := range i.Svrs {
-			permutations := expander.Expand(j)
+			for _, j := range i.Svrs {
+				permutations := expander.Expand(j)
 
-			for _, permutation := range permutations {
-				for _, ip := range resolverIPs {
-					_ = dig.SetDNS(ip)
-					msg, err := dig.GetMsg(dns.TypeA, permutation)
+				for _, permutation := range permutations {
+					for _, ip := range resolverIPs {
+						_ = dig.SetDNS(ip)
+						msg, err := dig.GetMsg(dns.TypeA, permutation)
 
-					isResolvable := false
-					if err == nil && msg.Answer != nil {
-						isResolvable = true
+						isResolvable := false
+						if err == nil && msg.Answer != nil {
+							isResolvable = true
+						}
+
+						// Collect for JSON/YAML output
+						digResults = append(digResults, output.DigCheckResult{
+							Hostname:     permutation,
+							ResolverIP:   ip,
+							IsResolvable: isResolvable,
+						})
+
+						if !isResolvable {
+							continue
+						}
+
+						resolverCnt[ip]++
 					}
-
-					// Collect for JSON/YAML output
-					digResults = append(digResults, output.DigCheckResult{
-						Hostname:     permutation,
-						ResolverIP:   ip,
-						IsResolvable: isResolvable,
-					})
-
-					if !isResolvable {
-						continue
-					}
-
-					resolverCnt[ip]++
 				}
 			}
 		}
+		return nil
+	})
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error during DNS resolution: %v\n", err)
 	}
 
 	// For JSON/YAML output

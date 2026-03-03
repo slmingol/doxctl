@@ -26,6 +26,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"doxctl/internal/output"
@@ -240,31 +241,73 @@ func netPerformanceCheckWithDeps(config *config, sloMs float64, packetCount int,
 func printNetPerfTable(result netPerfOutput) {
 	headers := []string{"Target", "Avg (ms)", "Min (ms)", "Max (ms)", "Jitter (ms)", "Loss %", "SLO", "Status"}
 	var rows [][]string
+	var separators []int
 
-	for _, r := range result.Results {
-		status := "✓ PASS"
-		if !r.MeetsSLO {
-			status = "✗ FAIL"
-		}
-
-		rows = append(rows, []string{
-			r.Target,
-			fmt.Sprintf("%.2f", r.AvgLatencyMs),
-			fmt.Sprintf("%.2f", r.MinLatencyMs),
-			fmt.Sprintf("%.2f", r.MaxLatencyMs),
-			fmt.Sprintf("%.2f", r.JitterMs),
-			fmt.Sprintf("%.1f", r.PacketLoss),
-			fmt.Sprintf("%.0f ms", r.SLOThreshold),
-			status,
-		})
+	// Group results by service type
+	type serviceGroup struct {
+		name    string
+		results []netPerfResult
 	}
 
-	fmt.Print(createStyledTable(headers, rows, "Network Performance & SLO Validation"))
+	groups := make(map[string]*serviceGroup)
+	groupOrder := []string{} // Track insertion order
 
+	// Categorize each result by service
+	for _, r := range result.Results {
+		serviceName := detectServiceType(r.Target)
+		if groups[serviceName] == nil {
+			groups[serviceName] = &serviceGroup{name: serviceName, results: []netPerfResult{}}
+			groupOrder = append(groupOrder, serviceName)
+		}
+		groups[serviceName].results = append(groups[serviceName].results, r)
+	}
+
+	// Build rows with separators between service groups
+	rowCount := 0
+	for i, serviceName := range groupOrder {
+		group := groups[serviceName]
+
+		for _, r := range group.results {
+			status := "✓ PASS"
+			if !r.MeetsSLO {
+				status = "✗ FAIL"
+			}
+
+			rows = append(rows, []string{
+				r.Target,
+				fmt.Sprintf("%.2f", r.AvgLatencyMs),
+				fmt.Sprintf("%.2f", r.MinLatencyMs),
+				fmt.Sprintf("%.2f", r.MaxLatencyMs),
+				fmt.Sprintf("%.2f", r.JitterMs),
+				fmt.Sprintf("%.1f", r.PacketLoss),
+				fmt.Sprintf("%.0f ms", r.SLOThreshold),
+				status,
+			})
+			rowCount++
+		}
+
+		// Add separator after each group except the last
+		if i < len(groupOrder)-1 {
+			separators = append(separators, rowCount-1)
+		}
+	}
+
+	fmt.Print(createStyledTableWithSeparators(headers, rows, "Network Performance & SLO Validation", separators))
 	// Print summary
 	fmt.Printf("\nSummary: %d/%d targets meeting SLO (%.1f%% success rate)\n",
 		result.Summary.Passing,
-		result.Summary.TotalTargets,
-		float64(result.Summary.Passing)/float64(result.Summary.TotalTargets)*100)
+		result.Summary.TotalTargets, float64(result.Summary.Passing)/float64(result.Summary.TotalTargets)*100)
 	fmt.Println()
+}
+
+// detectServiceType identifies the service based on hostname pattern
+func detectServiceType(hostname string) string {
+	if strings.HasPrefix(hostname, "api.app1.") {
+		return "openshift"
+	} else if strings.HasPrefix(hostname, "es-master-") {
+		return "elastic"
+	} else if strings.HasPrefix(hostname, "idm-") {
+		return "idm"
+	}
+	return "other"
 }

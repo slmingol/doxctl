@@ -128,8 +128,10 @@ func serviceHealthCheckWithDeps(config *config, client HTTPClient) {
 		Results:   []svcHealthResult{},
 	}
 
-	// Iterate through configured services
-	for _, svc := range config.Svcs {
+	// Wrap health checks in a spinner
+	err := RunWithSpinner("Checking service health endpoints", func() error {
+		// Iterate through configured services
+		for _, svc := range config.Svcs {
 		// Default port to 6443 if not specified
 		port := svc.Port
 		if port == 0 {
@@ -160,7 +162,14 @@ func serviceHealthCheckWithDeps(config *config, client HTTPClient) {
 					result.Summary.Failed++
 				}
 			}
+			}
 		}
+		return nil
+	})
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error during health checks: %v\n", err)
+		os.Exit(1)
 	}
 
 	result.Summary.Total = len(result.Results)

@@ -1,5 +1,6 @@
 # Binaries for programs and plugins
 doxctl
+doxctl-mac
 *.exe
 *.exe~
 *.dll
@@ -24,3 +25,6 @@ vendor/
 
 # Build artifacts
 dist/
+
+# Auto-generated DNS config for macOS container wrapper
+resolv.conf.vpn

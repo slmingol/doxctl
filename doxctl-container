@@ -72,11 +72,21 @@ else
     VPN_ROUTE_COUNT="0"
 fi
 
-# Check VPN client connection status (Cisco AnyConnect)
+# Check VPN client connection status
 VPN_CONNECTED="false"
+VPN_CLIENT="unknown"
+
+# First try Cisco AnyConnect
 if [ -x "/opt/cisco/anyconnect/bin/vpn" ]; then
     if /opt/cisco/anyconnect/bin/vpn state 2>/dev/null | grep -q 'state: Connected'; then
         VPN_CONNECTED="true"
+        VPN_CLIENT="anyconnect"
+    fi
+else
+    # If AnyConnect not installed, but we have TUN interface with routes, VPN is connected
+    if [ "$VPN_IF" != "NIL" ] && [ "$VPN_ROUTE_COUNT" -gt 0 ]; then
+        VPN_CONNECTED="true"
+        VPN_CLIENT="generic"
     fi
 fi
 
@@ -119,6 +129,7 @@ exec podman run --rm -it \
     -e "HOST_VPN_INTERFACE=$VPN_IF" \
     -e "HOST_VPN_ROUTE_COUNT=$VPN_ROUTE_COUNT" \
     -e "HOST_VPN_CONNECTED=$VPN_CONNECTED" \
+    -e "HOST_VPN_CLIENT=$VPN_CLIENT" \
     -e "HOST_VPN_ALL_IFS_REACHABLE=$ALL_IFS_REACHABLE" \
     doxctl:latest \
     "$@"

@@ -363,6 +363,7 @@ func vpnConnChk() {
 func vpnConnChkWithDeps(executor CommandExecutor) {
 	// Check if running in container with host VPN data
 	hostVpnConnected := os.Getenv("HOST_VPN_CONNECTED")
+	hostVpnClient := os.Getenv("HOST_VPN_CLIENT")
 
 	if hostVpnConnected != "" {
 		// Use host-provided data
@@ -387,7 +388,18 @@ func vpnConnChkWithDeps(executor CommandExecutor) {
 		t.SetOutputMirror(os.Stdout)
 		t.SetStyle(table.StyleLight)
 		t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
-		t.AppendRow([]interface{}{"VPN Client reports connection status as 'Connected'?", vpnConnStatus > 0})
+
+		// Customize description based on client type
+		var description string
+		if hostVpnClient == "anyconnect" {
+			description = "VPN Client (AnyConnect) reports connection status as 'Connected'?"
+		} else if hostVpnClient == "generic" {
+			description = "VPN Connection detected (via TUN interface + routes)?"
+		} else {
+			description = "VPN Client reports connection status as 'Connected'?"
+		}
+
+		t.AppendRow([]interface{}{description, vpnConnStatus > 0})
 		t.AppendSeparator()
 		t.SetColumnConfigs([]table.ColumnConfig{
 			{Number: 1, WidthMin: 50},

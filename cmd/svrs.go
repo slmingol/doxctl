@@ -32,7 +32,6 @@ import (
 	"time"
 
 	"github.com/gookit/color"
-	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -212,27 +211,29 @@ func svrsReachChkWithDeps(resolver DNSResolver, expander BraceExpander) {
 
 	time.Sleep(4 * time.Second)
 
-	t := table.NewWriter()
-	t.SetTitle("Well known Servers Reachable Checks")
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
-	t.SetColumnConfigs([]table.ColumnConfig{
-		{Number: 1, WidthMin: 40},
-		{Number: 2, WidthMin: 20},
-	})
-	t.AppendHeader(table.Row{"Host", "Service", "Reachable?", "Ping Performance"})
-
-	var currentService string
+	// Build rows for Ocean theme table
+	headers := []string{"Host", "Service", "Reachable?", "Ping Performance"}
+	var rows [][]string
 	for _, result := range serverResults {
-		t.AppendRow([]interface{}{result.Host, result.Service, result.Reachable, result.Performance})
-		// Add separator when service changes
-		if currentService != "" && currentService != result.Service {
-			t.AppendSeparator()
+		rows = append(rows, []string{
+			result.Host,
+			result.Service,
+			fmt.Sprintf("%t", result.Reachable),
+			result.Performance,
+		})
+	}
+
+	// Create separators array - add separator when service changes
+	var separators []int
+	var currentService string
+	for i, result := range serverResults {
+		if currentService != "" && currentService != result.Service && i > 0 {
+			separators = append(separators, i-1)
 		}
 		currentService = result.Service
 	}
-	t.AppendSeparator()
-	t.Render()
+
+	fmt.Print(createStyledTableWithSeparators(headers, rows, "Well known Servers Reachable Checks", separators))
 
 	if pingFailures > 0 || reachFailures > 0 {
 		fmt.Println("")

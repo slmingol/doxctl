@@ -42,6 +42,7 @@ type DNSResolver interface {
 // Pinger interface for ping operations
 type Pinger interface {
 	SetTimeout(duration time.Duration)
+	SetCount(count int)
 	Run() error
 	Statistics() *ping.Statistics
 }
@@ -78,6 +79,10 @@ type realPinger struct {
 
 func (p *realPinger) SetTimeout(duration time.Duration) {
 	p.inner.Timeout = duration
+}
+
+func (p *realPinger) SetCount(count int) {
+	p.inner.Count = count
 }
 
 func (p *realPinger) Run() error {

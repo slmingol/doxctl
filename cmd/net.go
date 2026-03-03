@@ -30,7 +30,6 @@ import (
 
 	"doxctl/internal/output"
 
-	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 )
 
@@ -115,28 +114,51 @@ func netPerformanceCheckWithDeps(config *config, sloMs float64, packetCount int,
 		Results:   []netPerfResult{},
 	}
 
-	// Get targets from config (use sites as network targets)
-	targets := config.Sites
+	// Get targets from config - use actual service hosts instead of site names
+	var targets []string
+	expander := NewBraceExpander()
+
+	// Collect unique hosts from all services
+	hostMap := make(map[string]bool)
+	for _, service := range config.Svcs {
+		for _, server := range service.Svrs {
+			// Expand brace patterns
+			expanded := expander.Expand(server)
+			for _, h := range expanded {
+				if !hostMap[h] {
+					hostMap[h] = true
+					targets = append(targets, h)
+				}
+			}
+		}
+	}
+
 	if len(targets) == 0 {
 		fmt.Println("")
-		fmt.Printf("\033[1;33mWARNING:\033[0m No network targets configured in 'sites'\n")
-		fmt.Printf("Please add sites to your configuration file to run network performance tests.\n")
+		fmt.Printf("\033[1;33mWARNING:\033[0m No network targets configured in services\n")
+		fmt.Printf("Please add services to your configuration file to run network performance tests.\n")
 		return
 	}
 
 	var pingerErrors int
+	var pingerErrorMsgs []string
+
+	fmt.Printf("\nTesting %d network targets...\n", len(targets))
+
 	// Test each target
-	for _, target := range targets {
-		// Create a ping target (e.g., site1.bandwidthclec.local)
-		pingTarget := fmt.Sprintf("%s.%s", target, config.DomainName)
+	for i, pingTarget := range targets {
+		fmt.Printf("  [%d/%d] %s ... ", i+1, len(targets), pingTarget)
 
 		pinger, err := pingerFactory(pingTarget)
 		if err != nil {
 			// Track pinger creation errors
 			pingerErrors++
+			pingerErrorMsgs = append(pingerErrorMsgs, fmt.Sprintf("%s: %v", pingTarget, err))
+			fmt.Printf("✗ FAIL (DNS)\n")
 			continue
 		}
 
+		pinger.SetCount(packetCount)
 		pinger.SetTimeout(10 * time.Second)
 
 		err = pinger.Run()
@@ -156,8 +178,10 @@ func netPerformanceCheckWithDeps(config *config, sloMs float64, packetCount int,
 			perfResult.MaxLatencyMs = float64(stats.MaxRtt.Microseconds()) / 1000.0
 			perfResult.JitterMs = float64(stats.StdDevRtt.Microseconds()) / 1000.0
 			perfResult.MeetsSLO = perfResult.AvgLatencyMs <= sloMs && perfResult.PacketLoss < 5.0
+			fmt.Printf("✓ %.2fms avg\n", perfResult.AvgLatencyMs)
 		} else {
 			perfResult.MeetsSLO = false
+			fmt.Printf("✗ FAIL\n")
 		}
 
 		result.Results = append(result.Results, perfResult)
@@ -176,7 +200,14 @@ func netPerformanceCheckWithDeps(config *config, sloMs float64, packetCount int,
 		fmt.Println("")
 		fmt.Printf("\033[1;31mERROR:\033[0m Unable to run network performance tests\n\n")
 		if pingerErrors > 0 {
-			fmt.Printf("Failed to create ping instances for all %d target(s).\n", pingerErrors)
+			fmt.Printf("Failed to create ping instances for all %d target(s).\n\n", pingerErrors)
+			if len(pingerErrorMsgs) > 0 {
+				fmt.Printf("\033[1;31mDetailed errors:\033[0m\n")
+				for _, errMsg := range pingerErrorMsgs {
+					fmt.Printf("  • %s\n", errMsg)
+				}
+				fmt.Println()
+			}
 			fmt.Printf("\033[1;33mCommon causes:\033[0m\n")
 			fmt.Printf("  • Running in container without CAP_NET_RAW capability\n")
 			fmt.Printf("  • Insufficient permissions to create raw sockets\n")
@@ -204,13 +235,8 @@ func netPerformanceCheckWithDeps(config *config, sloMs float64, packetCount int,
 }
 
 func printNetPerfTable(result netPerfOutput) {
-	fmt.Println()
-
-	t := table.NewWriter()
-	t.SetTitle("Network Performance & SLO Validation")
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
-	t.AppendHeader(table.Row{"Target", "Avg (ms)", "Min (ms)", "Max (ms)", "Jitter (ms)", "Loss %", "SLO", "Status"})
+	headers := []string{"Target", "Avg (ms)", "Min (ms)", "Max (ms)", "Jitter (ms)", "Loss %", "SLO", "Status"}
+	var rows [][]string
 
 	for _, r := range result.Results {
 		status := "✓ PASS"
@@ -218,7 +244,7 @@ func printNetPerfTable(result netPerfOutput) {
 			status = "✗ FAIL"
 		}
 
-		t.AppendRow([]interface{}{
+		rows = append(rows, []string{
 			r.Target,
 			fmt.Sprintf("%.2f", r.AvgLatencyMs),
 			fmt.Sprintf("%.2f", r.MinLatencyMs),
@@ -230,7 +256,7 @@ func printNetPerfTable(result netPerfOutput) {
 		})
 	}
 
-	t.Render()
+	fmt.Print(createStyledTable(headers, rows, "Network Performance & SLO Validation"))
 
 	// Print summary
 	fmt.Printf("\nSummary: %d/%d targets meeting SLO (%.1f%% success rate)\n",

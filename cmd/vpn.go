@@ -33,7 +33,6 @@ import (
 	"time"
 
 	"github.com/gookit/color"
-	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -150,21 +149,14 @@ func ifReachChkWithDeps(executor CommandExecutor) {
 			return
 		}
 
-		// Table output
-		t := table.NewWriter()
-		t.SetTitle("Interfaces Reachable Checks")
-		t.SetOutputMirror(os.Stdout)
-		t.SetStyle(table.StyleLight)
-		t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
-		t.AppendRow([]interface{}{"How many network interfaces found?", ifCount, netIfs})
-		t.AppendRow([]interface{}{"At least 1 interface's a utun device?", foundOneTunIf, tunIfs})
-		t.AppendRow([]interface{}{"All active interfaces are reporting as reachable?", allInfsReachable})
-		t.AppendSeparator()
-		t.SetColumnConfigs([]table.ColumnConfig{
-			{Number: 1, WidthMin: 50},
-			{Number: 2, WidthMin: 30},
-		})
-		t.Render()
+		// Table output with Ocean theme
+		headers := []string{"Property Description", "Value", "Notes"}
+		rows := [][]string{
+			{"How many network interfaces found?", fmt.Sprintf("%d", ifCount), fmt.Sprintf("%v", netIfs)},
+			{"At least 1 interface's a utun device?", fmt.Sprintf("%t", foundOneTunIf), fmt.Sprintf("%v", tunIfs)},
+			{"All active interfaces are reporting as reachable?", fmt.Sprintf("%t", allInfsReachable), ""},
+		}
+		fmt.Print(createStyledTable(headers, rows, "Interfaces Reachable Checks"))
 
 		if len(tunIfs) < 1 {
 			fmt.Println("")
@@ -225,21 +217,14 @@ func ifReachChkWithDeps(executor CommandExecutor) {
 		return
 	}
 
-	// Table output
-	t := table.NewWriter()
-	t.SetTitle("Interfaces Reachable Checks")
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
-	t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
-	t.AppendRow([]interface{}{"How many network interfaces found?", len(netIfs), netIfs})
-	t.AppendRow([]interface{}{"At least 1 interface's a utun device?", foundOneTunIf, tunIfs})
-	t.AppendRow([]interface{}{"All active interfaces are reporting as reachable?", allInfsReachable})
-	t.AppendSeparator()
-	t.SetColumnConfigs([]table.ColumnConfig{
-		{Number: 1, WidthMin: 50},
-		{Number: 2, WidthMin: 30},
-	})
-	t.Render()
+	// Table output with Ocean theme
+	headers := []string{"Property Description", "Value", "Notes"}
+	rows := [][]string{
+		{"How many network interfaces found?", fmt.Sprintf("%d", len(netIfs)), fmt.Sprintf("%v", netIfs)},
+		{"At least 1 interface's a utun device?", fmt.Sprintf("%t", foundOneTunIf), fmt.Sprintf("%v", tunIfs)},
+		{"All active interfaces are reporting as reachable?", fmt.Sprintf("%t", allInfsReachable), ""},
+	}
+	fmt.Print(createStyledTable(headers, rows, "Interfaces Reachable Checks"))
 
 	if len(tunIfs) < 1 {
 		fmt.Println("")
@@ -279,19 +264,12 @@ func vpnRteChkWithDeps(executor CommandExecutor) {
 			return
 		}
 
-		// Table output
-		t := table.NewWriter()
-		t.SetTitle("VPN Interface Route Checks")
-		t.SetOutputMirror(os.Stdout)
-		t.SetStyle(table.StyleLight)
-		t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
-		t.AppendRow([]interface{}{fmt.Sprintf("At least [%d] routes using interface [%s]?", conf.MinVpnRoutes, vpnIf), vpnRouteCnt >= conf.MinVpnRoutes, vpnRouteCnt})
-		t.AppendSeparator()
-		t.SetColumnConfigs([]table.ColumnConfig{
-			{Number: 1, WidthMin: 50},
-			{Number: 2, WidthMin: 30},
-		})
-		t.Render()
+		// Table output with Ocean theme
+		headers := []string{"Property Description", "Value", "Notes"}
+		rows := [][]string{
+			{fmt.Sprintf("At least [%d] routes using interface [%s]?", conf.MinVpnRoutes, vpnIf), fmt.Sprintf("%t", vpnRouteCnt >= conf.MinVpnRoutes), fmt.Sprintf("%d", vpnRouteCnt)},
+		}
+		fmt.Print(createStyledTable(headers, rows, "VPN Interface Route Checks"))
 
 		if vpnRouteCnt < conf.MinVpnRoutes {
 			fmt.Println("")
@@ -331,19 +309,12 @@ func vpnRteChkWithDeps(executor CommandExecutor) {
 		return
 	}
 
-	// Table output
-	t := table.NewWriter()
-	t.SetTitle("VPN Interface Route Checks")
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
-	t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
-	t.AppendRow([]interface{}{fmt.Sprintf("At least [%d] routes using interface [%s]?", conf.MinVpnRoutes, vpnIf), vpnRouteCnt >= conf.MinVpnRoutes, vpnRouteCnt})
-	t.AppendSeparator()
-	t.SetColumnConfigs([]table.ColumnConfig{
-		{Number: 1, WidthMin: 50},
-		{Number: 2, WidthMin: 30},
-	})
-	t.Render()
+	// Table output with Ocean theme
+	headers := []string{"Property Description", "Value", "Notes"}
+	rows := [][]string{
+		{fmt.Sprintf("At least [%d] routes using interface [%s]?", conf.MinVpnRoutes, vpnIf), fmt.Sprintf("%t", vpnRouteCnt >= conf.MinVpnRoutes), fmt.Sprintf("%d", vpnRouteCnt)},
+	}
+	fmt.Print(createStyledTable(headers, rows, "VPN Interface Route Checks"))
 
 	if vpnRouteCnt < conf.MinVpnRoutes {
 		fmt.Println("")
@@ -382,13 +353,7 @@ func vpnConnChkWithDeps(executor CommandExecutor) {
 			return
 		}
 
-		// Table output
-		t := table.NewWriter()
-		t.SetTitle("VPN Connection Status Checks")
-		t.SetOutputMirror(os.Stdout)
-		t.SetStyle(table.StyleLight)
-		t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
-
+		// Table output with Ocean theme
 		// Customize description based on client type
 		var description string
 		if hostVpnClient == "anyconnect" {
@@ -399,13 +364,11 @@ func vpnConnChkWithDeps(executor CommandExecutor) {
 			description = "VPN Client reports connection status as 'Connected'?"
 		}
 
-		t.AppendRow([]interface{}{description, vpnConnStatus > 0})
-		t.AppendSeparator()
-		t.SetColumnConfigs([]table.ColumnConfig{
-			{Number: 1, WidthMin: 50},
-			{Number: 2, WidthMin: 30},
-		})
-		t.Render()
+		headers := []string{"Property Description", "Value", "Notes"}
+		rows := [][]string{
+			{description, fmt.Sprintf("%t", vpnConnStatus > 0), ""},
+		}
+		fmt.Print(createStyledTable(headers, rows, "VPN Connection Status Checks"))
 
 		if vpnConnStatus == 0 {
 			fmt.Println("")
@@ -440,19 +403,12 @@ func vpnConnChkWithDeps(executor CommandExecutor) {
 		return
 	}
 
-	// Table output
-	t := table.NewWriter()
-	t.SetTitle("VPN Connection Status Checks")
-	t.SetOutputMirror(os.Stdout)
-	t.SetStyle(table.StyleLight)
-	t.AppendHeader(table.Row{"Property Description", "Value", "Notes"})
-	t.AppendRow([]interface{}{"VPN Client reports connection status as 'Connected'?", vpnConnStatus > 0})
-	t.AppendSeparator()
-	t.SetColumnConfigs([]table.ColumnConfig{
-		{Number: 1, WidthMin: 50},
-		{Number: 2, WidthMin: 30},
-	})
-	t.Render()
+	// Table output with Ocean theme
+	headers := []string{"Property Description", "Value", "Notes"}
+	rows := [][]string{
+		{"VPN Client reports connection status as 'Connected'?", fmt.Sprintf("%t", vpnConnStatus > 0), ""},
+	}
+	fmt.Print(createStyledTable(headers, rows, "VPN Connection Status Checks"))
 
 	if vpnConnStatus == 0 {
 		fmt.Println("")

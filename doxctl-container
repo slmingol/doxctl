@@ -69,10 +69,16 @@ fi
 echo -e "${GREEN}✓ Launching container...${NC}"
 echo
 
+# If running with -a flag, show note about test duration
+if [[ " $@ " =~ " -a " ]] || [[ " $@ " =~ " --allChk " ]]; then
+    echo -e "${YELLOW}Note: Full test suite runs connectivity and DNS resolution checks (may take 30-60s)${NC}"
+    echo
+fi
+
 # Run container
 exec podman run --rm \
     $DNS_FLAGS \
     -v "$RESOLV_FILE:/etc/resolv.conf:ro" \
     $CONFIG_MOUNT \
-    doxctl:macos-vpn \
+    doxctl:latest \
     "$@"

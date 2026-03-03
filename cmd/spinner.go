@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"sync"
+	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
@@ -58,15 +61,45 @@ func RunWithSpinner(message string, fn func() error) error {
 		return fn()
 	}
 
-	// Show starting message
-	fmt.Printf("⏳ %s...\n", message)
+	// ASCII spinner frames
+	frames := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
+
+	// Track whether to stop the spinner
+	var wg sync.WaitGroup
+	done := make(chan bool)
+
+	// Start the spinner animation
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		i := 0
+		for {
+			select {
+			case <-done:
+				// Clear the spinner line and show completion
+				fmt.Fprintf(os.Stderr, "\r\033[K")
+				return
+			default:
+				// Print spinner frame
+				fmt.Fprintf(os.Stderr, "\r%s %s...", frames[i%len(frames)], message)
+				i++
+				time.Sleep(100 * time.Millisecond)
+			}
+		}
+	}()
 
 	// Run the function
 	err := fn()
 
-	// Show completion
+	// Stop the spinner
+	close(done)
+	wg.Wait()
+
+	// Show completion message
 	if err != nil {
-		fmt.Printf("❌ Failed: %v\n", err)
+		fmt.Fprintf(os.Stderr, "\r\033[K❌ %s: %v\n", message, err)
+	} else {
+		fmt.Fprintf(os.Stderr, "\r\033[K✓ %s\n", message)
 	}
 
 	return err

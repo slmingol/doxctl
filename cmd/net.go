@@ -26,6 +26,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -266,6 +267,11 @@ func printNetPerfTable(result netPerfOutput) {
 	rowCount := 0
 	for i, serviceName := range groupOrder {
 		group := groups[serviceName]
+
+		// Sort results within each service group alphabetically by target
+		sort.Slice(group.results, func(i, j int) bool {
+			return group.results[i].Target < group.results[j].Target
+		})
 
 		for _, r := range group.results {
 			status := "✓ PASS"

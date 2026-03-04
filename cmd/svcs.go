@@ -128,10 +128,13 @@ func serviceHealthCheckWithDeps(config *config, client HTTPClient) {
 		Results:   []svcHealthResult{},
 	}
 
-	// Wrap health checks in a spinner
-	err := RunWithSpinner("Checking service health endpoints", func() error {
-		// Iterate through configured services
-		for _, svc := range config.Svcs {
+	// Build list of all endpoints to test
+	type endpointInfo struct {
+		serviceName string
+		endpoint    string
+	}
+	var endpoints []endpointInfo
+	for _, svc := range config.Svcs {
 		// Default port to 6443 if not specified
 		port := svc.Port
 		if port == 0 {
@@ -152,17 +155,21 @@ func serviceHealthCheckWithDeps(config *config, client HTTPClient) {
 			for _, expandedSvr := range expanded {
 				// Construct service endpoint URL
 				endpoint := fmt.Sprintf("https://%s:%d%s", expandedSvr, port, path)
-
-				healthResult := checkServiceEndpoint(svc.Svc, endpoint, client)
-				result.Results = append(result.Results, healthResult)
-
-				if healthResult.Healthy {
-					result.Summary.Healthy++
-				} else {
-					result.Summary.Failed++
-				}
+				endpoints = append(endpoints, endpointInfo{serviceName: svc.Svc, endpoint: endpoint})
 			}
-			}
+		}
+	}
+
+	// Test each endpoint with progressive spinner
+	err := RunWithSpinnerProgress("Checking service health endpoints", len(endpoints), func(index int) error {
+		ep := endpoints[index]
+		healthResult := checkServiceEndpoint(ep.serviceName, ep.endpoint, client)
+		result.Results = append(result.Results, healthResult)
+
+		if healthResult.Healthy {
+			result.Summary.Healthy++
+		} else {
+			result.Summary.Failed++
 		}
 		return nil
 	})

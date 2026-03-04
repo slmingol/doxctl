@@ -289,6 +289,16 @@ func printNetPerfTable(result netPerfOutput) {
 		// Sort datacenters alphabetically
 		sort.Strings(group.dcOrder)
 
+		// Count total items in this service
+		totalItemsInService := 0
+		for _, dc := range group.dcOrder {
+			totalItemsInService += len(group.datacenters[dc].results)
+		}
+
+		// If service has <= 5 items, no separators within service
+		// If > 5 items, group into chunks of 4-5 at datacenter boundaries
+		itemsInCurrentChunk := 0
+
 		for dcIdx, dc := range group.dcOrder {
 			dcGroup := group.datacenters[dc]
 
@@ -314,14 +324,21 @@ func printNetPerfTable(result netPerfOutput) {
 					status,
 				})
 				rowCount++
+				itemsInCurrentChunk++
 			}
 
-			// Add light separator after each datacenter (except last in service)
-			if dcIdx < len(group.dcOrder)-1 {
-				separators = append(separators, TableSeparator{
-					RowIndex: rowCount - 1,
-					Type:     LightSeparator,
-				})
+			// Add light separator if:
+			// 1. This service has > 5 items total
+			// 2. We've accumulated 4-5 items in current chunk
+			// 3. This isn't the last datacenter in the service
+			if totalItemsInService > 5 && dcIdx < len(group.dcOrder)-1 {
+				if itemsInCurrentChunk >= 4 {
+					separators = append(separators, TableSeparator{
+						RowIndex: rowCount - 1,
+						Type:     LightSeparator,
+					})
+					itemsInCurrentChunk = 0
+				}
 			}
 		}
 

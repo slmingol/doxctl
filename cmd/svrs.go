@@ -28,6 +28,7 @@ import (
 	"doxctl/internal/output"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -211,6 +212,14 @@ func svrsReachChkWithDeps(resolver DNSResolver, expander BraceExpander) {
 	}
 
 	time.Sleep(4 * time.Second)
+
+	// Sort serverResults by Service first, then by Host within each service
+	sort.Slice(serverResults, func(i, j int) bool {
+		if serverResults[i].Service == serverResults[j].Service {
+			return serverResults[i].Host < serverResults[j].Host
+		}
+		return serverResults[i].Service < serverResults[j].Service
+	})
 
 	// Build rows for Ocean theme table
 	headers := []string{"Host", "Service", "Reachable?", "Ping Performance"}

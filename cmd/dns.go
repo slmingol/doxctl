@@ -57,8 +57,32 @@ func createStyledTable(headers []string, rows [][]string, title string) string {
 	return createStyledTableWithSeparators(headers, rows, title, nil)
 }
 
+// SeparatorType defines the style of separator
+type SeparatorType int
+
+const (
+	LightSeparator SeparatorType = iota // Light separator for datacenter boundaries
+	HeavySeparator                      // Heavy separator for service boundaries
+)
+
+// TableSeparator defines a separator with its position and type
+type TableSeparator struct {
+	RowIndex int
+	Type     SeparatorType
+}
+
 // createStyledTableWithSeparators creates a table with optional row separators
 func createStyledTableWithSeparators(headers []string, rows [][]string, title string, separatorAfter []int) string {
+	// Convert old-style separator indices to new format (all heavy)
+	var seps []TableSeparator
+	for _, idx := range separatorAfter {
+		seps = append(seps, TableSeparator{RowIndex: idx, Type: HeavySeparator})
+	}
+	return createStyledTableWithTypedSeparators(headers, rows, title, seps)
+}
+
+// createStyledTableWithTypedSeparators creates a table with typed separators
+func createStyledTableWithTypedSeparators(headers []string, rows [][]string, title string, separators []TableSeparator) string {
 	var output strings.Builder
 
 	// Title bar with Ocean theme - Sky blue text on deep blue background
@@ -144,17 +168,31 @@ func createStyledTableWithSeparators(headers []string, rows [][]string, title st
 		output.WriteString("\n")
 
 		// Add separator row if requested
-		if separatorAfter != nil {
-			for _, sepIdx := range separatorAfter {
-				if rowIdx == sepIdx && rowIdx < len(rows)-1 {
-					output.WriteString(borderColor + "├")
-					for i, w := range colWidths {
-						output.WriteString(strings.Repeat("─", w+2))
-						if i < len(colWidths)-1 {
-							output.WriteString("┼")
+		if separators != nil {
+			for _, sep := range separators {
+				if rowIdx == sep.RowIndex && rowIdx < len(rows)-1 {
+					if sep.Type == HeavySeparator {
+						// Heavy separator (service boundaries)
+						output.WriteString(borderColor + "├")
+						for i, w := range colWidths {
+							output.WriteString(strings.Repeat("─", w+2))
+							if i < len(colWidths)-1 {
+								output.WriteString("┼")
+							}
 						}
+						output.WriteString("┤" + reset + "\n")
+					} else {
+						// Light separator (datacenter boundaries) - dimmer color, thinner line
+						dimColor := "\033[38;2;100;100;100m" // Dim gray
+						output.WriteString(dimColor + "├")
+						for i, w := range colWidths {
+							output.WriteString(strings.Repeat("╌", w+2)) // Dashed line
+							if i < len(colWidths)-1 {
+								output.WriteString("┼")
+							}
+						}
+						output.WriteString("┤" + reset + "\n")
 					}
-					output.WriteString("┤" + reset + "\n")
 					break
 				}
 			}

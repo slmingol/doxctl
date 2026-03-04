@@ -240,63 +240,101 @@ func netPerformanceCheckWithDeps(config *config, sloMs float64, packetCount int,
 func printNetPerfTable(result netPerfOutput) {
 	headers := []string{"Target", "Avg (ms)", "Min (ms)", "Max (ms)", "Jitter (ms)", "Loss %", "SLO", "Status"}
 	var rows [][]string
-	var separators []int
+	var separators []TableSeparator
 
-	// Group results by service type
+	// Group results by service type, then by datacenter
+	type datacenterGroup struct {
+		datacenter string
+		results    []netPerfResult
+	}
 	type serviceGroup struct {
-		name    string
-		results []netPerfResult
+		name        string
+		datacenters map[string]*datacenterGroup
+		dcOrder     []string
 	}
 
 	groups := make(map[string]*serviceGroup)
-	groupOrder := []string{} // Track insertion order
+	groupOrder := []string{}
 
-	// Categorize each result by service
+	// Categorize each result by service and datacenter
 	for _, r := range result.Results {
 		serviceName := detectServiceType(r.Target)
+		datacenter := extractDatacenter(r.Target)
+
 		if groups[serviceName] == nil {
-			groups[serviceName] = &serviceGroup{name: serviceName, results: []netPerfResult{}}
+			groups[serviceName] = &serviceGroup{
+				name:        serviceName,
+				datacenters: make(map[string]*datacenterGroup),
+				dcOrder:     []string{},
+			}
 			groupOrder = append(groupOrder, serviceName)
 		}
-		groups[serviceName].results = append(groups[serviceName].results, r)
+
+		if groups[serviceName].datacenters[datacenter] == nil {
+			groups[serviceName].datacenters[datacenter] = &datacenterGroup{
+				datacenter: datacenter,
+				results:    []netPerfResult{},
+			}
+			groups[serviceName].dcOrder = append(groups[serviceName].dcOrder, datacenter)
+		}
+
+		groups[serviceName].datacenters[datacenter].results = append(groups[serviceName].datacenters[datacenter].results, r)
 	}
 
-	// Build rows with separators between service groups
+	// Build rows with separators between service and datacenter groups
 	rowCount := 0
-	for i, serviceName := range groupOrder {
+	for svcIdx, serviceName := range groupOrder {
 		group := groups[serviceName]
 
-		// Sort results within each service group alphabetically by target
-		sort.Slice(group.results, func(i, j int) bool {
-			return group.results[i].Target < group.results[j].Target
-		})
+		// Sort datacenters alphabetically
+		sort.Strings(group.dcOrder)
 
-		for _, r := range group.results {
-			status := "✓ PASS"
-			if !r.MeetsSLO {
-				status = "✗ FAIL"
+		for dcIdx, dc := range group.dcOrder {
+			dcGroup := group.datacenters[dc]
+
+			// Sort results within each datacenter alphabetically by target
+			sort.Slice(dcGroup.results, func(i, j int) bool {
+				return dcGroup.results[i].Target < dcGroup.results[j].Target
+			})
+
+			for _, r := range dcGroup.results {
+				status := "✓ PASS"
+				if !r.MeetsSLO {
+					status = "✗ FAIL"
+				}
+
+				rows = append(rows, []string{
+					r.Target,
+					fmt.Sprintf("%.2f", r.AvgLatencyMs),
+					fmt.Sprintf("%.2f", r.MinLatencyMs),
+					fmt.Sprintf("%.2f", r.MaxLatencyMs),
+					fmt.Sprintf("%.2f", r.JitterMs),
+					fmt.Sprintf("%.1f", r.PacketLoss),
+					fmt.Sprintf("%.0f ms", r.SLOThreshold),
+					status,
+				})
+				rowCount++
 			}
 
-			rows = append(rows, []string{
-				r.Target,
-				fmt.Sprintf("%.2f", r.AvgLatencyMs),
-				fmt.Sprintf("%.2f", r.MinLatencyMs),
-				fmt.Sprintf("%.2f", r.MaxLatencyMs),
-				fmt.Sprintf("%.2f", r.JitterMs),
-				fmt.Sprintf("%.1f", r.PacketLoss),
-				fmt.Sprintf("%.0f ms", r.SLOThreshold),
-				status,
-			})
-			rowCount++
+			// Add light separator after each datacenter (except last in service)
+			if dcIdx < len(group.dcOrder)-1 {
+				separators = append(separators, TableSeparator{
+					RowIndex: rowCount - 1,
+					Type:     LightSeparator,
+				})
+			}
 		}
 
-		// Add separator after each group except the last
-		if i < len(groupOrder)-1 {
-			separators = append(separators, rowCount-1)
+		// Add heavy separator after each service group (except last)
+		if svcIdx < len(groupOrder)-1 {
+			separators = append(separators, TableSeparator{
+				RowIndex: rowCount - 1,
+				Type:     HeavySeparator,
+			})
 		}
 	}
 
-	fmt.Print(createStyledTableWithSeparators(headers, rows, "Network Performance & SLO Validation", separators))
+	fmt.Print(createStyledTableWithTypedSeparators(headers, rows, "Network Performance & SLO Validation", separators))
 	// Print summary
 	fmt.Printf("\nSummary: %d/%d targets meeting SLO (%.1f%% success rate)\n",
 		result.Summary.Passing,
@@ -314,4 +352,48 @@ func detectServiceType(hostname string) string {
 		return "idm"
 	}
 	return "other"
+}
+
+// extractDatacenter extracts the datacenter identifier from a hostname
+func extractDatacenter(hostname string) string {
+	// For api.app1.lab1.ocp.bandwidth.com -> lab1
+	// For es-master-01d.lab1.bwnet.us -> lab1
+	// For idm-01a.lab1.bandwidthclec.local -> lab1
+	// For idm-01a.bru1.bwnet.us -> bru1
+	// For IP addresses -> "ip"
+
+	// Check if it's an IP address
+	if strings.Count(hostname, ".") == 3 {
+		if parts := strings.Split(hostname, "."); len(parts) == 4 {
+			// Simple check if all parts are numeric-ish
+			isIP := true
+			for _, p := range parts {
+				if len(p) == 0 || len(p) > 3 {
+					isIP = false
+					break
+				}
+			}
+			if isIP {
+				return "ip"
+			}
+		}
+	}
+
+	parts := strings.Split(hostname, ".")
+	if len(parts) >= 3 {
+		// For patterns like api.app1.lab1... or idm-01a.lab1...
+		// The datacenter is typically the second or third component
+		if strings.HasPrefix(hostname, "api.app1.") {
+			// api.app1.lab1.ocp... -> lab1
+			return parts[2]
+		} else if strings.HasPrefix(hostname, "es-master-") {
+			// es-master-01d.lab1.bwnet.us -> lab1
+			return parts[1]
+		} else if strings.HasPrefix(hostname, "idm-") {
+			// idm-01a.lab1.bandwidthclec.local -> lab1
+			return parts[1]
+		}
+	}
+
+	return "unknown"
 }

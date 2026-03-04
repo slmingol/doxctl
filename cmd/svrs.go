@@ -127,62 +127,70 @@ func svrsReachChkWithDeps(resolver DNSResolver, expander BraceExpander) {
 	reachFailures := 0
 	var serverResults []output.ServerCheckResult
 
-	// Wrap server checks in a spinner
-	err := RunWithSpinner("Checking server reachability", func() error {
-		for _, i := range conf.Svcs {
-			for _, j := range i.Svrs {
-				permutations := expander.Expand(j)
-
-				for _, permutation := range permutations {
-
-					// Attempt to resolve hostname prior to ping
-					ctx, cancel := context.WithTimeout(context.Background(), (conf.DNSLookupTimeout * time.Millisecond))
-					defer cancel() // important to avoid a resource leak
-					ip, err := resolver.LookupHost(ctx, permutation)
-
-					if err != nil || len(ip) == 0 {
-						serverResults = append(serverResults, output.ServerCheckResult{
-							Host:        permutation,
-							Service:     i.Svc,
-							Reachable:   false,
-							Performance: "N/A",
-						})
-						continue
-					}
-
-					// Attempt to ping each host, any that fail keep a tally
-					pinger, err := NewPinger(permutation)
-					if err != nil {
-						serverResults = append(serverResults, output.ServerCheckResult{
-							Host:        permutation,
-							Service:     i.Svc,
-							Reachable:   false,
-							Performance: "N/A",
-						})
-						pingFailures++
-						continue
-					}
-
-					pinger.SetTimeout(conf.PingTimeout * time.Millisecond)
-					_ = pinger.Run()
-					stats := pinger.Statistics()
-					pingPerf := fmt.Sprintf("rnd-trp avg = %v", stats.AvgRtt)
-
-					// Tally fails due to failed/missing responses
-					packetAck := (stats.PacketLoss == 0 && stats.PacketsRecv > 0)
-					if !packetAck {
-						reachFailures++
-					}
-
-					serverResults = append(serverResults, output.ServerCheckResult{
-						Host:        permutation,
-						Service:     i.Svc,
-						Reachable:   packetAck,
-						Performance: pingPerf,
-					})
-				}
+	// Build list of all targets to test
+	type targetInfo struct {
+		host    string
+		service string
+	}
+	var targets []targetInfo
+	for _, i := range conf.Svcs {
+		for _, j := range i.Svrs {
+			permutations := expander.Expand(j)
+			for _, permutation := range permutations {
+				targets = append(targets, targetInfo{host: permutation, service: i.Svc})
 			}
 		}
+	}
+
+	// Test each server with progressive spinner
+	err := RunWithSpinnerProgress("Checking server reachability", len(targets), func(index int) error {
+		target := targets[index]
+
+		// Attempt to resolve hostname prior to ping
+		ctx, cancel := context.WithTimeout(context.Background(), (conf.DNSLookupTimeout * time.Millisecond))
+		defer cancel() // important to avoid a resource leak
+		ip, err := resolver.LookupHost(ctx, target.host)
+
+		if err != nil || len(ip) == 0 {
+			serverResults = append(serverResults, output.ServerCheckResult{
+				Host:        target.host,
+				Service:     target.service,
+				Reachable:   false,
+				Performance: "N/A",
+			})
+			return nil
+		}
+
+		// Attempt to ping each host, any that fail keep a tally
+		pinger, err := NewPinger(target.host)
+		if err != nil {
+			serverResults = append(serverResults, output.ServerCheckResult{
+				Host:        target.host,
+				Service:     target.service,
+				Reachable:   false,
+				Performance: "N/A",
+			})
+			pingFailures++
+			return nil
+		}
+
+		pinger.SetTimeout(conf.PingTimeout * time.Millisecond)
+		_ = pinger.Run()
+		stats := pinger.Statistics()
+		pingPerf := fmt.Sprintf("rnd-trp avg = %v", stats.AvgRtt)
+
+		// Tally fails due to failed/missing responses
+		packetAck := (stats.PacketLoss == 0 && stats.PacketsRecv > 0)
+		if !packetAck {
+			reachFailures++
+		}
+
+		serverResults = append(serverResults, output.ServerCheckResult{
+			Host:        target.host,
+			Service:     target.service,
+			Reachable:   packetAck,
+			Performance: pingPerf,
+		})
 		return nil
 	})
 

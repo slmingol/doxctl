@@ -145,50 +145,48 @@ func netPerformanceCheckWithDeps(config *config, sloMs float64, packetCount int,
 	var pingerErrors int
 	var pingerErrorMsgs []string
 
-	// Wrap network performance tests in a spinner
-	err := RunWithSpinner("Testing network performance", func() error {
-		// Test each target
-		for _, pingTarget := range targets {
+	// Test each target with progressive spinner
+	err := RunWithSpinnerProgress("Testing network performance", len(targets), func(index int) error {
+		pingTarget := targets[index]
 
-			pinger, err := pingerFactory(pingTarget)
-			if err != nil {
-				// Track pinger creation errors
-				pingerErrors++
-				pingerErrorMsgs = append(pingerErrorMsgs, fmt.Sprintf("%s: %v", pingTarget, err))
-				continue
-			}
+		pinger, err := pingerFactory(pingTarget)
+		if err != nil {
+			// Track pinger creation errors
+			pingerErrors++
+			pingerErrorMsgs = append(pingerErrorMsgs, fmt.Sprintf("%s: %v", pingTarget, err))
+			return nil
+		}
 
-			pinger.SetCount(packetCount)
-			pinger.SetTimeout(10 * time.Second)
+		pinger.SetCount(packetCount)
+		pinger.SetTimeout(10 * time.Second)
 
-			err = pinger.Run()
+		err = pinger.Run()
 
-			stats := pinger.Statistics()
+		stats := pinger.Statistics()
 
-			perfResult := netPerfResult{
-				Timestamp:    time.Now(),
-				Target:       pingTarget,
-				PacketLoss:   stats.PacketLoss,
-				SLOThreshold: sloMs,
-			}
+		perfResult := netPerfResult{
+			Timestamp:    time.Now(),
+			Target:       pingTarget,
+			PacketLoss:   stats.PacketLoss,
+			SLOThreshold: sloMs,
+		}
 
-			if err == nil && stats.PacketsRecv > 0 {
-				perfResult.AvgLatencyMs = float64(stats.AvgRtt.Microseconds()) / 1000.0
-				perfResult.MinLatencyMs = float64(stats.MinRtt.Microseconds()) / 1000.0
-				perfResult.MaxLatencyMs = float64(stats.MaxRtt.Microseconds()) / 1000.0
-				perfResult.JitterMs = float64(stats.StdDevRtt.Microseconds()) / 1000.0
-				perfResult.MeetsSLO = perfResult.AvgLatencyMs <= sloMs && perfResult.PacketLoss < 5.0
-			} else {
-				perfResult.MeetsSLO = false
-			}
+		if err == nil && stats.PacketsRecv > 0 {
+			perfResult.AvgLatencyMs = float64(stats.AvgRtt.Microseconds()) / 1000.0
+			perfResult.MinLatencyMs = float64(stats.MinRtt.Microseconds()) / 1000.0
+			perfResult.MaxLatencyMs = float64(stats.MaxRtt.Microseconds()) / 1000.0
+			perfResult.JitterMs = float64(stats.StdDevRtt.Microseconds()) / 1000.0
+			perfResult.MeetsSLO = perfResult.AvgLatencyMs <= sloMs && perfResult.PacketLoss < 5.0
+		} else {
+			perfResult.MeetsSLO = false
+		}
 
-			result.Results = append(result.Results, perfResult)
+		result.Results = append(result.Results, perfResult)
 
-			if perfResult.MeetsSLO {
-				result.Summary.Passing++
-			} else {
-				result.Summary.Failing++
-			}
+		if perfResult.MeetsSLO {
+			result.Summary.Passing++
+		} else {
+			result.Summary.Failing++
 		}
 		return nil
 	})

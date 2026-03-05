@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -286,57 +287,120 @@ func printSvcHealthTable(result svcHealthOutput) {
 	}
 
 	var rows [][]string
-	for _, r := range result.Results {
-		// Status icon
-		status := "✓"
-		if !r.Healthy {
-			status = "✗"
-		}
+	var separators []TableSeparator
 
-		// Response time
-		responseTimeStr := "-"
-		if r.ResponseTimeMs > 0 {
-			responseTimeStr = fmt.Sprintf("%.2f", r.ResponseTimeMs)
-		}
-
-		// Extract hostname:port from endpoint URL (remove protocol and path)
-		host := r.Endpoint
-		// Remove https:// or http:// prefix
-		if strings.HasPrefix(host, "https://") {
-			host = host[8:]
-		} else if strings.HasPrefix(host, "http://") {
-			host = host[7:]
-		}
-		// Remove path (keep hostname:port)
-		if idx := strings.Index(host, "/"); idx != -1 {
-			host = host[:idx]
-		}
-
-		row := []string{
-			r.Service,
-			host,
-			status,
-			responseTimeStr,
-		}
-
-		// Add error column only in verbose mode
-		if verboseChk {
-			errorStr := ""
-			if r.Error != "" {
-				// In verbose mode, show more of the error (truncate at 120 chars)
-				if len(r.Error) > 120 {
-					errorStr = r.Error[:117] + "..."
-				} else {
-					errorStr = r.Error
-				}
-			}
-			row = append(row, errorStr)
-		}
-
-		rows = append(rows, row)
+	// Group results by service name
+	type serviceGroup struct {
+		name    string
+		results []svcHealthResult
 	}
 
-	fmt.Print(createStyledTable(headers, rows, "Service Health Checks (HTTPS)"))
+	groups := make(map[string]*serviceGroup)
+	groupOrder := []string{}
+
+	for _, r := range result.Results {
+		if groups[r.Service] == nil {
+			groups[r.Service] = &serviceGroup{
+				name:    r.Service,
+				results: []svcHealthResult{},
+			}
+			groupOrder = append(groupOrder, r.Service)
+		}
+		groups[r.Service].results = append(groups[r.Service].results, r)
+	}
+
+	// Sort services alphabetically
+	sort.Strings(groupOrder)
+
+	// Build rows with separators between service groups
+	rowCount := 0
+	for svcIdx, serviceName := range groupOrder {
+		group := groups[serviceName]
+
+		// Sort results within each service by endpoint
+		sort.Slice(group.results, func(i, j int) bool {
+			return group.results[i].Endpoint < group.results[j].Endpoint
+		})
+
+		totalItemsInService := len(group.results)
+		itemsInCurrentChunk := 0
+
+		for itemIdx, r := range group.results {
+			// Status icon
+			status := "✓"
+			if !r.Healthy {
+				status = "✗"
+			}
+
+			// Response time
+			responseTimeStr := "-"
+			if r.ResponseTimeMs > 0 {
+				responseTimeStr = fmt.Sprintf("%.2f", r.ResponseTimeMs)
+			}
+
+			// Extract hostname:port from endpoint URL (remove protocol and path)
+			host := r.Endpoint
+			// Remove https:// or http:// prefix
+			if strings.HasPrefix(host, "https://") {
+				host = host[8:]
+			} else if strings.HasPrefix(host, "http://") {
+				host = host[7:]
+			}
+			// Remove path (keep hostname:port)
+			if idx := strings.Index(host, "/"); idx != -1 {
+				host = host[:idx]
+			}
+
+			row := []string{
+				r.Service,
+				host,
+				status,
+				responseTimeStr,
+			}
+
+			// Add error column only in verbose mode
+			if verboseChk {
+				errorStr := ""
+				if r.Error != "" {
+					// In verbose mode, show more of the error (truncate at 120 chars)
+					if len(r.Error) > 120 {
+						errorStr = r.Error[:117] + "..."
+					} else {
+						errorStr = r.Error
+					}
+				}
+				row = append(row, errorStr)
+			}
+
+			rows = append(rows, row)
+			rowCount++
+			itemsInCurrentChunk++
+
+			// Add light separator if:
+			// 1. This service has > 5 items total
+			// 2. We've accumulated 4-5 items in current chunk
+			// 3. This isn't the last item in the service
+			if totalItemsInService > 5 && itemIdx < len(group.results)-1 {
+				if itemsInCurrentChunk >= 4 {
+					separators = append(separators, TableSeparator{
+						RowIndex: rowCount - 1,
+						Type:     LightSeparator,
+					})
+					itemsInCurrentChunk = 0
+				}
+			}
+		}
+
+		// Add heavy separator after each service group (except last)
+		if svcIdx < len(groupOrder)-1 {
+			separators = append(separators, TableSeparator{
+				RowIndex: rowCount - 1,
+				Type:     HeavySeparator,
+			})
+		}
+	}
+
+	fmt.Print(createStyledTableWithTypedSeparators(headers, rows, "Service Health Checks (HTTPS)", separators))
 
 	// Print summary
 	availability := 0.0

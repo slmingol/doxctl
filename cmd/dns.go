@@ -115,7 +115,7 @@ func createStyledTableWithTypedSeparators(headers []string, rows [][]string, tit
 	}
 
 	// Ocean theme ANSI RGB colors
-	borderColor := "\033[38;2;0;128;128m"   // Teal borders
+	borderColor := "\033[38;2;0;191;255;1m" // Bright deep sky blue borders (bold)
 	headerColor := "\033[38;2;0;255;255;1m" // Bright cyan bold headers
 	cellColor := "\033[38;2;211;211;211m"   // Light gray text
 	reset := "\033[0m"

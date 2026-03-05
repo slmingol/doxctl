@@ -182,16 +182,16 @@ func createStyledTableWithTypedSeparators(headers []string, rows [][]string, tit
 						}
 						output.WriteString("┤" + reset + "\n")
 					} else {
-						// Light separator (datacenter boundaries) - dimmer color, thinner line
-						dimColor := "\033[38;2;100;100;100m" // Dim gray
-						output.WriteString(dimColor + "├")
+						// Light separator (datacenter boundaries) - gray dashed line, blue connectors
+						dimColor := "\033[38;2;100;100;100m" // Dim gray for lines
+						output.WriteString(borderColor + "├" + reset)
 						for i, w := range colWidths {
-							output.WriteString(strings.Repeat("╌", w+2)) // Dashed line
+							output.WriteString(dimColor + strings.Repeat("╌", w+2) + reset) // Dashed line
 							if i < len(colWidths)-1 {
-								output.WriteString("┼")
+								output.WriteString(borderColor + "┼" + reset)
 							}
 						}
-						output.WriteString("┤" + reset + "\n")
+						output.WriteString(borderColor + "┤" + reset + "\n")
 					}
 					break
 				}

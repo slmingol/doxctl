@@ -156,7 +156,7 @@ func ifReachChkWithDeps(executor CommandExecutor) {
 			{"At least 1 interface's a utun device?", fmt.Sprintf("%t", foundOneTunIf), fmt.Sprintf("%v", tunIfs)},
 			{"All active interfaces are reporting as reachable?", fmt.Sprintf("%t", allInfsReachable), ""},
 		}
-		fmt.Print(createStyledTable(headers, rows, "Interfaces Reachable Checks"))
+		fmt.Print(createStyledTableWithTypedSeparators(headers, rows, "Interfaces Reachable Checks", nil))
 
 		if len(tunIfs) < 1 {
 			fmt.Println("")
@@ -224,7 +224,7 @@ func ifReachChkWithDeps(executor CommandExecutor) {
 		{"At least 1 interface's a utun device?", fmt.Sprintf("%t", foundOneTunIf), fmt.Sprintf("%v", tunIfs)},
 		{"All active interfaces are reporting as reachable?", fmt.Sprintf("%t", allInfsReachable), ""},
 	}
-	fmt.Print(createStyledTable(headers, rows, "Interfaces Reachable Checks"))
+	fmt.Print(createStyledTableWithTypedSeparators(headers, rows, "Interfaces Reachable Checks", nil))
 
 	if len(tunIfs) < 1 {
 		fmt.Println("")
@@ -269,7 +269,7 @@ func vpnRteChkWithDeps(executor CommandExecutor) {
 		rows := [][]string{
 			{fmt.Sprintf("At least [%d] routes using interface [%s]?", conf.MinVpnRoutes, vpnIf), fmt.Sprintf("%t", vpnRouteCnt >= conf.MinVpnRoutes), fmt.Sprintf("%d", vpnRouteCnt)},
 		}
-		fmt.Print(createStyledTable(headers, rows, "VPN Interface Route Checks"))
+		fmt.Print(createStyledTableWithTypedSeparators(headers, rows, "VPN Interface Route Checks", nil))
 
 		if vpnRouteCnt < conf.MinVpnRoutes {
 			fmt.Println("")
@@ -314,7 +314,7 @@ func vpnRteChkWithDeps(executor CommandExecutor) {
 	rows := [][]string{
 		{fmt.Sprintf("At least [%d] routes using interface [%s]?", conf.MinVpnRoutes, vpnIf), fmt.Sprintf("%t", vpnRouteCnt >= conf.MinVpnRoutes), fmt.Sprintf("%d", vpnRouteCnt)},
 	}
-	fmt.Print(createStyledTable(headers, rows, "VPN Interface Route Checks"))
+	fmt.Print(createStyledTableWithTypedSeparators(headers, rows, "VPN Interface Route Checks", nil))
 
 	if vpnRouteCnt < conf.MinVpnRoutes {
 		fmt.Println("")
@@ -368,7 +368,7 @@ func vpnConnChkWithDeps(executor CommandExecutor) {
 		rows := [][]string{
 			{description, fmt.Sprintf("%t", vpnConnStatus > 0), ""},
 		}
-		fmt.Print(createStyledTable(headers, rows, "VPN Connection Status Checks"))
+		fmt.Print(createStyledTableWithTypedSeparators(headers, rows, "VPN Connection Status Checks", nil))
 
 		if vpnConnStatus == 0 {
 			fmt.Println("")
@@ -408,7 +408,7 @@ func vpnConnChkWithDeps(executor CommandExecutor) {
 	rows := [][]string{
 		{"VPN Client reports connection status as 'Connected'?", fmt.Sprintf("%t", vpnConnStatus > 0), ""},
 	}
-	fmt.Print(createStyledTable(headers, rows, "VPN Connection Status Checks"))
+	fmt.Print(createStyledTableWithTypedSeparators(headers, rows, "VPN Connection Status Checks", nil))
 
 	if vpnConnStatus == 0 {
 		fmt.Println("")

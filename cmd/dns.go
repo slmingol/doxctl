@@ -326,7 +326,7 @@ func dnsResolverChkWithDeps(executor CommandExecutor, fileReader FileReader) {
 		{"ServerAddresses defined?", dns.serverAddresses},
 	}
 
-	fmt.Print(createStyledTable(headers, rows, "VPN defined DNS Resolver Checks"))
+	fmt.Print(createStyledTableWithTypedSeparators(headers, rows, "VPN defined DNS Resolver Checks", nil))
 
 	fmt.Printf("\n")
 	fmt.Printf("\033[36;1mINFO:\033[0m %s\n", "Any values of unset indicate that the VPN client is not defining DNS resolver(s) properly!")
@@ -439,7 +439,7 @@ func dnsResolverPingChkWithDeps(executor CommandExecutor, fileReader FileReader,
 	headers := []string{"Property Description", "IP", "Net i/f", "Value"}
 
 	var rows [][]string
-	var separatorIndices []int
+	var separators []TableSeparator
 	rowIdx := 0
 	for e := resChks.Front(); e != nil; e = e.Next() {
 		itemResChk := resolverChk(e.Value.(resolverChk))
@@ -463,12 +463,15 @@ func dnsResolverPingChkWithDeps(executor CommandExecutor, fileReader FileReader,
 		})
 		// Add separator after each resolver's 3 rows (except after the last one)
 		if e.Next() != nil {
-			separatorIndices = append(separatorIndices, rowIdx+2)
+			separators = append(separators, TableSeparator{
+				RowIndex: rowIdx + 2,
+				Type:     HeavySeparator,
+			})
 		}
 		rowIdx += 3
 	}
 
-	fmt.Print(createStyledTableWithSeparators(headers, rows, "VPN defined DNS Resolver Connectivity Checks", separatorIndices))
+	fmt.Print(createStyledTableWithTypedSeparators(headers, rows, "VPN defined DNS Resolver Connectivity Checks", separators))
 
 	if len(resolverIPs) <= 1 {
 		fmt.Println("")
@@ -549,7 +552,7 @@ func dnsResolverDigChkWithDeps(executor CommandExecutor, fileReader FileReader, 
 	headers := []string{"Hostname to 'dig'", "Resolver IP", "Is resolvable?"}
 
 	var rows [][]string
-	var separatorIndices []int
+	var separators []TableSeparator
 	numResolvers := len(resolverIPs)
 
 	for rowIdx, result := range digResults {
@@ -562,7 +565,10 @@ func dnsResolverDigChkWithDeps(executor CommandExecutor, fileReader FileReader, 
 		// Add separator after each hostname's complete set of resolver checks
 		// (every numResolvers rows), but not after the last hostname
 		if numResolvers > 0 && (rowIdx+1)%numResolvers == 0 && rowIdx < len(digResults)-1 {
-			separatorIndices = append(separatorIndices, rowIdx)
+			separators = append(separators, TableSeparator{
+				RowIndex: rowIdx,
+				Type:     HeavySeparator,
+			})
 		}
 	}
 
@@ -583,12 +589,15 @@ func dnsResolverDigChkWithDeps(executor CommandExecutor, fileReader FileReader, 
 	if summary != "" {
 		// Add separator before summary row if we have data rows
 		if len(rows) > 0 {
-			separatorIndices = append(separatorIndices, len(rows)-1)
+			separators = append(separators, TableSeparator{
+				RowIndex: len(rows) - 1,
+				Type:     HeavySeparator,
+			})
 		}
 		rows = append(rows, []string{"SUCCESSFUL QUERIES", summary, ""})
 	}
 
-	fmt.Print(createStyledTableWithSeparators(headers, rows, "Dig Check against VPN defined DNS Resolvers", separatorIndices))
+	fmt.Print(createStyledTableWithTypedSeparators(headers, rows, "Dig Check against VPN defined DNS Resolvers", separators))
 
 	if len(resolverIPs) <= 1 {
 		fmt.Println("")

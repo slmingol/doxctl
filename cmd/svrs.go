@@ -242,16 +242,19 @@ func svrsReachChkWithDeps(resolver DNSResolver, expander BraceExpander) {
 	}
 
 	// Create separators array - add separator when service changes
-	var separators []int
+	var separators []TableSeparator
 	var currentService string
 	for i, result := range serverResults {
 		if currentService != "" && currentService != result.Service && i > 0 {
-			separators = append(separators, i-1)
+			separators = append(separators, TableSeparator{
+				RowIndex: i - 1,
+				Type:     HeavySeparator,
+			})
 		}
 		currentService = result.Service
 	}
 
-	fmt.Print(createStyledTableWithSeparators(headers, rows, "Well known Servers Reachable Checks", separators))
+	fmt.Print(createStyledTableWithTypedSeparators(headers, rows, "Well known Servers Reachable Checks", separators))
 
 	if pingFailures > 0 || reachFailures > 0 {
 		fmt.Println("")

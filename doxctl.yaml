@@ -1,0 +1,93 @@
+#----------------
+# VPN
+#----------------
+minVpnRoutes: 5
+
+#----------------
+# DNS
+#----------------
+# dom chks
+domNameChk: "bandwidth.local"
+domSearchChk: "bandwidth"
+domAddrChk: "10.168"
+
+# dig chks
+domainName: "bandwidthclec.local"
+digProbeServerA: "idm-01a"
+digProbeServerB: "idm-01b"
+
+# sites & svc servers
+sites:
+  - lab1
+  - rdu1
+  - atl1
+  - dfw1
+  - lax2
+  - jfk1
+  - bru1
+  - fra1
+  - yyz1
+  - yvr1
+  - syd1
+  - sin1
+
+#----------------
+# SVRS
+#----------------
+wellKnownSvcs:
+  - 
+    svc: openshift
+    port: 6443
+    path: /healthz
+    svrs:
+      - api.app1.{lab1,rdu1,dfw1,lax2,jfk1,bru1,fra1,syd1,sin1,yyz1,yvr1}.ocp.bandwidth.com
+  - 
+    svc: elastic
+    port: 9200
+    path: /_cluster/health
+    insecure: true
+    svrs:
+      - es-master-01{d,e,f}.{lab1,rdu1}.bwnet.us
+  - 
+    svc: idm
+    port: 443
+    path: /ipa/ui/
+    insecure: true
+    svrs:
+      - idm-01{a,b}.{lab1,rdu1,dfw1,lax2,jfk1}.bandwidthclec.local
+      - idm-01{a,b}.{bru1,fra1,sin1,yyz1,yvr1}.bwnet.us
+      #- idm-01{a,b}-new.{syd1,sin1}.bwnet.us
+#  -
+#    svc: mgmt1-sbx-usea1-lab-master-0 (us-east-1a)
+#    port: 6443
+#    path: /healthz
+#    svrs:
+#      - 10.23.14.16
+#  - 
+#    svc: mgmt1-sbx-usea1-lab-master-1 (us-east-1b)
+#    port: 6443
+#    path: /healthz
+#    svrs:
+#      - 10.23.6.221
+#  -
+#    svc: mgmt1-sbx-usea1-lab-master-2 (us-east-1c)
+#    port: 6443
+#    path: /healthz
+#    svrs:
+#      - 10.23.20.253
+  -
+    svc: slmslm-lab-01 (us-east-1a)
+    port: 6443
+    path: /healthz
+    insecure: true
+    svrs:
+      - 10.23.12.154
+      
+# timeout is in milliseconds (ms)
+pingTimeout: 250
+
+# ping or reach failure threshold
+failThreshold: 5
+
+# timeout is in milliseconds (ms)
+dnsLookupTimeout: 100 

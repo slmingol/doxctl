@@ -116,8 +116,10 @@ fi
 echo -e "${GREEN}✓ Launching container...${NC}"
 echo
 
-# Run container with CAP_NET_RAW for ping functionality
+# Run container with host networking to access VPN tunnel
+# This allows the container to use the host's network stack, including VPN routes
 exec podman run --rm -it \
+    --network=host \
     --cap-add=CAP_NET_RAW \
     $DNS_FLAGS \
     -v "$RESOLV_FILE:/etc/resolv.conf:ro" \

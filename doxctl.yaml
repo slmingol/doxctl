@@ -84,10 +84,10 @@ wellKnownSvcs:
       - 10.23.12.154
       
 # timeout is in milliseconds (ms)
-pingTimeout: 250
+pingTimeout: 1000
 
 # ping or reach failure threshold
 failThreshold: 5
 
 # timeout is in milliseconds (ms)
-dnsLookupTimeout: 100 
+dnsLookupTimeout: 2000 

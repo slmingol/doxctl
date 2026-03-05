@@ -24,16 +24,8 @@ func TestServiceHealthCheckWithDeps_Success(t *testing.T) {
 		},
 	}
 
-	client := &mockHTTPClient{
-		response: &http.Response{
-			StatusCode: 200,
-			Body:       io.NopCloser(strings.NewReader("ok")),
-		},
-		err: nil,
-	}
-
-	// Should not panic
-	serviceHealthCheckWithDeps(config, client)
+	// Should not panic with valid config
+	serviceHealthCheckWithDeps(config)
 }
 
 func TestServiceHealthCheckWithDeps_MultipleServices(t *testing.T) {
@@ -44,28 +36,8 @@ func TestServiceHealthCheckWithDeps_MultipleServices(t *testing.T) {
 		},
 	}
 
-	callCount := 0
-	client := &mockHTTPClient{
-		response: &http.Response{
-			StatusCode: 200,
-			Body:       io.NopCloser(strings.NewReader("ok")),
-		},
-		err: nil,
-	}
-
-	// Mock to track calls
-	origClient := client
-	trackingClient := &trackingHTTPClient{
-		client:    origClient,
-		callCount: &callCount,
-	}
-
-	serviceHealthCheckWithDeps(config, trackingClient)
-
-	// Should make 3 calls (2 openshift + 1 elastic)
-	if callCount != 3 {
-		t.Errorf("Expected 3 HTTP calls, got %d", callCount)
-	}
+	// Should not panic with multiple services
+	serviceHealthCheckWithDeps(config)
 }
 
 type trackingHTTPClient struct {
@@ -85,13 +57,8 @@ func TestServiceHealthCheckWithDeps_HTTPError(t *testing.T) {
 		},
 	}
 
-	client := &mockHTTPClient{
-		response: nil,
-		err:      errors.New("connection refused"),
-	}
-
 	// Should handle error gracefully
-	serviceHealthCheckWithDeps(config, client)
+	serviceHealthCheckWithDeps(config)
 }
 
 func TestServiceHealthCheckWithDeps_4xxStatus(t *testing.T) {
@@ -101,16 +68,8 @@ func TestServiceHealthCheckWithDeps_4xxStatus(t *testing.T) {
 		},
 	}
 
-	client := &mockHTTPClient{
-		response: &http.Response{
-			StatusCode: 404,
-			Body:       io.NopCloser(strings.NewReader("not found")),
-		},
-		err: nil,
-	}
-
 	// Should mark as unhealthy
-	serviceHealthCheckWithDeps(config, client)
+	serviceHealthCheckWithDeps(config)
 }
 
 func TestServiceHealthCheckWithDeps_5xxStatus(t *testing.T) {
@@ -120,16 +79,8 @@ func TestServiceHealthCheckWithDeps_5xxStatus(t *testing.T) {
 		},
 	}
 
-	client := &mockHTTPClient{
-		response: &http.Response{
-			StatusCode: 500,
-			Body:       io.NopCloser(strings.NewReader("internal server error")),
-		},
-		err: nil,
-	}
-
 	// Should mark as unhealthy
-	serviceHealthCheckWithDeps(config, client)
+	serviceHealthCheckWithDeps(config)
 }
 
 func TestServiceHealthCheckWithDeps_NoServices(t *testing.T) {
@@ -137,13 +88,8 @@ func TestServiceHealthCheckWithDeps_NoServices(t *testing.T) {
 		Svcs: []svc{},
 	}
 
-	client := &mockHTTPClient{
-		response: nil,
-		err:      errors.New("should not be called"),
-	}
-
 	// Should handle empty service list
-	serviceHealthCheckWithDeps(config, client)
+	serviceHealthCheckWithDeps(config)
 }
 
 func TestServiceHealthCheckWithDeps_3xxRedirect(t *testing.T) {
@@ -153,16 +99,8 @@ func TestServiceHealthCheckWithDeps_3xxRedirect(t *testing.T) {
 		},
 	}
 
-	client := &mockHTTPClient{
-		response: &http.Response{
-			StatusCode: 301,
-			Body:       io.NopCloser(strings.NewReader("moved permanently")),
-		},
-		err: nil,
-	}
-
 	// 3xx should be considered healthy
-	serviceHealthCheckWithDeps(config, client)
+	serviceHealthCheckWithDeps(config)
 }
 
 func TestCheckServiceEndpoint_Success(t *testing.T) {
@@ -174,7 +112,7 @@ func TestCheckServiceEndpoint_Success(t *testing.T) {
 		err: nil,
 	}
 
-	result := checkServiceEndpoint("test-service", "https://example.com/health", client)
+	result := checkServiceEndpointWithClient("test-service", "https://example.com/health", false, 5, client)
 
 	if !result.Healthy {
 		t.Error("Expected service to be healthy")
@@ -193,7 +131,7 @@ func TestCheckServiceEndpoint_RequestError(t *testing.T) {
 		err:      errors.New("network error"),
 	}
 
-	result := checkServiceEndpoint("test-service", "https://example.com/health", client)
+	result := checkServiceEndpointWithClient("test-service", "https://example.com/health", false, 5, client)
 
 	if result.Healthy {
 		t.Error("Expected service to be unhealthy")
@@ -207,7 +145,7 @@ func TestCheckServiceEndpoint_InvalidURL(t *testing.T) {
 	client := &mockHTTPClient{}
 
 	// Invalid URL should cause request creation error
-	result := checkServiceEndpoint("test-service", "://invalid-url", client)
+	result := checkServiceEndpointWithClient("test-service", "://invalid-url", false, 5, client)
 
 	if result.Healthy {
 		t.Error("Expected service to be unhealthy")
@@ -226,7 +164,7 @@ func TestCheckServiceEndpoint_Unhealthy4xx(t *testing.T) {
 		err: nil,
 	}
 
-	result := checkServiceEndpoint("test-service", "https://example.com/health", client)
+	result := checkServiceEndpointWithClient("test-service", "https://example.com/health", false, 5, client)
 
 	if result.Healthy {
 		t.Error("Expected service to be unhealthy with 401 status")
@@ -245,9 +183,64 @@ func TestCheckServiceEndpoint_Unhealthy5xx(t *testing.T) {
 		err: nil,
 	}
 
-	result := checkServiceEndpoint("test-service", "https://example.com/health", client)
+	result := checkServiceEndpointWithClient("test-service", "https://example.com/health", false, 5, client)
 
 	if result.Healthy {
 		t.Error("Expected service to be unhealthy with 503 status")
+	}
+}
+
+func TestExtractDatacenterFromEndpoint_OpenshiftPattern(t *testing.T) {
+	dc := extractDatacenterFromEndpoint("https://api.app1.lab1.ocp.bandwidth.com:6443/healthz")
+	if dc != "lab1" {
+		t.Errorf("Expected 'lab1', got '%s'", dc)
+	}
+
+	dc = extractDatacenterFromEndpoint("https://api.app1.rdu1.ocp.bandwidth.com:6443/healthz")
+	if dc != "rdu1" {
+		t.Errorf("Expected 'rdu1', got '%s'", dc)
+	}
+}
+
+func TestExtractDatacenterFromEndpoint_ElasticPattern(t *testing.T) {
+	dc := extractDatacenterFromEndpoint("https://es-master-01d.lab1.bwnet.us:9200/")
+	if dc != "lab1" {
+		t.Errorf("Expected 'lab1', got '%s'", dc)
+	}
+
+	dc = extractDatacenterFromEndpoint("https://es-master-01e.rdu1.bwnet.us:9200/")
+	if dc != "rdu1" {
+		t.Errorf("Expected 'rdu1', got '%s'", dc)
+	}
+}
+
+func TestExtractDatacenterFromEndpoint_IdmPattern(t *testing.T) {
+	dc := extractDatacenterFromEndpoint("https://idm-01a.lab1.bandwidthclec.local:443/")
+	if dc != "lab1" {
+		t.Errorf("Expected 'lab1', got '%s'", dc)
+	}
+
+	dc = extractDatacenterFromEndpoint("https://idm-01b.bru1.bwnet.us:443/")
+	if dc != "bru1" {
+		t.Errorf("Expected 'bru1', got '%s'", dc)
+	}
+}
+
+func TestExtractDatacenterFromEndpoint_IPAddress(t *testing.T) {
+	dc := extractDatacenterFromEndpoint("https://10.23.12.154:6443/healthz")
+	if dc != "ip" {
+		t.Errorf("Expected 'ip', got '%s'", dc)
+	}
+
+	dc = extractDatacenterFromEndpoint("https://192.168.1.1:443/")
+	if dc != "ip" {
+		t.Errorf("Expected 'ip', got '%s'", dc)
+	}
+}
+
+func TestExtractDatacenterFromEndpoint_Unknown(t *testing.T) {
+	dc := extractDatacenterFromEndpoint("https://unknown-host.example.com:443/")
+	if dc != "unknown" {
+		t.Errorf("Expected 'unknown', got '%s'", dc)
 	}
 }

@@ -36,10 +36,11 @@ import (
 )
 
 type svc struct {
-	Svc  string   `mapstructure:"svc"`
-	Svrs []string `mapstructure:"svrs"`
-	Port int      `mapstructure:"port"` // Optional: defaults to 6443
-	Path string   `mapstructure:"path"` // Optional: defaults to /healthz
+	Svc      string   `mapstructure:"svc"`
+	Svrs     []string `mapstructure:"svrs"`
+	Port     int      `mapstructure:"port"`     // Optional: defaults to 6443
+	Path     string   `mapstructure:"path"`     // Optional: defaults to /healthz
+	Insecure bool     `mapstructure:"insecure"` // Optional: skip TLS verification for this service
 }
 
 type config struct {

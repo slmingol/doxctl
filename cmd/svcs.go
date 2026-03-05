@@ -111,19 +111,11 @@ func init() {
 
 // serviceHealthCheck checks the health of configured services
 func serviceHealthCheck() {
-	transport := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: svcsInsecure},
-	}
-	client := &http.Client{
-		Timeout:   time.Duration(svcsTimeout) * time.Second,
-		Transport: transport,
-	}
-
-	serviceHealthCheckWithDeps(conf, client)
+	serviceHealthCheckWithDeps(conf)
 }
 
 // serviceHealthCheckWithDeps allows dependency injection for testing
-func serviceHealthCheckWithDeps(config *config, client HTTPClient) {
+func serviceHealthCheckWithDeps(config *config) {
 	result := svcHealthOutput{
 		Timestamp: time.Now(),
 		Results:   []svcHealthResult{},
@@ -133,6 +125,7 @@ func serviceHealthCheckWithDeps(config *config, client HTTPClient) {
 	type endpointInfo struct {
 		serviceName string
 		endpoint    string
+		insecure    bool
 	}
 	var endpoints []endpointInfo
 	for _, svc := range config.Svcs {
@@ -148,6 +141,9 @@ func serviceHealthCheckWithDeps(config *config, client HTTPClient) {
 			path = "/healthz"
 		}
 
+		// Determine if we should skip TLS verification (global flag or per-service)
+		skipTLS := svcsInsecure || svc.Insecure
+
 		// For each server in the service
 		for _, svr := range svc.Svrs {
 			// Expand brace expressions - handle nested braces by calling expand multiple times
@@ -156,7 +152,7 @@ func serviceHealthCheckWithDeps(config *config, client HTTPClient) {
 			for _, expandedSvr := range expanded {
 				// Construct service endpoint URL
 				endpoint := fmt.Sprintf("https://%s:%d%s", expandedSvr, port, path)
-				endpoints = append(endpoints, endpointInfo{serviceName: svc.Svc, endpoint: endpoint})
+				endpoints = append(endpoints, endpointInfo{serviceName: svc.Svc, endpoint: endpoint, insecure: skipTLS})
 			}
 		}
 	}
@@ -164,7 +160,7 @@ func serviceHealthCheckWithDeps(config *config, client HTTPClient) {
 	// Test each endpoint with progressive spinner
 	err := RunWithSpinnerProgress("Checking service health endpoints", len(endpoints), func(index int) error {
 		ep := endpoints[index]
-		healthResult := checkServiceEndpoint(ep.serviceName, ep.endpoint, client)
+		healthResult := checkServiceEndpoint(ep.serviceName, ep.endpoint, ep.insecure, svcsTimeout)
 		result.Results = append(result.Results, healthResult)
 
 		if healthResult.Healthy {
@@ -243,12 +239,28 @@ func expandBraces(s string) []string {
 }
 
 // checkServiceEndpoint performs a single health check against an endpoint
-func checkServiceEndpoint(serviceName, endpoint string, client HTTPClient) svcHealthResult {
+func checkServiceEndpoint(serviceName, endpoint string, insecure bool, timeout int) svcHealthResult {
+	return checkServiceEndpointWithClient(serviceName, endpoint, insecure, timeout, nil)
+}
+
+// checkServiceEndpointWithClient allows dependency injection for testing
+func checkServiceEndpointWithClient(serviceName, endpoint string, insecure bool, timeout int, client HTTPClient) svcHealthResult {
 	result := svcHealthResult{
 		Timestamp: time.Now(),
 		Service:   serviceName,
 		Endpoint:  endpoint,
 		Healthy:   false,
+	}
+
+	// Create HTTP client if not provided (for production use)
+	if client == nil {
+		transport := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: insecure},
+		}
+		client = &http.Client{
+			Timeout:   time.Duration(timeout) * time.Second,
+			Transport: transport,
+		}
 	}
 
 	req, err := http.NewRequest("GET", endpoint, nil)
@@ -289,10 +301,15 @@ func printSvcHealthTable(result svcHealthOutput) {
 	var rows [][]string
 	var separators []TableSeparator
 
-	// Group results by service name
+	// Group results by service name, then by datacenter
+	type datacenterGroup struct {
+		datacenter string
+		results    []svcHealthResult
+	}
 	type serviceGroup struct {
-		name    string
-		results []svcHealthResult
+		name        string
+		datacenters map[string]*datacenterGroup
+		dcOrder     []string
 	}
 
 	groups := make(map[string]*serviceGroup)
@@ -301,86 +318,113 @@ func printSvcHealthTable(result svcHealthOutput) {
 	for _, r := range result.Results {
 		if groups[r.Service] == nil {
 			groups[r.Service] = &serviceGroup{
-				name:    r.Service,
-				results: []svcHealthResult{},
+				name:        r.Service,
+				datacenters: make(map[string]*datacenterGroup),
+				dcOrder:     []string{},
 			}
 			groupOrder = append(groupOrder, r.Service)
 		}
-		groups[r.Service].results = append(groups[r.Service].results, r)
+
+		// Extract datacenter from endpoint
+		datacenter := extractDatacenterFromEndpoint(r.Endpoint)
+
+		if groups[r.Service].datacenters[datacenter] == nil {
+			groups[r.Service].datacenters[datacenter] = &datacenterGroup{
+				datacenter: datacenter,
+				results:    []svcHealthResult{},
+			}
+			groups[r.Service].dcOrder = append(groups[r.Service].dcOrder, datacenter)
+		}
+
+		groups[r.Service].datacenters[datacenter].results = append(groups[r.Service].datacenters[datacenter].results, r)
 	}
 
 	// Sort services alphabetically
 	sort.Strings(groupOrder)
 
-	// Build rows with separators between service groups
+	// Build rows with separators between service and datacenter groups
 	rowCount := 0
 	for svcIdx, serviceName := range groupOrder {
 		group := groups[serviceName]
 
-		// Sort results within each service by endpoint
-		sort.Slice(group.results, func(i, j int) bool {
-			return group.results[i].Endpoint < group.results[j].Endpoint
-		})
+		// Sort datacenters alphabetically
+		sort.Strings(group.dcOrder)
 
-		totalItemsInService := len(group.results)
+		// Count total items in this service
+		totalItemsInService := 0
+		for _, dc := range group.dcOrder {
+			totalItemsInService += len(group.datacenters[dc].results)
+		}
+
+		// If service has <= 5 items, no separators within service
+		// If > 5 items, group into chunks of 4-5 at datacenter boundaries
 		itemsInCurrentChunk := 0
 
-		for itemIdx, r := range group.results {
-			// Status icon
-			status := "✓"
-			if !r.Healthy {
-				status = "✗"
-			}
+		for dcIdx, dc := range group.dcOrder {
+			dcGroup := group.datacenters[dc]
 
-			// Response time
-			responseTimeStr := "-"
-			if r.ResponseTimeMs > 0 {
-				responseTimeStr = fmt.Sprintf("%.2f", r.ResponseTimeMs)
-			}
+			// Sort results within each datacenter alphabetically by endpoint
+			sort.Slice(dcGroup.results, func(i, j int) bool {
+				return dcGroup.results[i].Endpoint < dcGroup.results[j].Endpoint
+			})
 
-			// Extract hostname:port from endpoint URL (remove protocol and path)
-			host := r.Endpoint
-			// Remove https:// or http:// prefix
-			if strings.HasPrefix(host, "https://") {
-				host = host[8:]
-			} else if strings.HasPrefix(host, "http://") {
-				host = host[7:]
-			}
-			// Remove path (keep hostname:port)
-			if idx := strings.Index(host, "/"); idx != -1 {
-				host = host[:idx]
-			}
-
-			row := []string{
-				r.Service,
-				host,
-				status,
-				responseTimeStr,
-			}
-
-			// Add error column only in verbose mode
-			if verboseChk {
-				errorStr := ""
-				if r.Error != "" {
-					// In verbose mode, show more of the error (truncate at 120 chars)
-					if len(r.Error) > 120 {
-						errorStr = r.Error[:117] + "..."
-					} else {
-						errorStr = r.Error
-					}
+			for _, r := range dcGroup.results {
+				// Status icon
+				status := "✓"
+				if !r.Healthy {
+					status = "✗"
 				}
-				row = append(row, errorStr)
-			}
 
-			rows = append(rows, row)
-			rowCount++
-			itemsInCurrentChunk++
+				// Response time
+				responseTimeStr := "-"
+				if r.ResponseTimeMs > 0 {
+					responseTimeStr = fmt.Sprintf("%.2f", r.ResponseTimeMs)
+				}
+
+				// Extract hostname:port from endpoint URL (remove protocol and path)
+				host := r.Endpoint
+				// Remove https:// or http:// prefix
+				if strings.HasPrefix(host, "https://") {
+					host = host[8:]
+				} else if strings.HasPrefix(host, "http://") {
+					host = host[7:]
+				}
+				// Remove path (keep hostname:port)
+				if idx := strings.Index(host, "/"); idx != -1 {
+					host = host[:idx]
+				}
+
+				row := []string{
+					r.Service,
+					host,
+					status,
+					responseTimeStr,
+				}
+
+				// Add error column only in verbose mode
+				if verboseChk {
+					errorStr := ""
+					if r.Error != "" {
+						// In verbose mode, show more of the error (truncate at 120 chars)
+						if len(r.Error) > 120 {
+							errorStr = r.Error[:117] + "..."
+						} else {
+							errorStr = r.Error
+						}
+					}
+					row = append(row, errorStr)
+				}
+
+				rows = append(rows, row)
+				rowCount++
+				itemsInCurrentChunk++
+			}
 
 			// Add light separator if:
 			// 1. This service has > 5 items total
 			// 2. We've accumulated 4-5 items in current chunk
-			// 3. This isn't the last item in the service
-			if totalItemsInService > 5 && itemIdx < len(group.results)-1 {
+			// 3. This isn't the last datacenter in the service
+			if totalItemsInService > 5 && dcIdx < len(group.dcOrder)-1 {
 				if itemsInCurrentChunk >= 4 {
 					separators = append(separators, TableSeparator{
 						RowIndex: rowCount - 1,
@@ -411,4 +455,62 @@ func printSvcHealthTable(result svcHealthOutput) {
 		result.Summary.Healthy,
 		result.Summary.Total,
 		availability)
+}
+
+// extractDatacenterFromEndpoint extracts the datacenter identifier from an endpoint URL
+func extractDatacenterFromEndpoint(endpoint string) string {
+	// Remove protocol
+	host := endpoint
+	if strings.HasPrefix(host, "https://") {
+		host = host[8:]
+	} else if strings.HasPrefix(host, "http://") {
+		host = host[7:]
+	}
+
+	// Remove path and port
+	if idx := strings.Index(host, "/"); idx != -1 {
+		host = host[:idx]
+	}
+	if idx := strings.Index(host, ":"); idx != -1 {
+		host = host[:idx]
+	}
+
+	// Check if it's an IP address
+	if strings.Count(host, ".") == 3 {
+		parts := strings.Split(host, ".")
+		if len(parts) == 4 {
+			isIP := true
+			for _, p := range parts {
+				if len(p) == 0 || len(p) > 3 {
+					isIP = false
+					break
+				}
+			}
+			if isIP {
+				return "ip"
+			}
+		}
+	}
+
+	parts := strings.Split(host, ".")
+	if len(parts) >= 3 {
+		// For patterns like:
+		// - api.app1.lab1.ocp.bandwidth.com -> lab1
+		// - es-master-01d.lab1.bwnet.us -> lab1
+		// - idm-01a.lab1.bandwidthclec.local -> lab1
+		// - idm-01a.bru1.bwnet.us -> bru1
+
+		if strings.HasPrefix(host, "api.app1.") {
+			// api.app1.lab1.ocp... -> lab1
+			return parts[2]
+		} else if strings.HasPrefix(host, "es-master-") {
+			// es-master-01d.lab1.bwnet.us -> lab1
+			return parts[1]
+		} else if strings.HasPrefix(host, "idm-") {
+			// idm-01a.lab1.bandwidthclec.local -> lab1
+			return parts[1]
+		}
+	}
+
+	return "unknown"
 }

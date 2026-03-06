@@ -153,6 +153,7 @@ func TestNetPerformanceCheckWithDeps_MultipleTargets(t *testing.T) {
 	config := &config{
 		Sites:      []string{"site1", "site2", "site3"},
 		DomainName: "example.com",
+		Svcs:       []svc{{Svc: "test", Svrs: []string{"site1", "site2", "site3"}}},
 	}
 
 	callCount := 0

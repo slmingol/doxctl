@@ -4,7 +4,7 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 
 # Copy the binary
-COPY doxctl-linux /usr/bin/doxctl
+COPY doxctl /usr/bin/doxctl
 
 # Set the entrypoint
 ENTRYPOINT ["/usr/bin/doxctl"]

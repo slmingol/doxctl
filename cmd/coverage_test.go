@@ -67,13 +67,20 @@ func TestAllDnsExecutePaths(t *testing.T) {
 			r, w, _ := os.Pipe()
 			os.Stdout = w
 
+			// Drain pipe in goroutine to prevent deadlock
+			done := make(chan struct{})
+			go func() {
+				io.Copy(io.Discard, r)
+				close(done)
+			}()
+
 			defer func() {
 				if r := recover(); r != nil {
 					t.Logf("Recovered: %v", r)
 				}
 				w.Close()
 				os.Stdout = old
-				io.Copy(io.Discard, r)
+				<-done
 			}()
 
 			dnsExecute(dnsCmd, []string{})
@@ -117,13 +124,20 @@ func TestAllVpnExecutePaths(t *testing.T) {
 			r, w, _ := os.Pipe()
 			os.Stdout = w
 
+			// Drain pipe in goroutine to prevent deadlock
+			done := make(chan struct{})
+			go func() {
+				io.Copy(io.Discard, r)
+				close(done)
+			}()
+
 			defer func() {
 				if r := recover(); r != nil {
 					t.Logf("Recovered: %v", r)
 				}
 				w.Close()
 				os.Stdout = old
-				io.Copy(io.Discard, r)
+				<-done
 			}()
 
 			vpnExecute(vpnCmd, []string{})
@@ -160,13 +174,20 @@ func TestAllSvrsExecutePaths(t *testing.T) {
 			r, w, _ := os.Pipe()
 			os.Stdout = w
 
+			// Drain pipe in goroutine to prevent deadlock
+			done := make(chan struct{})
+			go func() {
+				io.Copy(io.Discard, r)
+				close(done)
+			}()
+
 			defer func() {
 				if r := recover(); r != nil {
 					t.Logf("Recovered: %v", r)
 				}
 				w.Close()
 				os.Stdout = old
-				io.Copy(io.Discard, r)
+				<-done
 			}()
 
 			svrsExecute(svrsCmd, []string{})
@@ -186,13 +207,20 @@ func TestDnsResolverPingChkCoverage(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
+	// Drain pipe in goroutine to prevent deadlock
+	done := make(chan struct{})
+	go func() {
+		io.Copy(io.Discard, r)
+		close(done)
+	}()
+
 	defer func() {
 		if r := recover(); r != nil {
 			t.Logf("Recovered: %v", r)
 		}
 		w.Close()
 		os.Stdout = old
-		io.Copy(io.Discard, r)
+		<-done
 	}()
 
 	dnsResolverPingChk()
@@ -229,13 +257,20 @@ func TestIfReachChkCoverage(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
+	// Drain pipe in goroutine to prevent deadlock
+	done := make(chan struct{})
+	go func() {
+		io.Copy(io.Discard, r)
+		close(done)
+	}()
+
 	defer func() {
 		if r := recover(); r != nil {
 			t.Logf("Recovered: %v", r)
 		}
 		w.Close()
 		os.Stdout = old
-		io.Copy(io.Discard, r)
+		<-done
 	}()
 
 	ifReachChk()
@@ -253,13 +288,20 @@ func TestVpnRteChkCoverage(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
+	// Drain pipe in goroutine to prevent deadlock
+	done := make(chan struct{})
+	go func() {
+		io.Copy(io.Discard, r)
+		close(done)
+	}()
+
 	defer func() {
 		if r := recover(); r != nil {
 			t.Logf("Recovered: %v", r)
 		}
 		w.Close()
 		os.Stdout = old
-		io.Copy(io.Discard, r)
+		<-done
 	}()
 
 	vpnRteChk()
@@ -273,13 +315,20 @@ func TestVpnConnChkCoverage(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
+	// Drain pipe in goroutine to prevent deadlock
+	done := make(chan struct{})
+	go func() {
+		io.Copy(io.Discard, r)
+		close(done)
+	}()
+
 	defer func() {
 		if r := recover(); r != nil {
 			t.Logf("Recovered: %v", r)
 		}
 		w.Close()
 		os.Stdout = old
-		io.Copy(io.Discard, r)
+		<-done
 	}()
 
 	vpnConnChk()
@@ -300,13 +349,20 @@ func TestSvrsExecuteAllPath(t *testing.T) {
 	allChk = true
 	svrsReachableChk = false
 
+	// Drain pipe in goroutine to prevent deadlock
+	done := make(chan struct{})
+	go func() {
+		io.Copy(io.Discard, r)
+		close(done)
+	}()
+
 	defer func() {
 		if r := recover(); r != nil {
 			t.Logf("Recovered: %v", r)
 		}
 		w.Close()
 		os.Stdout = old
-		io.Copy(io.Discard, r)
+		<-done
 	}()
 
 	svrsExecute(svrsCmd, []string{})
@@ -333,13 +389,20 @@ func TestSvrsReachChkWithMultipleServers(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
+	// Drain pipe in goroutine to prevent deadlock
+	done := make(chan struct{})
+	go func() {
+		io.Copy(io.Discard, r)
+		close(done)
+	}()
+
 	defer func() {
 		if r := recover(); r != nil {
 			t.Logf("Recovered: %v", r)
 		}
 		w.Close()
 		os.Stdout = old
-		io.Copy(io.Discard, r)
+		<-done
 	}()
 
 	svrsReachChk()

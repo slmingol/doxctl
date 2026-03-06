@@ -111,8 +111,9 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "doxctl",
-	Short: "A CLI to help triage network/DNS/VPN connectivity issues",
+	Use:     "doxctl",
+	Version: version,
+	Short:   "A CLI to help triage network/DNS/VPN connectivity issues",
 	Long: `
 'doxctl' is a collection of tools which can be used to diagnose & triage problems 
 stemming from the following areas with a laptop or desktop system:

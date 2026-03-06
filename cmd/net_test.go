@@ -23,6 +23,8 @@ func (m *mockNetPinger) Statistics() *ping.Statistics {
 
 func (m *mockNetPinger) SetTimeout(timeout time.Duration) {}
 
+func (m *mockNetPinger) SetCount(count int) {}
+
 func TestNetPerformanceCheckWithDeps_Success(t *testing.T) {
 	config := &config{
 		Sites:      []string{"site1", "site2"},

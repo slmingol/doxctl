@@ -63,6 +63,8 @@ func (m *mockPinger) SetTimeout(duration time.Duration) {
 	m.timeout = duration
 }
 
+func (m *mockPinger) SetCount(count int) {}
+
 func (m *mockPinger) Run() error {
 	return m.runErr
 }

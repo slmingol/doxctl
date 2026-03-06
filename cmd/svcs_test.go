@@ -40,16 +40,6 @@ func TestServiceHealthCheckWithDeps_MultipleServices(t *testing.T) {
 	serviceHealthCheckWithDeps(config)
 }
 
-type trackingHTTPClient struct {
-	client    HTTPClient
-	callCount *int
-}
-
-func (t *trackingHTTPClient) Do(req *http.Request) (*http.Response, error) {
-	*t.callCount++
-	return t.client.Do(req)
-}
-
 func TestServiceHealthCheckWithDeps_HTTPError(t *testing.T) {
 	config := &config{
 		Svcs: []svc{

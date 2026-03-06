@@ -15,6 +15,12 @@ builds:
     goarch:
       - amd64
       - arm64
+    ldflags:
+      - -s -w
+      - -X doxctl/cmd.version={{.Version}}
+      - -X doxctl/cmd.commit={{.Commit}}
+      - -X doxctl/cmd.date={{.Date}}
+      - -X doxctl/cmd.builtBy=goreleaser
 archives:
   - name_template: >-
       {{ .ProjectName }}_
@@ -38,7 +44,7 @@ dockers:
   # Docker Hub images
   - image_templates: 
     - "slmingol/doxctl:{{ .Tag }}-amd64"
-    dockerfile: Dockerfile
+    dockerfile: docker/Dockerfile
     use: buildx
     goarch: amd64
     build_flag_templates:
@@ -55,7 +61,7 @@ dockers:
       - "--platform=linux/amd64"
   - image_templates: 
     - "slmingol/doxctl:{{ .Tag }}-arm64"
-    dockerfile: Dockerfile
+    dockerfile: docker/Dockerfile
     use: buildx
     goarch: arm64
     build_flag_templates:
@@ -73,7 +79,7 @@ dockers:
   # GitHub Container Registry images
   - image_templates: 
     - "ghcr.io/slmingol/doxctl:{{ .Tag }}-amd64"
-    dockerfile: Dockerfile
+    dockerfile: docker/Dockerfile
     use: buildx
     goarch: amd64
     build_flag_templates:
@@ -90,7 +96,7 @@ dockers:
       - "--platform=linux/amd64"
   - image_templates: 
     - "ghcr.io/slmingol/doxctl:{{ .Tag }}-arm64"
-    dockerfile: Dockerfile
+    dockerfile: docker/Dockerfile
     use: buildx
     goarch: arm64
     build_flag_templates:

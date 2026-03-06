@@ -9,7 +9,7 @@
 [![Code Coverage](https://github.com/slmingol/doxctl/actions/workflows/codecoverage.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/codecoverage.yml)
 [![Security Scan](https://github.com/slmingol/doxctl/actions/workflows/security-scan.yml/badge.svg)](https://github.com/slmingol/doxctl/actions/workflows/security-scan.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Go Version](https://img.shields.io/badge/Go-1.25.0-00ADD8?logo=go)](https://golang.org/)
+[![Go Version](https://img.shields.io/badge/Go-1.23.0-00ADD8?logo=go)](https://golang.org/)
 [![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?logo=docker)](docker/)
 [![Docker Hub](https://img.shields.io/badge/Docker%20Hub-slmingol%2Fdoxctl-blue?logo=docker)](https://hub.docker.com/r/slmingol/doxctl)
 [![GHCR](https://img.shields.io/badge/ghcr.io-doxctl-blue?logo=docker)](https://github.com/slmingol/doxctl/pkgs/container/doxctl)

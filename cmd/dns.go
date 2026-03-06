@@ -64,16 +64,6 @@ type TableSeparator struct {
 	Type     SeparatorType
 }
 
-// createStyledTableWithSeparators creates a table with optional row separators
-func createStyledTableWithSeparators(headers []string, rows [][]string, title string, separatorAfter []int) string {
-	// Convert old-style separator indices to new format (all heavy)
-	var seps []TableSeparator
-	for _, idx := range separatorAfter {
-		seps = append(seps, TableSeparator{RowIndex: idx, Type: HeavySeparator})
-	}
-	return createStyledTableWithTypedSeparators(headers, rows, title, seps)
-}
-
 // createStyledTableWithTypedSeparators creates a table with typed separators
 func createStyledTableWithTypedSeparators(headers []string, rows [][]string, title string, separators []TableSeparator) string {
 	var output strings.Builder
@@ -161,33 +151,31 @@ func createStyledTableWithTypedSeparators(headers []string, rows [][]string, tit
 		output.WriteString("\n")
 
 		// Add separator row if requested
-		if separators != nil {
-			for _, sep := range separators {
-				if rowIdx == sep.RowIndex && rowIdx < len(rows)-1 {
-					if sep.Type == HeavySeparator {
-						// Heavy separator (service boundaries)
-						output.WriteString(borderColor + "├")
-						for i, w := range colWidths {
-							output.WriteString(strings.Repeat("─", w+2))
-							if i < len(colWidths)-1 {
-								output.WriteString("┼")
-							}
+		for _, sep := range separators {
+			if rowIdx == sep.RowIndex && rowIdx < len(rows)-1 {
+				if sep.Type == HeavySeparator {
+					// Heavy separator (service boundaries)
+					output.WriteString(borderColor + "├")
+					for i, w := range colWidths {
+						output.WriteString(strings.Repeat("─", w+2))
+						if i < len(colWidths)-1 {
+							output.WriteString("┼")
 						}
-						output.WriteString("┤" + reset + "\n")
-					} else {
-						// Light separator (datacenter boundaries) - gray dashed line, blue connectors
-						dimColor := "\033[38;2;100;100;100m" // Dim gray for lines
-						output.WriteString(borderColor + "├" + reset)
-						for i, w := range colWidths {
-							output.WriteString(dimColor + strings.Repeat("╌", w+2) + reset) // Dashed line
-							if i < len(colWidths)-1 {
-								output.WriteString(borderColor + "┼" + reset)
-							}
-						}
-						output.WriteString(borderColor + "┤" + reset + "\n")
 					}
-					break
+					output.WriteString("┤" + reset + "\n")
+				} else {
+					// Light separator (datacenter boundaries) - gray dashed line, blue connectors
+					dimColor := "\033[38;2;100;100;100m" // Dim gray for lines
+					output.WriteString(borderColor + "├" + reset)
+					for i, w := range colWidths {
+						output.WriteString(dimColor + strings.Repeat("╌", w+2) + reset) // Dashed line
+						if i < len(colWidths)-1 {
+							output.WriteString(borderColor + "┼" + reset)
+						}
+					}
+					output.WriteString(borderColor + "┤" + reset + "\n")
 				}
+				break
 			}
 		}
 	}

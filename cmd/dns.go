@@ -47,22 +47,15 @@ var (
 
 const dnsPort = 53
 
-type tableData struct {
-	headers []string
-	rows    [][]string
-}
-
-// createStyledTable creates a table with Ocean theme colors
-func createStyledTable(headers []string, rows [][]string, title string) string {
-	return createStyledTableWithSeparators(headers, rows, title, nil)
-}
-
 // SeparatorType defines the style of separator
 type SeparatorType int
 
+// Separator types for table formatting
 const (
-	LightSeparator SeparatorType = iota // Light separator for datacenter boundaries
-	HeavySeparator                      // Heavy separator for service boundaries
+	// LightSeparator is a light separator for datacenter boundaries
+	LightSeparator SeparatorType = iota
+	// HeavySeparator is a heavy separator for service boundaries
+	HeavySeparator
 )
 
 // TableSeparator defines a separator with its position and type

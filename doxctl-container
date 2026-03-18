@@ -104,13 +104,15 @@ for dns in $VPN_DNS; do
 done
 [ -n "$SEARCH_DOMAIN" ] && DNS_FLAGS="$DNS_FLAGS --dns-search $SEARCH_DOMAIN"
 
-# Check if config exists
-if [ ! -f "$SCRIPT_DIR/doxctl.yaml" ]; then
-    echo -e "${YELLOW}WARNING: doxctl.yaml not found in $SCRIPT_DIR${NC}"
+# Check if config exists — prefer ~/.doxctl.yaml, fall back to repo copy
+if [ -f "$HOME/.doxctl.yaml" ]; then
+    CONFIG_MOUNT="-v $HOME/.doxctl.yaml:/root/.doxctl.yaml"
+elif [ -f "$SCRIPT_DIR/doxctl.yaml" ]; then
+    CONFIG_MOUNT="-v $SCRIPT_DIR/doxctl.yaml:/root/.doxctl.yaml"
+else
+    echo -e "${YELLOW}WARNING: doxctl.yaml not found in $HOME or $SCRIPT_DIR${NC}"
     echo "Using container default config"
     CONFIG_MOUNT=""
-else
-    CONFIG_MOUNT="-v $SCRIPT_DIR/doxctl.yaml:/root/.doxctl.yaml"
 fi
 
 echo -e "${GREEN}✓ Launching container...${NC}"

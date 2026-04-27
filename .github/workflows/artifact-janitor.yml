@@ -20,6 +20,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   cleanup-workflow-runs:
@@ -59,6 +60,7 @@ jobs:
     steps:
       - name: Cleanup old Docker images
         uses: actions/delete-package-versions@v5
+        continue-on-error: true  # Don't fail if package doesn't exist
         with:
           package-name: 'doxctl'
           package-type: 'container'

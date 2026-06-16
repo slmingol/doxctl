@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/go-ping/ping v1.2.0
-	github.com/gookit/color v1.5.4
+	github.com/gookit/color v1.6.1
 	github.com/kujtimiihoxha/go-brace-expansion v0.0.0-20190729224542-0df038447e67
 	github.com/lixiangzhong/dnsutil v1.4.0
 	github.com/miekg/dns v1.1.63

@@ -32,6 +32,7 @@ jobs:
     steps:
       - name: Cleanup old workflow runs
         uses: Mattraks/delete-workflow-runs@v2
+        continue-on-error: true
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}

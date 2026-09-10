@@ -36,5 +36,5 @@ jobs:
     - name: Report coverage
       uses: codecov/codecov-action@v7
       with:
-        file: coverage.txt
+        files: coverage.txt
         fail_ci_if_error: false

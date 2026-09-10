@@ -34,7 +34,7 @@ jobs:
     - name: Test with Coverage
       run: go test -v -coverprofile=coverage.txt -covermode=atomic ./...
     - name: Report coverage
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v7
       with:
         file: coverage.txt
         fail_ci_if_error: false

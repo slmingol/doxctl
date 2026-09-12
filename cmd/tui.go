@@ -186,9 +186,9 @@ func (m tuiModel) View() string {
 	var sb strings.Builder
 
 	border := strings.Repeat("═", 42)
-	sb.WriteString(styleTitle.Render("╔" + border + "╗") + "\n")
+	sb.WriteString(styleTitle.Render("╔"+border+"╗") + "\n")
 	sb.WriteString(styleTitle.Render("║  doxctl TUI Dashboard") + styleDim.Render(strings.Repeat(" ", 21)) + styleTitle.Render("║") + "\n")
-	sb.WriteString(styleTitle.Render("╚" + border + "╝") + "\n\n")
+	sb.WriteString(styleTitle.Render("╚"+border+"╝") + "\n\n")
 
 	hints := styleDim.Render("[space]") + " toggle  " +
 		styleDim.Render("[enter]") + " run  " +

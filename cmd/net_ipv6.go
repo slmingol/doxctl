@@ -163,8 +163,7 @@ func getIPv6Routes(executor CommandExecutor) ipv6RouteInfo {
 		return info
 	}
 
-	lines := strings.Split(string(out), "\n")
-	for _, line := range lines {
+	for line := range strings.SplitSeq(string(out), "\n") {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			continue

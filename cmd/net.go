@@ -60,6 +60,7 @@ type netPerfOutput struct {
 
 var (
 	netPerfChk     bool
+	netIPv6Chk     bool
 	netSLOMs       float64
 	netPacketCount int
 )
@@ -75,6 +76,7 @@ This command measures:
   - Jitter (latency variance)
   - Packet loss percentage
   - SLO compliance (latency threshold)
+  - IPv6 connectivity and dual-stack detection
 
 Examples:
   # Test network performance to configured targets
@@ -84,11 +86,21 @@ Examples:
   doxctl net --perf --slo 100
 
   # Specify number of packets to send (default: 10)
-  doxctl net --perf --packets 20`,
+  doxctl net --perf --packets 20
+
+  # Run IPv6 connectivity checks
+  doxctl net --ipv6`,
 	Run: func(cmd *cobra.Command, args []string) {
+		ran := false
 		if allChk || netPerfChk {
 			netPerformanceCheck()
-		} else {
+			ran = true
+		}
+		if allChk || netIPv6Chk {
+			netIPv6Check()
+			ran = true
+		}
+		if !ran {
 			_ = cmd.Usage()
 			fmt.Printf("\n")
 			os.Exit(1)
@@ -100,6 +112,7 @@ func init() {
 	rootCmd.AddCommand(netCmd)
 
 	netCmd.Flags().BoolVarP(&netPerfChk, "perf", "p", false, "Run network performance tests")
+	netCmd.Flags().BoolVarP(&netIPv6Chk, "ipv6", "6", false, "Run IPv6 connectivity checks")
 	netCmd.Flags().Float64VarP(&netSLOMs, "slo", "s", 50.0, "SLO threshold in milliseconds")
 	netCmd.Flags().IntVarP(&netPacketCount, "packets", "n", 10, "Number of packets to send")
 }

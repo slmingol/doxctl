@@ -27,6 +27,7 @@
 | **svrs** | Test connectivity to well-known servers through VPN |
 | **svcs** | Multi-datacenter service-level health checks for critical endpoints |
 | **net** | Network performance testing, SLO validation, and IPv6 connectivity checks |
+| **tui** | Interactive terminal dashboard for running all diagnostics with live status |
 
 ## Features
 
@@ -1174,6 +1175,107 @@ INFO: Attempting to ping all well known servers, this may take a few...
 
 
 
+```
+</p>
+</details>
+
+------------------------------------------------------------------------------
+
+## TUI
+```
+$ doxctl tui -h
+
+Launch an interactive terminal dashboard to run and monitor doxctl diagnostics.
+
+Use arrow keys to navigate, space to toggle checks, enter to run, e to export results.
+
+Usage:
+  doxctl tui [flags]
+
+Flags:
+  -h, --help   help for tui
+
+Global Flags:
+  -c, --config string   config file (default is $HOME/.doxctl.yaml)
+  -o, --output string   Output format: table, json, yaml (default "table")
+  -v, --verbose         Enable verbose output of commands
+```
+
+### Key Bindings
+
+| Key | Action |
+|-----|--------|
+| `↑` / `k` | Move cursor up |
+| `↓` / `j` | Move cursor down |
+| `space` | Toggle check on/off |
+| `enter` / `r` | Run all selected checks |
+| `e` | Export results to JSON file |
+| `q` / `ctrl+c` | Quit |
+
+### Available Checks
+
+| ID | Name | Command |
+|----|------|---------|
+| dns-cfg | DNS Resolver Config | `dns --domName --domSearch --domAddr` |
+| dns-ping | DNS Resolver Ping | `dns --ping` |
+| vpn-iface | VPN Interface | `vpn --ifReachableChk` |
+| vpn-routes | VPN Routes | `vpn --routeChk` |
+| svrs | Server Reachability | `svrs --reach` |
+| net-perf | Network Performance | `net --perf` |
+
+### Example Output
+
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+```
+$ doxctl tui
+
+╔══════════════════════════════════════════╗
+║  doxctl TUI Dashboard                   ║
+╚══════════════════════════════════════════╝
+
+  [space] toggle  [enter] run  [e] export  [q] quit
+
+  [✓] ○ DNS Resolver Config            [pending]
+  [✓] ○ DNS Resolver Ping              [pending]
+  [✓] ◌ ⣾ VPN Interface               [running]
+  [✓] ✓ VPN Routes                    [2.3s]
+  [✓] ✗ Server Reachability           [1.1s]
+  [ ] - Network Performance           [skipped]
+
+  Progress: 2/5 complete
+
+  # After all checks complete:
+  Progress: 4/5 complete | ✓ 3 passed ✗ 1 failed
+
+  Press [e] to export results as JSON
+
+  # After pressing [e]:
+  Exported to doxctl-tui-results-20260912-091530.json
+```
+
+##### Exported JSON
+```json
+{
+  "timestamp": "2026-09-12T09:15:30Z",
+  "results": [
+    {
+      "id": "dns-cfg",
+      "name": "DNS Resolver Config",
+      "passed": true,
+      "duration": "0.42s",
+      "output": "{ ... }"
+    },
+    {
+      "id": "vpn-iface",
+      "name": "VPN Interface",
+      "passed": false,
+      "duration": "1.10s",
+      "errOut": "VPN interface not found"
+    }
+  ]
+}
 ```
 </p>
 </details>

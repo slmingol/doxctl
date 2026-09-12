@@ -45,7 +45,6 @@ type tuiModel struct {
 	cfgFile  string
 	spinner  spinner.Model
 	exported string
-	err      error
 }
 
 type checkStartMsg struct{ id string }

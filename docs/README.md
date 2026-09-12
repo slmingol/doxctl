@@ -26,7 +26,7 @@
 | **vpn** | Check VPN connection status, network interfaces, and route configuration |
 | **svrs** | Test connectivity to well-known servers through VPN |
 | **svcs** | Multi-datacenter service-level health checks for critical endpoints |
-| **net** | Network performance testing and SLO validation (latency, jitter, packet loss) |
+| **net** | Network performance testing, SLO validation, and IPv6 connectivity checks |
 
 ## Features
 
@@ -332,6 +332,7 @@ This command measures:
   - Jitter (latency variance)
   - Packet loss percentage
   - SLO compliance (latency threshold)
+  - IPv6 connectivity and dual-stack detection
 
 Examples:
   # Test network performance to configured targets
@@ -343,10 +344,17 @@ Examples:
   # Specify number of packets to send (default: 10)
   doxctl net --perf --packets 20
 
+  # Run IPv6 connectivity checks
+  doxctl net --ipv6
+
+  # IPv6 checks with JSON output
+  doxctl net --ipv6 -o json
+
 Usage:
   doxctl net [flags]
 
 Flags:
+  -6, --ipv6          Run IPv6 connectivity checks
   -h, --help          help for net
   -n, --packets int   Number of packets to send (default 10)
   -p, --perf          Run network performance tests
@@ -422,6 +430,64 @@ $ doxctl net --perf -o json
     "totalTargets": 1,
     "passing": 1,
     "failing": 0
+  }
+}
+```
+</p>
+</details>
+
+#### IPv6 Connectivity Check
+
+<details><summary>Tree - CLICK ME</summary>
+<p>
+
+##### Table Output
+```
+$ doxctl net --ipv6
+
+┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+│ IPv6 Connectivity Check                                                                      │
+├───────────────────────┬──────────────────────────┬──────┬────────────┬───────────┬─────────────┤
+│ HOST                  │ IPV6 ADDRESSES           │ AAAA │ DUAL-STACK │ REACHABLE │ LATENCY (MS) │
+├───────────────────────┼──────────────────────────┼──────┼────────────┼───────────┼─────────────┤
+│ lab1.example.com      │ 2001:db8::1              │ ✓    │ ✓          │ ✓         │ 12.40       │
+│ rdu1.example.com      │ 2001:db8::2              │ ✓    │ ✓          │ ✓         │ 18.20       │
+│ ipv4only.example.com  │ -                        │ ✗    │ ✗          │ ✗         │ -           │
+└───────────────────────┴──────────────────────────┴──────┴────────────┴───────────┴─────────────┘
+
+Summary: 3 hosts | 2 dual-stack | 0 IPv6-only | 2 reachable
+IPv6 routing: default route ✓ | 8 routes found
+```
+
+##### JSON Output
+```
+$ doxctl net --ipv6 -o json
+
+{
+  "timestamp": "2026-03-02T10:30:00Z",
+  "hostResults": [
+    {
+      "timestamp": "2026-03-02T10:30:00Z",
+      "host": "lab1.example.com",
+      "ipv6Addrs": ["2001:db8::1"],
+      "hasAAAA": true,
+      "hasA": true,
+      "dualStack": true,
+      "reachable": true,
+      "latencyMs": 12.4
+    }
+  ],
+  "routeInfo": {
+    "hasDefaultRoute": true,
+    "routeCount": 8,
+    "routes": ["default via fe80::1 dev en0", "..."]
+  },
+  "summary": {
+    "totalHosts": 3,
+    "dualStack": 2,
+    "ipv6Only": 0,
+    "reachable": 2,
+    "unreachable": 1
   }
 }
 ```

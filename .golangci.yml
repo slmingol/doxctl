@@ -41,7 +41,7 @@ run:
   timeout: 5m
   tests: true
   modules-download-mode: readonly
-  go: '1.23'  # golangci-lint doesn't support 1.25 yet
+  go: '1.25'  # golangci-lint v1.x incompatible with Go 1.27 export data format v4
 
 issues:
   exclude-use-default: false

@@ -5,6 +5,10 @@
   ],
   "packageRules": [
     {
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
       "matchPackageNames": [
         "github.com/charmbracelet/bubbles",
         "github.com/charmbracelet/bubbletea",

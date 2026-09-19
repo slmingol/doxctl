@@ -2,5 +2,16 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended"
+  ],
+  "packageRules": [
+    {
+      "matchPackageNames": [
+        "github.com/charmbracelet/bubbles",
+        "github.com/charmbracelet/bubbletea",
+        "github.com/charmbracelet/lipgloss"
+      ],
+      "allowedVersions": "<2.0.0",
+      "description": "Charmbracelet v2 uses charm.land/* module paths, not github.com/charmbracelet/*/v2. Block until correct paths are used."
+    }
   ]
 }

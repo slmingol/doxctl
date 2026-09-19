@@ -27,7 +27,7 @@ jobs:
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v6
       with:
-        version: v1.62
+        version: v1.64
         install-mode: goinstall
     - name: Test with Race Detector
       run: go test -v -race ./...

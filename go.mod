@@ -3,9 +3,9 @@ module doxctl
 go 1.25.0
 
 require (
-	github.com/charmbracelet/bubbles/v2 v2.2.1
+	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
-	github.com/charmbracelet/lipgloss/v2 v2.0.6
+	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/go-ping/ping v1.2.0
 	github.com/gookit/color v1.6.1
 	github.com/kujtimiihoxha/go-brace-expansion v0.0.0-20190729224542-0df038447e67
@@ -50,8 +50,6 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
-	go.uber.org/atomic v1.9.0 // indirect
-	go.uber.org/multierr v1.9.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67 // indirect
 	golang.org/x/net v0.57.0 // indirect

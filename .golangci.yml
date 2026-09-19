@@ -9,8 +9,6 @@ linters:
     - ineffassign   # Detect ineffectual assignments
     - staticcheck   # Go static analysis (includes gosimple checks in v2)
     - unused        # Check for unused code
-    - gofmt         # Format code
-    - goimports     # Manage imports
     - misspell      # Spell checker
     - revive        # Fast, configurable linter
   settings:
@@ -24,6 +22,44 @@ linters:
           disabled: false
         - name: package-comments
           disabled: true  # Not enforcing package comments for now
+  exclusions:
+    rules:
+      # Ignore deprecation warnings for go-ping/ping dependency until it's replaced
+      - linters:
+          - staticcheck
+        text: "github.com/go-ping/ping.*is deprecated"
+      # Ignore fieldalignment - premature optimization for a CLI tool
+      - linters:
+          - govet
+        text: "fieldalignment:"
+      # Ignore shadow warnings in tests
+      - linters:
+          - govet
+        text: "shadow:"
+        path: "_test\\.go"
+      # Ignore unusedwrite in test fixtures
+      - linters:
+          - govet
+        text: "unusedwrite:"
+        path: "_test\\.go"
+      # Relax error checking in test files
+      - linters:
+          - errcheck
+        path: "_test\\.go"
+      # Relax gosec error checking in test files
+      - linters:
+          - gosec
+        text: "G104:"
+        path: "_test\\.go"
+      # Ignore G104 for output.Print - output formatting errors are not critical
+      - linters:
+          - gosec
+        text: "output.Print"
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
 
 run:
   timeout: 5m
@@ -31,38 +67,5 @@ run:
   modules-download-mode: readonly
 
 issues:
-  exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
-  exclude-rules:
-    # Ignore deprecation warnings for go-ping/ping dependency until it's replaced
-    - linters:
-        - staticcheck
-      text: "github.com/go-ping/ping.*is deprecated"
-    # Ignore fieldalignment - premature optimization for a CLI tool
-    - linters:
-        - govet
-      text: "fieldalignment:"
-    # Ignore shadow warnings in tests
-    - linters:
-        - govet
-      text: "shadow:"
-      path: "_test\\.go"
-    # Ignore unusedwrite in test fixtures
-    - linters:
-        - govet
-      text: "unusedwrite:"
-      path: "_test\\.go"
-    # Relax error checking in test files
-    - linters:
-        - errcheck
-      path: "_test\\.go"
-    # Relax gosec error checking in test files
-    - linters:
-        - gosec
-      text: "G104:"
-      path: "_test\\.go"
-    # Ignore G104 for output.Print - output formatting errors are not critical
-    - linters:
-        - gosec
-      text: "output.Print"

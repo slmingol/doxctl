@@ -356,11 +356,12 @@ func vpnConnChkWithDeps(executor CommandExecutor) {
 		// Table output with Ocean theme
 		// Customize description based on client type
 		var description string
-		if hostVpnClient == "anyconnect" {
+		switch hostVpnClient {
+		case "anyconnect":
 			description = "VPN Client (AnyConnect) reports connection status as 'Connected'?"
-		} else if hostVpnClient == "generic" {
+		case "generic":
 			description = "VPN Connection detected (via TUN interface + routes)?"
-		} else {
+		default:
 			description = "VPN Client reports connection status as 'Connected'?"
 		}
 

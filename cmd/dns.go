@@ -363,7 +363,7 @@ func dnsResolverPingChkWithDeps(executor CommandExecutor, fileReader FileReader,
 					netInterface = getVPNInterface()
 				}
 
-				target := fmt.Sprintf("%s:%d", ip, dnsPort)
+				target := net.JoinHostPort(ip, fmt.Sprintf("%d", dnsPort))
 
 				// TCP check
 				_, errTCP := net.DialTimeout("tcp", target, 5*time.Second)

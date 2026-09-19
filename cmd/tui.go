@@ -198,9 +198,10 @@ func (m tuiModel) View() string {
 
 	passing, failing := 0, 0
 	for _, c := range m.checks {
-		if c.status == statusPass {
+		switch c.status {
+		case statusPass:
 			passing++
-		} else if c.status == statusFail {
+		case statusFail:
 			failing++
 		}
 	}

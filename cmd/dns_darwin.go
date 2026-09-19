@@ -99,7 +99,8 @@ func getVPNInterfaceWithDeps(executor CommandExecutor) string {
 
 	if err == nil && strings.Contains(string(out1), "InterfaceName") {
 		cmdGrep1 := `grep 'InterfaceName' | awk '{print $3}'`
-		out2, err := executor.Execute("bash", "-c", "echo \""+string(out1)+"\" | "+cmdGrep1)
+		out2, err2 := executor.Execute("bash", "-c", "echo \""+string(out1)+"\" | "+cmdGrep1)
+		err = err2
 		if err == nil {
 			vpnInterface := strings.TrimSpace(string(out2))
 			if len(vpnInterface) > 0 {

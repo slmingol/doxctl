@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/charmbracelet/bubbles/v2 v2.2.1
-	github.com/charmbracelet/bubbletea v1.3.10
+	github.com/charmbracelet/bubbletea/v2 v2.0.9
 	github.com/charmbracelet/lipgloss/v2 v2.0.6
 	github.com/go-ping/ping v1.2.0
 	github.com/gookit/color v1.6.1

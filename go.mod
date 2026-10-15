@@ -7,7 +7,7 @@ require (
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/go-ping/ping v1.2.0
-	github.com/gookit/color v1.6.1
+	github.com/gookit/color v1.6.3
 	github.com/kujtimiihoxha/go-brace-expansion v0.0.0-20190729224542-0df038447e67
 	github.com/lixiangzhong/dnsutil v1.4.0
 	github.com/miekg/dns v1.1.73
